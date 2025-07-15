@@ -1,0 +1,221 @@
+body { 
+    background-color: #f9f9f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 40px 0;
+}
+
+#escenario {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 40px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 12px;
+}
+
+h1, h2, h3 {
+    text-align: center;
+    color: #333;
+}
+
+h1 {
+    font-size: 2.2rem;
+}
+
+h2 {
+    font-size: 1.8rem;
+}
+
+h3 {
+    font-size: 1.4rem;
+}
+
+.subfrase {
+    text-align: center;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.imagen img {
+    max-width: 300px;
+    display: block;
+    margin: 0 auto;
+}
+
+.gallery {
+    text-align: center;
+}
+
+.thumbnail {
+    max-width: 100px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.amazon-link {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.btn-amazon {
+    padding: 12px 25px;
+    background-color: #3cb043;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    display: inline-block;
+    font-size: 1.1rem;
+}
+
+.btn-amazon:hover {
+    background-color: #339f3c;
+}
+
+.lectura-box,
+.presenta-libro,
+.escucha-libro {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 25px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    font-family: inherit;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#grabar {
+    background-color: #3498db;
+    color: #fff;
+}
+
+#grabar:hover {
+    background-color: #2980b9;
+}
+
+#detener {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+#detener:hover {
+    background-color: #c0392b;
+}
+
+#descargar {
+    background-color: #2ecc71;
+    color: #fff;
+}
+
+#descargar:hover {
+    background-color: #27ae60;
+}
+
+#escucharTodo,
+.btn-escuchar {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    display: inline-block;
+}
+
+#escucharTodo:hover,
+.btn-escuchar:hover {
+    background-color: #e0e0e0;
+}
+
+audio {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+input[type="file"],
+input[type="url"] {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+input[type="url"] {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+form button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #2980b9;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    max-width: 80%;
+    max-height: 80%;
+}
+
+.close {
+    position: absolute;
+    top: 30px;
+    right: 50px;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+#contadorLibros {
+    font-size: 0.8rem;
+    color: #999;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255,255,255,0.8);
+    padding: 5px 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 3px rgba(0,0,0,0.1);
+}
