@@ -231,3 +231,32 @@ async function guardarLibroEnSupabase(titulo, portadaURL, contraportadaURL, pagi
         contarLibros(); // Actualiza el contador
     }
 }
+// ----------------- OBTENER PENDIENTES -----------------
+async function obtenerLibrosPendientes() {
+    const { data, error } = await supabase
+        .from('libros_usuarios')
+        .select('*')
+        .eq('aprobado', false);
+
+    if (error) {
+        console.error('Error obteniendo libros pendientes:', error);
+        return;
+    }
+    console.log('Libros pendientes por aprobar:', data);
+}
+obtenerLibrosPendientes();
+
+// ----------------- APROBAR LIBRO -----------------
+async function aprobarLibro(idLibro) {
+    const { error } = await supabase
+        .from('libros_usuarios')
+        .update({ aprobado: true })
+        .eq('id', idLibro);
+
+    if (error) {
+        console.error('Error aprobando libro:', error);
+    } else {
+        alert('Libro aprobado correctamente ✅');
+        contarLibros();
+    }
+}
