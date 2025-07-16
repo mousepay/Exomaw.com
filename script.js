@@ -163,3 +163,25 @@ document.querySelector(".btn-escuchar").addEventListener("click", () => {
 // Reemplaza la fuente del audio manualmente para asegurarte que funciona
 const audioPublico = document.getElementById("audioLecturaPublica");
 audioPublico.src = "https://jidiuirdoflaangizzqb.supabase.co/storage/v1/object/public/libros-audios/Nuevo_proyecto%20(1).mp3";
+// ----------------- CONTADOR DE LIBROS -----------------
+async function contarLibros() {
+    try {
+        const { count, error } = await supabase
+            .from('libros_usuarios')
+            .select('*', { count: 'exact' });
+
+        if (error) {
+            console.error('Error al contar los libros:', error);
+            return;
+        }
+
+        const contadorDiv = document.getElementById('contadorLibros');
+        if (contadorDiv) {
+            contadorDiv.textContent = `📚 Libros subidos: ${count}`;
+        }
+    } catch (err) {
+        console.error('Error inesperado:', err);
+    }
+}
+
+contarLibros();
