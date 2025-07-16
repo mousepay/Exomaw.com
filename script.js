@@ -239,3 +239,5 @@ async function aprobarLibro(idLibro) {
         contarLibros();
     }
 }
+obtenerLibrosAprobados();
+contarLibros();
