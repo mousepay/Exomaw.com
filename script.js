@@ -185,3 +185,49 @@ async function contarLibros() {
 }
 
 contarLibros();
+// ----------------- CONTADOR DE LIBROS -----------------
+async function contarLibros() {
+    try {
+        const { count, error } = await supabase
+            .from('libros_usuarios')
+            .select('*', { count: 'exact' });
+
+        if (error) {
+            console.error('Error al contar los libros:', error);
+            return;
+        }
+
+        const contadorDiv = document.getElementById('contadorLibros');
+        if (contadorDiv) {
+            contadorDiv.textContent = `📚 Libros subidos: ${count}`;
+        }
+    } catch (err) {
+        console.error('Error inesperado:', err);
+    }
+}
+
+contarLibros();
+async function guardarLibroEnSupabase(titulo, portadaURL, contraportadaURL, pagina1URL, pagina2URL, enlaceAmazon) {
+    const { data, error } = await supabase
+        .from('libros_usuarios')
+        .insert([
+            {
+                titulo: titulo,
+                portada_url: portadaURL,
+                contraportada_url: contraportadaURL,
+                pagina1_url: pagina1URL,
+                pagina2_url: pagina2URL,
+                enlace_amazon: enlaceAmazon,
+                fecha_subida: new Date(),
+                aprobado: false
+            }
+        ]);
+
+    if (error) {
+        console.error('Error al guardar libro:', error);
+        alert('Error al guardar libro en la base de datos');
+    } else {
+        alert('¡Libro guardado correctamente en la base de datos!');
+        contarLibros(); // Actualiza el contador
+    }
+}
