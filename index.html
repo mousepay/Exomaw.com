@@ -1,102 +1,50 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exomaw presenta: Libros Anónimos, Lecturas Únicas</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Presentación del universo literario híbrido Exomaw.">
+  <title>EXOMAW – Próximamente</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body id="escenario">
+<body>
 
-  <div style="text-align: center; padding: 20px;">
-    <p style="font-size: 1.2rem; color: #333;">
-      Explora un libro diferente. Aquí puedes ver, escuchar y leer.
-    </p>
-  </div>
+  <!-- Portada de fondo -->
+  <div class="overlay"></div>
 
-  <h1>Exomaw presenta: <span class="verde">Libros Anónimos</span></h1>
-  <p class="subfrase">“Esta página no conecta personas. Conecta mentes que se atreven a leer algo distinto.”</p>
-  <p class="subfrase">Bienvenid@ al rincón mental más absurdo del siglo.</p>
+  <!-- Card principal -->
+  <main id="card" class="wrap hero card ">
+    <button id="toggleMini" aria-pressed="false" title="Minimizar / Restaurar">◱</button>
+    <div class="grid">
+      <section class="p-hero">
+        <span class="kicker">Presentación</span>
+        <h2 class="title">
+          Próximamente podrás <em>entrar</em> en el mundo EXOMAW
+        </h2>
+        <p class="lead">
+          Una experiencia híbrida: novela en papel + pistas digitales.  
+          La primera historia seguirá a <strong id="prota">Nora Torres</strong>.
+        </p>
+      </section>
 
-  <div style="display:flex; justify-content:center; align-items:flex-start; gap:40px;">
-    <div class="imagen">
-      <img src="exomawlibro.png" alt="Exomaw Laboratorio" />
+      <div class="count" role="timer" aria-live="polite">
+        <div class="time"><b id="d">00</b><span>días</span></div>
+        <div class="time"><b id="h">00</b><span>horas</span></div>
+        <div class="time"><b id="m">00</b><span>min</span></div>
+        <div class="time"><b id="s">00</b><span>s</span></div>
+      </div>
+
+      <p class="foot">
+        Cuenta atrás hasta el anuncio oficial. Portal de prueba: #P-01 (desactivado)
+      </p>
+      <button class="cta">Ver portal de prueba</button>
     </div>
+  </main>
 
-    <div class="gallery">
-      <h3>Libro subido:</h3>
-      <img src="portada.jpg" class="thumbnail" alt="Portada del libro" onclick="openModal(this.src)">
-      <img src="contraportada.jpg" class="thumbnail" alt="Contraportada del libro" onclick="openModal(this.src)">
-      <img src="pagina1.jpg" class="thumbnail" alt="Página interior 1" onclick="openModal(this.src)">
-      <img src="pagina2.jpg" class="thumbnail" alt="Página interior 2" onclick="openModal(this.src)">
-    </div>
-  </div>
-
-  <div style="text-align: center; margin-top: 10px;">
-    <span style="font-size: 1rem; color: #666;">👇 Desliza para ver y escuchar 👇</span>
-  </div>
-
-  <section class="escucha-libro">
-    <h2>🎧 Escucha este libro</h2>
-    <p>Aquí puedes escuchar fragmentos leídos por los propios autores o por los usuarios que se animaron a grabarse. ¡Inspírate y disfruta!</p>
-    <p>(Aquí podrías añadir tu audio más adelante...)</p>
-
-    <audio id="audioLecturaPublica" controls 
-      src="https://jidiuirdoflaangizzqb.supabase.co/storage/v1/object/public/libros-audios/lectura.mp3">
-    </audio>
-
-    <button class="btn-escuchar">🎧 Escuchar todo (libro + lectura pública)</button>
-  </section>
-
-  <div class="amazon-link">
-    <a href="https:/www.amazon.es/dp/B0FBPGN9GV" target="_blank" class="btn-amazon">
-      📘 Consigue este libro en Amazon
-    </a>
-  </div>
-
-  <section class="lectura-box">
-    <h2>🎙️ Prueba de Lectura</h2>
-    <p>Escribe un texto, grábate leyéndolo, escúchate y mejora tu ritmo y dirección.</p>
-    <textarea id="textoLectura" placeholder="Escribe o pega tu texto aquí..."></textarea><br>
-    <button id="grabar">🎤 Grabar</button>
-    <button id="detener" disabled>⏹️ Detener</button>
-    <button id="descargar">💾 Descargar tu Lectura</button><br>
-    <audio id="audioPlayback" controls></audio>
-    <div id="feedbackLectura"></div>
-    <button id="escucharTodo">🔊 Escuchar todos (tu libro + tu lectura)</button>
-  </section>
-
-  <h3>O si ya tienes tu audio grabado, súbelo aquí:</h3>
-  <input type="file" id="archivoInput" accept="audio/*">
-  <button id="subirArchivoBtn">📤 Subir tu Audio</button>
-
-  <section class="presenta-libro">
-    <h2>📚 ¿Tienes un libro? ¡Preséntalo en Exomaw!</h2>
-    <p>Sube aquí la portada, la contraportada, un par de hojas y el enlace de Amazon si lo tienes.</p>
-    <form>
-      <label for="portadaLibro">Portada y contraportada (puedes subir 2 imágenes JPG/PNG):</label><br>
-      <input type="file" id="portadaLibro" name="portadaLibro" accept="image/*" multiple><br><br>
-      <label for="hojasLibro">Páginas interiores (puedes subir 2 imágenes JPG/PNG):</label><br>
-      <input type="file" id="hojasLibro" name="hojasLibro" accept="image/*" multiple><br><br>
-      <label for="enlaceAmazon">Enlace de Amazon (opcional):</label><br>
-      <input type="url" id="enlaceAmazon" name="enlaceAmazon" placeholder="https://www.amazon..."><br><br>
-      <button type="button" onclick="alert('Tu libro ha sido enviado para revisión. 📖')">Enviar</button>
-    </form>
-  </section>
-
-  <div id="myModal" class="modal">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="imgModal">
-  </div>
-
-  <footer style="text-align: center; padding: 20px; color: #999; font-size: 0.9rem;">
-    Exomaw © 2025
+  <footer>
+    © EXOMAW — Demo de presentación (proyecto de literatura inmersiva).
   </footer>
 
-  <div id="contadorLibros">📚 Libros subidos: </div>
-
-  <script src="script.js" type="module"></script>
+  <script src="script.js"></script>
 </body>
 </html>
-<!-- Último cambio: 14/07/2025 -->
-<!-- Fuerzo cambio manual 17/07/2025 -->
