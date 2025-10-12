@@ -1,90 +1,132 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pista #P-01 — El Taller del Relojero</title>
   <style>
-    body {
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
       margin: 0;
-      padding: 0;
-      overflow: hidden;
       background: #000;
-      font-family: 'Playfair Display', serif;
-      color: rgba(255, 255, 255, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      font-family: "Playfair Display", Georgia, serif;
+      color: rgba(255,255,255,.92);
     }
-
     .scene {
       position: relative;
       width: 100%;
-      height: 100%;
-      background: url('./assets/reloj.png') no-repeat center center/cover;
-      animation: fadein 3s ease-in-out;
-      filter: brightness(0.7) contrast(1.1);
+      height: 100vh;
+      overflow: hidden;
+      animation: fadein 1.5s ease;
     }
+    @keyframes fadein { from {opacity:0} to {opacity:1} }
 
-    @keyframes fadein {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .glow {
+    /* Fondo como IMG para asegurar carga */
+    .bg {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #a3ffcb;
-      text-shadow: 0 0 10px #4efcb2, 0 0 20px #4efcb2, 0 0 30px #4efcb2;
-      font-size: 1.4em;
-      text-align: center;
-      animation: flicker 3s infinite alternate;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.1) brightness(.75);
+      transform: scale(1.02);
     }
 
+    /* Leve velo + viñeta para dramatismo */
+    .vignette::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 90%);
+    }
+
+    /* Destello verdoso sutil (sobre agujas) */
+    .glow-hint {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 52% 53%, rgba(78,252,178,.18) 0%, rgba(78,252,178,0) 22%),
+        radial-gradient(circle at 50% 48%, rgba(78,252,178,.08) 0%, rgba(78,252,178,0) 28%);
+      mix-blend-mode: screen;
+      animation: breath 3.5s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes breath {
+      from { opacity: .6 }
+      to   { opacity: .95 }
+    }
+
+    .glow-text {
+      position: absolute;
+      bottom: 16vh;
+      width: 100%;
+      text-align: center;
+      padding: 0 6vw;
+      color: #a6ffd2;
+      text-shadow: 0 0 8px #4efcb2, 0 0 18px #4efcb2;
+      animation: flicker 3s infinite alternate;
+      line-height: 1.55;
+      font-size: clamp(18px, 2.6vw, 28px);
+    }
+    .glow-text em {
+      display: inline-block;
+      margin-top: .9em;
+      font-style: italic;
+      font-size: .9em;
+      opacity: .95;
+    }
     @keyframes flicker {
-      0% { opacity: 0.85; text-shadow: 0 0 5px #4efcb2, 0 0 15px #4efcb2; }
-      100% { opacity: 1; text-shadow: 0 0 20px #4efcb2, 0 0 30px #4efcb2; }
+      0%   { text-shadow: 0 0 6px #4efcb2, 0 0 12px #4efcb2; opacity:.88 }
+      100% { text-shadow: 0 0 18px #4efcb2, 0 0 28px #4efcb2; opacity:1 }
     }
 
     .btn {
       position: absolute;
-      bottom: 30px;
       left: 50%;
+      bottom: 5vh;
       transform: translateX(-50%);
       padding: 10px 20px;
-      background: rgba(159, 255, 209, 0.1);
+      color: #9fffd1;
       border: 1px solid #9fffd1;
       border-radius: 10px;
-      color: #9fffd1;
+      background: rgba(159,255,209,.08);
       text-decoration: none;
-      transition: background 0.3s;
-      font-size: 1em;
+      transition: background .25s;
+      font-size: clamp(14px, 1.8vw, 16px);
     }
+    .btn:hover { background: rgba(159,255,209,.22); }
 
-    .btn:hover {
-      background: rgba(159, 255, 209, 0.3);
-    }
-
-    audio {
-      display: none;
-    }
+    audio { display: none; }
   </style>
 </head>
 <body>
-  <div class="scene">
-    <div class="glow">
-      <p>“Cada mañana a las 8:30, el reloj marcaba lo mismo.<br>
-      Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
-      <p><em>Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</em></p>
+  <div class="scene vignette">
+    <!-- ⬇️ Asegúrate de que este archivo exista exactamente en /portal/assets/reloj.png -->
+    <img class="bg" src="./assets/reloj.png" alt="Reloj de estación">
+
+    <!-- “brillo” sutil sobre el centro del reloj (insinuación de luminiscencia) -->
+    <div class="glow-hint"></div>
+
+    <div class="glow-text">
+      “Cada mañana a las 8:30, el reloj marcaba lo mismo.<br>
+      Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”
+      <br>
+      <em>Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</em>
     </div>
+
     <a href="../index.html" class="btn">Volver</a>
+
+    <!-- Opcional: ambiente de reloj -->
     <audio autoplay loop>
       <source src="./assets/tic-tac.mp3" type="audio/mpeg">
     </audio>
   </div>
 </body>
 </html>
+
+  
+
 
