@@ -1,42 +1,65 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal #P-01 — EXOMAW</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pista 1 — El Taller del Relojero</title>
   <style>
     body {
       margin: 0;
-      background: #0a0c10;
-      color: #eaf1fb;
-      font: 16px/1.6 system-ui, Segoe UI, Roboto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .wrap {
-      max-width: 720px;
-      padding: 2rem;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
+      overflow: hidden;
+      background: url('reloj-antiguo.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Playfair Display', serif;
+      color: rgba(255, 255, 255, 0.9);
       text-align: center;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      backdrop-filter: blur(2px);
     }
-    a {
-      color: #8be9fd;
+
+    .glow {
+      color: #9fffd1;
+      text-shadow: 0 0 10px #4efcb2, 0 0 20px #4efcb2, 0 0 30px #4efcb2;
+      font-size: 1.3em;
+      animation: flicker 3s infinite alternate;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.8; }
+      100% { opacity: 1; }
+    }
+
+    .btn {
+      margin-top: 30px;
+      padding: 12px 24px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid #9fffd1;
+      border-radius: 10px;
+      color: #9fffd1;
       text-decoration: none;
+      transition: background 0.3s;
     }
-    a:hover {
-      text-decoration: underline;
+
+    .btn:hover {
+      background-color: rgba(159, 255, 209, 0.3);
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Portal #P-01</h1>
-    <p>Este es un portal de prueba. Cuando el libro esté publicado, aquí aparecerá la primera pista.</p>
-    <p><a href="/">← Volver al inicio</a></p>
+  <div class="glow">
+    <p>“Dicen que el tiempo puede curar.<br>
+    Pero nadie habla del polvo que lo hace brillar.”</p>
+    <p><em>Archivo #P-01 — Registro de laboratorio incompleto.</em></p>
+    <a href="../index.html" class="btn">Volver</a>
   </div>
+
+  <audio autoplay loop>
+    <source src="tic-tac.mp3" type="audio/mpeg">
+  </audio>
 </body>
 </html>
+
+
