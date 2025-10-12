@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Pista con Libreta + Cerrar frase</title>
+<title>Pista + Libreta (B/N) con sangre al cerrar</title>
 <style>
   *,*::before,*::after{box-sizing:border-box}
   html,body{height:100%}
@@ -14,8 +14,8 @@
   .bg{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;filter:grayscale(100%) contrast(115%) brightness(.85);z-index:0}
   .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.65));z-index:0}
 
-  /* Sangre opcional */
-  .blood{position:absolute;inset:0;pointer-events:none;z-index:1;mix-blend-mode:multiply}
+  /* Sangre */
+  .blood{position:absolute;inset:0;pointer-events:none;z-index:1;mix-blend-mode:multiply;opacity:.85}
   .blood[data-on="0"]{display:none}
   .blood::before,.blood::after{
     content:"";position:absolute;left:0;top:-110%;width:100%;height:220%;
@@ -26,12 +26,23 @@
       radial-gradient(70px 200px at 70% 0%, rgba(80,0,0,.8),  transparent 70%),
       radial-gradient(40px 140px at 88% 0%, rgba(70,0,0,.75),  transparent 70%),
       linear-gradient(180deg, rgba(30,0,0,.7), rgba(10,0,0,.92) 55%, rgba(0,0,0,0) 90%);
-    filter:blur(1px);animation:drip 18s linear infinite;
+    filter:blur(1px);
+    animation: drip 18s linear infinite;
   }
   .blood::after{animation-delay:-9s;opacity:.9}
-  @keyframes drip{0%{transform:translateY(-7%)}100%{transform:translateY(7%)}}
 
-  /* Panel de la frase (con X para cerrar) */
+  /* Al CERRAR libreta: cubrir (flood) */
+  .blood.flood::before,.blood.flood::after{
+    animation: cover 9s ease-in forwards;
+  }
+  @keyframes drip{0%{transform:translateY(-7%)}100%{transform:translateY(7%)}}
+  @keyframes cover{
+    0%  {transform:translateY(-20%); opacity:.9}
+    50% {transform:translateY(10%);  opacity:1}
+    100%{transform:translateY(40%);  opacity:1}
+  }
+
+  /* Panel de frase (con X) */
   .panel{position:relative;z-index:2;width:min(1200px,92vw);background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
     border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:clamp(18px,2.8vw,34px);box-shadow:0 24px 60px rgba(0,0,0,.55);text-align:center}
   .panel.hidden{display:none}
@@ -53,7 +64,7 @@
   .showPhrase{position:fixed;right:14px;bottom:14px;z-index:9000;background:rgba(0,0,0,.6);color:#fff;border:1px solid #fff;border-radius:10px;
     padding:8px 12px;font-weight:700;cursor:pointer;backdrop-filter:blur(2px);display:none}
 
-  /* ===== MODAL Libreta (z-index MUY alto) ===== */
+  /* ===== MODAL Libreta (z-index alto) ===== */
   .modal[aria-hidden="true"]{display:none}
   .modal[aria-hidden="false"]{display:block}
   .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(2px);z-index:10000}
@@ -61,25 +72,26 @@
   .book,.page{pointer-events:auto;height:min(78vh,780px)}
   .book{width:min(44vw,520px);background:repeating-linear-gradient(135deg,#222,#222 14px,#111 14px,#111 28px);border-radius:18px 0 0 18px;
     box-shadow:0 18px 60px rgba(0,0,0,.7);transform-origin:left center;animation:open 900ms cubic-bezier(.2,.8,.2,1) forwards}
-  .page{--paper:#fff;--ink:#111;--line:#000;width:min(54vw,760px);background:var(--paper);color:var(--ink);border:2px solid #000;border-left:0;
+  .page{--paper:#111;--ink:#f1f1f1;--line:#fff; /* ← por defecto NEGRO */ 
+    width:min(54vw,760px);background:var(--paper);color:var(--ink);border:2px solid #000;border-left:0;
     border-radius:0 18px 18px 0;box-shadow:0 18px 60px rgba(0,0,0,.8);padding:14px 16px 16px;position:relative;overflow:hidden}
-  .page.dark{--paper:#0f0f0f;--ink:#f1f1f1;--line:#fff}
+  .page.light{--paper:#fff;--ink:#111;--line:#000}
   .page::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(var(--paper),var(--paper) 26px,rgba(0,0,0,.07) 27px);opacity:.35;pointer-events:none}
   .head{position:relative;display:flex;justify-content:space-between;align-items:center;z-index:2}
   .ttl{margin:0;font-size:1.05rem}
   .close{background:transparent;color:var(--ink);border:0;font-size:1.8rem;line-height:1;cursor:pointer;padding:0 6px}
   .tools{display:flex;justify-content:space-between;align-items:center;gap:.75rem;z-index:2;position:relative;margin-top:8px}
-  .left{display:flex;align-items:center;gap:.5rem}
+  .left{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
   .toggle{background:transparent;color:var(--ink);border:1px solid var(--ink);padding:6px 10px;border-radius:8px;font-weight:800;cursor:pointer}
   .ctl{background:#000;color:#fff;border:1px solid #000;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
-  .page.dark .ctl{background:#fff;color:#000;border-color:#fff}
+  .page:not(.light) .ctl{background:#fff;color:#000;border-color:#fff}
   .label{display:block;margin:10px 0 6px;color:var(--ink);z-index:2;position:relative}
   .ta{width:100%;min-height:220px;resize:vertical;padding:12px 12px 12px 16px;border-radius:12px;border:1px dashed var(--line);
     background:color-mix(in srgb,var(--paper) 92%, white 8%);color:var(--ink);outline:none;box-shadow:inset 0 2px 8px rgba(0,0,0,.08);z-index:2;position:relative}
   .board{width:100%;height:260px;background:var(--paper);border:1px solid var(--line);border-radius:12px;display:block;cursor:crosshair;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
   .ft{margin-top:8px;color:var(--ink);z-index:2;position:relative}
   @keyframes open{0%{transform:perspective(1200px) rotateY(0)}60%{transform:perspective(1200px) rotateY(-115deg)}100%{transform:perspective(1200px) rotateY(-180deg)}}
-  @media (max-width:960px){.book{display:none}.page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}.page.dark{border-left-color:#fff}}
+  @media (max-width:960px){.book{display:none}.page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}}
 </style>
 </head>
 <body>
@@ -89,7 +101,7 @@
     <!-- Cambia 'reloj.jpg' por tu imagen real -->
     <div class="bg" style="background-image:url('reloj.jpg')"></div>
     <div class="shade"></div>
-    <div class="blood" data-on="1"></div>
+    <div class="blood" id="blood" data-on="1"></div>
 
     <div class="panel" id="phrasePanel">
       <button class="closePhrase" id="closePhrase" title="Cerrar frase" aria-label="Cerrar frase">×</button>
@@ -98,9 +110,9 @@
 
       <div class="actions">
         <button class="btn" id="openNotes" type="button" aria-haspopup="dialog" aria-controls="notesModal">Abrir libreta</button>
-        <button class="btn btn-ghost" id="downloadNotes" type="button">Descargar pistas</button>
-        <!-- Pega aquí tu propio botón VOLVER si quieres que se vea junto -->
-        <span class="slot-volver"><!-- ejemplo: <a href="index.html" class="volver">Volver</a> --></span>
+        <button class="btn btn-ghost" id="downloadNotesTop" type="button">Descargar pistas</button>
+        <!-- Tu botón VOLVER aquí si quieres verlo junto (mantiene sus estilos) -->
+        <span class="slot-volver"><!-- ej: <a href="index.html" class="volver">Volver</a> --></span>
       </div>
     </div>
   </section>
@@ -123,12 +135,13 @@
 
           <div class="tools">
             <div class="left">
-              <button class="toggle" id="themeBtn">Tema: Blanco</button>
+              <button class="toggle" id="themeBtn">Tema: Negro</button>
               <button class="toggle" id="toolPen">Lápiz</button>
               <button class="toggle" id="toolEraser">Goma</button>
             </div>
             <div class="right">
               <button class="ctl" id="saveBtn"  type="button">Guardar</button>
+              <button class="ctl" id="downloadNotesIn" type="button">Descargar</button>
               <button class="ctl" id="clearBtn" type="button">Borrar</button>
             </div>
           </div>
@@ -139,7 +152,7 @@
           <label class="label" for="board">Dibuja (lápiz/goma):</label>
           <canvas class="board" id="board"></canvas>
 
-          <footer class="ft"><small>Se guarda en este navegador. Puedes descargar tus pistas desde el botón de la portada.</small></footer>
+          <footer class="ft"><small>Se guarda en este navegador. Puedes descargar tus pistas desde aquí o desde la portada.</small></footer>
         </div>
       </div>
     </div>
@@ -175,19 +188,26 @@
 
   const saveBtn   = document.getElementById('saveBtn');
   const clearBtn  = document.getElementById('clearBtn');
+  const dlTop     = document.getElementById('downloadNotesTop');
+  const dlIn      = document.getElementById('downloadNotesIn');
 
   const ta        = document.getElementById('ta');
   const board     = document.getElementById('board');
   const ctx       = board.getContext('2d');
 
-  const dlBtn     = document.getElementById('downloadNotes');
+  const blood     = document.getElementById('blood');
 
   let tool = 'pencil';
 
+  function isLight(){ return page.classList.contains('light'); }
+  function penColor(){ return isLight() ? '#000' : '#fff'; }
+
   function openModal(){
     modal.setAttribute('aria-hidden','false');
-    // opcional: ocultar la frase al abrir la libreta para que no moleste
+    // ocultar frase para que no moleste
     phrasePanel.classList.add('hidden'); showPhrase.style.display='inline-block';
+    // quitar “flood” si estaba activo
+    blood.classList.remove('flood');
 
     try{
       const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
@@ -197,7 +217,9 @@
         img.onload = () => { resizeBoard(); ctx.clearRect(0,0,board.width,board.height); ctx.drawImage(img,0,0,board.width,board.height); };
         img.src = data.img;
       } else { resizeBoard(); }
-      if (data.theme === 'dark'){ page.classList.add('dark'); themeBtn.textContent='Tema: Negro'; }
+      // por defecto tema NEGRO; si había guardado blanco, se aplica
+      if (data.theme === 'light'){ page.classList.add('light'); themeBtn.textContent='Tema: Blanco'; }
+      else { page.classList.remove('light'); themeBtn.textContent='Tema: Negro'; }
     }catch(e){ resizeBoard(); }
 
     setTimeout(()=>ta.focus(),40);
@@ -206,20 +228,24 @@
   function closeModal(){
     modal.setAttribute('aria-hidden','true');
     document.removeEventListener('keydown', escClose);
+    // activar efecto de sangre que cubre la imagen
+    blood.classList.add('flood');
   }
   function escClose(e){ if(e.key==='Escape') closeModal(); }
 
   openBtn.addEventListener('click', openModal);
   backdrops.forEach(el=>el.addEventListener('click', closeModal));
 
+  /* Tema: cambia entre Negro (por defecto) y Blanco */
   themeBtn.addEventListener('click', ()=>{
-    page.classList.toggle('dark');
-    themeBtn.textContent = page.classList.contains('dark') ? 'Tema: Negro' : 'Tema: Blanco';
-    resizeBoard();
+    page.classList.toggle('light');
+    themeBtn.textContent = isLight() ? 'Tema: Blanco' : 'Tema: Negro';
+    resizeBoard(); // reconfigura canvas
   });
   toolPen.addEventListener('click', ()=> tool='pencil');
   toolEra.addEventListener('click', ()=> tool='eraser');
 
+  /* Canvas responsivo */
   function resizeBoard(){
     const r = board.getBoundingClientRect();
     const tmp = document.createElement('canvas');
@@ -228,17 +254,24 @@
     board.width = r.width; board.height = r.height;
     ctx.drawImage(tmp,0,0);
     ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=2.2;
+    // ajustar color del lápiz según tema actual
+    ctx.strokeStyle = penColor();
+    ctx.globalCompositeOperation='source-over';
   }
   new ResizeObserver(resizeBoard).observe(board);
 
+  /* Dibujo */
   let drawing=false,lastX=0,lastY=0;
-  const color = ()=> page.classList.contains('dark') ? '#fff' : '#000';
-
   function start(x,y){ drawing=true; [lastX,lastY]=[x,y]; }
   function move(x,y){
     if(!drawing) return;
-    if(tool==='pencil'){ ctx.globalCompositeOperation='source-over'; ctx.strokeStyle=color(); }
-    else               { ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='rgba(0,0,0,1)'; }
+    if(tool==='pencil'){
+      ctx.globalCompositeOperation='source-over';
+      ctx.strokeStyle = penColor();     // <— BLANCO en tema negro, NEGRO en tema blanco
+    }else{
+      ctx.globalCompositeOperation='destination-out';
+      ctx.strokeStyle='rgba(0,0,0,1)';
+    }
     ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
     [lastX,lastY]=[x,y];
   }
@@ -258,8 +291,9 @@
   board.addEventListener('touchmove',  e=>{const p=pos(e); move(p.x,p.y);  e.preventDefault();},{passive:false});
   window.addEventListener('touchend', end, {passive:true});
 
+  /* Guardar / Borrar */
   function save(){
-    const data = { text: ta.value || '', img: board.toDataURL('image/png'), theme: page.classList.contains('dark')?'dark':'light' };
+    const data = { text: ta.value || '', img: board.toDataURL('image/png'), theme: isLight() ? 'light' : 'dark' };
     localStorage.setItem(storageKey, JSON.stringify(data));
     saveBtn.textContent='Guardado ✓'; setTimeout(()=> saveBtn.textContent='Guardar', 900);
   }
@@ -274,7 +308,8 @@
     ta.value=''; ctx.clearRect(0,0,board.width,board.height);
   });
 
-  dlBtn.addEventListener('click', ()=>{
+  /* Descargar (portada y dentro de libreta) */
+  function downloadNotes(){
     const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
     const frase  = document.querySelector('.q')?.textContent?.trim() || '';
     const meta   = document.querySelector('.meta')?.textContent?.trim() || '';
@@ -284,17 +319,15 @@
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a'); a.href=url; a.download='pistas.txt';
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
+  }
+  dlTop.addEventListener('click', downloadNotes);
+  dlIn.addEventListener('click', downloadNotes);
 
-  /* Sangre ON/OFF por data-attribute */
-  const bloodLayer = document.querySelector('.blood');
-  const bloodOn = document.querySelector('.hero')?.dataset?.blood === '1';
-  if(bloodLayer) bloodLayer.setAttribute('data-on', bloodOn ? '1' : '0');
 })();
 </script>
-
 </body>
 </html>
+
 
 
 
