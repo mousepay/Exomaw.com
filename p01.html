@@ -1,51 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pista + Libreta + Descarga</title>
-
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pista con Libreta</title>
 <style>
-  :root{
-    /* === AJUSTA TU IMAGEN AQUÍ === */
-    --bg-image: url("TU/RUTA/RELOJ.jpg"); /* ← pon tu archivo */
-
-    /* Efecto “sangre” (1 = activado, 0 = desactivado) */
-    --blood: 1;
-  }
-
-  /* Reset */
+  /* ======= Paleta B/N y reset ======= */
   *,*::before,*::after{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:#0b0b0b;color:#eaeaea;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+  body{margin:0;background:#0b0b0b;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 
-  /* ============ HERO con imagen de fondo ============ */
-  .exscene-hero{
+  /* ======= HERO con imagen de fondo ======= */
+  .hero{
     position:relative; min-height:72vh; display:grid; place-items:center; overflow:hidden;
     background:#000;
   }
-  .exscene-hero::before{
-    content:""; position:absolute; inset:0;
-    background: var(--bg-image) center/cover no-repeat;
-    filter: grayscale(100%) contrast(115%) brightness(.85);
+  .hero .bg{
+    position:absolute; inset:0;
+    background-position:center; background-size:cover; background-repeat:no-repeat;
+    filter:grayscale(100%) contrast(115%) brightness(.85);
     z-index:0;
   }
-  /* Capa oscura para mejorar contraste del texto */
-  .exscene-hero::after{
-    content:""; position:absolute; inset:0;
-    background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.65));
-    z-index:0;
+  .hero .shade{
+    position:absolute; inset:0; z-index:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.65));
   }
 
-  /* ====== “Sangre” cayendo (oscuro, elegante) ====== */
-  .exscene-blood{
-    position:absolute; inset:0; pointer-events:none; z-index:1;
-    opacity: calc(var(--blood));
-    mix-blend-mode: multiply;
-  }
-  .exscene-blood::before,
-  .exscene-blood::after{
-    content:""; position:absolute; top:-110%; left:0; width:100%; height:220%;
+  /* Sangre opcional */
+  .blood{position:absolute;inset:0;pointer-events:none;z-index:1;mix-blend-mode:multiply}
+  .blood[data-on="0"]{display:none}
+  .blood::before,.blood::after{
+    content:"";position:absolute;left:0;top:-110%;width:100%;height:220%;
     background:
       radial-gradient(40px 140px at 8% 0%,  rgba(90,0,0,.75), transparent 70%),
       radial-gradient(60px 180px at 24% 0%, rgba(90,0,0,.8),  transparent 70%),
@@ -53,277 +38,231 @@
       radial-gradient(70px 200px at 70% 0%, rgba(80,0,0,.8),  transparent 70%),
       radial-gradient(40px 140px at 88% 0%, rgba(70,0,0,.75),  transparent 70%),
       linear-gradient(180deg, rgba(30,0,0,.7), rgba(10,0,0,.92) 55%, rgba(0,0,0,0) 90%);
-    filter: blur(1px);
-    animation: exscene-drip 18s linear infinite;
+    filter:blur(1px); animation:drip 18s linear infinite;
   }
-  .exscene-blood::after{ animation-delay: -9s; opacity:.9 }
-  @keyframes exscene-drip{
-    0%   { transform: translateY(-7%); }
-    100% { transform: translateY(7%);  }
-  }
+  .blood::after{animation-delay:-9s;opacity:.9}
+  @keyframes drip{0%{transform:translateY(-7%)}100%{transform:translateY(7%)}}
 
-  /* ============ Caja de la frase / botones ============ */
-  .exscene-quote-wrap{
-    position:relative; z-index:2; width:min(1200px,92vw);
-    background: rgba(0,0,0,.55);
-    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  /* Caja de frase y botones */
+  .panel{
+    position:relative; z-index:2;
+    width:min(1200px,92vw);
+    background:rgba(0,0,0,.55);
+    backdrop-filter:blur(4px);
     border:1px solid rgba(255,255,255,.2);
-    border-radius:16px; padding: clamp(18px, 2.8vw, 34px);
-    box-shadow: 0 24px 60px rgba(0,0,0,.55);
+    border-radius:16px;
+    padding:clamp(18px,2.8vw,34px);
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
     text-align:center;
   }
-  .exscene-quote{
-    margin:0 0 14px; color:#fff; font-weight:900; letter-spacing:.2px;
-    font-size: clamp(1.25rem, 1rem + 2.4vw, 3.1rem);
+  .q{
+    margin:0 0 14px; color:#fff;
+    font-weight:900; letter-spacing:.2px;
+    font-size:clamp(1.25rem,1rem + 2.4vw,3.1rem);
     text-shadow:
       0 3px 12px rgba(0,0,0,.85),
       0 0 1px rgba(255,255,255,.25);
   }
-  .exscene-meta{
+  .meta{
     margin:0 0 18px; color:#e0e0e0; font-style:italic;
-    font-size: clamp(.96rem, .9rem + .55vw, 1.2rem);
-    text-shadow: 0 2px 8px rgba(0,0,0,.8);
+    font-size:clamp(.96rem,.9rem + .55vw,1.2rem);
+    text-shadow:0 2px 8px rgba(0,0,0,.8);
     opacity:.95;
   }
-
-  .exscene-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap }
-  .exscene-btn{
-    background:#fff; color:#000; border:1px solid #fff; border-radius:12px;
-    padding:10px 16px; font-weight:800; cursor:pointer;
-    box-shadow: 0 8px 26px rgba(0,0,0,.55);
-    transition: transform .08s ease, opacity .15s ease;
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{
+    background:#fff;color:#000;border:1px solid #fff;border-radius:12px;
+    padding:10px 16px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 26px rgba(0,0,0,.55);
+    transition:transform .08s ease,opacity .15s ease;
   }
-  .exscene-btn:active{ transform: translateY(1px) scale(.99) }
-  .exscene-btn--ghost{
-    background:transparent; color:#fff; border:1px solid #fff;
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn-ghost{background:transparent;color:#fff;border-color:#fff}
+  /* slot para tu botón Volver (pegas tu HTML dentro y mantiene su estilo) */
+  .slot-volver{display:inline-block}
+
+  /* ======= MODAL Libreta ======= */
+  .modal[aria-hidden="true"]{display:none}
+  .modal[aria-hidden="false"]{display:block}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(2px)}
+  .mw{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;padding:16px}
+  .book,.page{pointer-events:auto;height:min(78vh,780px)}
+  .book{
+    width:min(44vw,520px);
+    background:repeating-linear-gradient(135deg,#222,#222 14px,#111 14px,#111 28px);
+    border-radius:18px 0 0 18px;box-shadow:0 18px 60px rgba(0,0,0,.7);
+    transform-origin:left center;animation:open 900ms cubic-bezier(.2,.8,.2,1) forwards
   }
-
-  /* Hueco opcional para tu botón “Volver” (NO cambiamos su estilo) */
-  .exscene-slot-volver{ display:inline-block }
-
-  /* ============ MODAL: Libreta ============ */
-  .exscene-modal[aria-hidden="true"]{ display:none }
-  .exscene-modal[aria-hidden="false"]{ display:block }
-
-  .exscene-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter: blur(2px) }
-  .exscene-modal-wrap{ position:fixed; inset:0; display:grid; place-items:center; pointer-events:none; padding:16px }
-
-  .exscene-book, .exscene-page{ pointer-events:auto; height:min(78vh, 780px) }
-  .exscene-book{
-    width:min(44vw, 520px);
-    background: repeating-linear-gradient(135deg,#222,#222 14px,#111 14px,#111 28px);
-    border-radius:18px 0 0 18px;
-    box-shadow: 0 18px 60px rgba(0,0,0,.7);
-    transform-origin:left center;
-    animation: exscene-open 900ms cubic-bezier(.2,.8,.2,1) forwards;
+  .page{
+    --paper:#fff;--ink:#111;--line:#000;
+    width:min(54vw,760px);
+    background:var(--paper); color:var(--ink);
+    border:2px solid #000;border-left:0;border-radius:0 18px 18px 0;
+    box-shadow:0 18px 60px rgba(0,0,0,.8);
+    padding:14px 16px 16px;position:relative;overflow:hidden
   }
-  .exscene-page{
-    --paper:#fff; --ink:#111; --line:#000;
-    width:min(54vw, 760px);
-    background: var(--paper); color: var(--ink);
-    border:2px solid #000; border-left:0; border-radius:0 18px 18px 0;
-    box-shadow: 0 18px 60px rgba(0,0,0,.8);
-    padding: 14px 16px 16px; position:relative; overflow:hidden;
+  .page.dark{--paper:#0f0f0f;--ink:#f1f1f1;--line:#fff}
+  .page::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(var(--paper),var(--paper) 26px,rgba(0,0,0,.07) 27px);opacity:.35}
+
+  .head{position:relative;display:flex;justify-content:space-between;align-items:center;z-index:2}
+  .ttl{margin:0;font-size:1.05rem}
+  .close{background:transparent;color:var(--ink);border:0;font-size:1.8rem;line-height:1;cursor:pointer;padding:0 6px}
+
+  .tools{display:flex;justify-content:space-between;align-items:center;gap:.75rem;z-index:2;position:relative;margin-top:8px}
+  .left{display:flex;align-items:center;gap:.5rem}
+  .toggle{background:transparent;color:var(--ink);border:1px solid var(--ink);padding:6px 10px;border-radius:8px;font-weight:800;cursor:pointer}
+  .ctl{background:#000;color:#fff;border:1px solid #000;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+  .page.dark .ctl{background:#fff;color:#000;border-color:#fff}
+
+  .label{display:block;margin:10px 0 6px;color:var(--ink);z-index:2;position:relative}
+  .ta{
+    width:100%;min-height:220px;resize:vertical;padding:12px 12px 12px 16px;border-radius:12px;border:1px dashed var(--line);
+    background:color-mix(in srgb,var(--paper) 92%, white 8%);color:var(--ink);
+    outline:none;box-shadow:inset 0 2px 8px rgba(0,0,0,.08);z-index:2;position:relative
   }
-  .exscene-page.dark{ --paper:#0f0f0f; --ink:#f1f1f1; --line:#fff }
-  .exscene-page::before{
-    content:""; position:absolute; inset:0; pointer-events:none;
-    background: repeating-linear-gradient(var(--paper), var(--paper) 26px, rgba(0,0,0,.07) 27px);
-    opacity:.35;
-  }
+  .board{width:100%;height:260px;background:var(--paper);border:1px solid var(--line);border-radius:12px;display:block;cursor:crosshair;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
+  .ft{margin-top:8px;color:var(--ink);z-index:2;position:relative}
 
-  .exscene-header{ position:relative; display:flex; justify-content:space-between; align-items:center; z-index:2 }
-  .exscene-title{ margin:0; font-size:1.05rem }
-  .exscene-close{
-    background:transparent; color:var(--ink); border:0; font-size:1.8rem; line-height:1; cursor:pointer; padding:0 6px;
-  }
+  @keyframes open{0%{transform:perspective(1200px) rotateY(0)}60%{transform:perspective(1200px) rotateY(-115deg)}100%{transform:perspective(1200px) rotateY(-180deg)}}
 
-  .exscene-tools{ display:flex; justify-content:space-between; align-items:center; gap:.75rem; z-index:2; position:relative; margin-top:8px }
-  .exscene-left{ display:flex; align-items:center; gap:.5rem }
-  .exscene-toggle{
-    background:transparent; color:var(--ink); border:1px solid var(--ink);
-    padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer;
-  }
-  .exscene-ctl{
-    background:#000; color:#fff; border:1px solid #000; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer;
-  }
-  .exscene-page.dark .exscene-ctl{ background:#fff; color:#000; border-color:#fff }
-
-  /* Lápiz decorativo con animación cuando hay escritura */
-  .exscene-pencil{ width:150px; height:24px; display:grid; grid-template-columns:1fr auto auto; align-items:center;
-    transform:translateX(0); animation: exscene-pencil-enter .8s ease .3s both, exscene-pencil-bob 2.4s ease-in-out 1.2s infinite }
-  .exscene-pencil .b{ height:10px; border-radius:6px; background:linear-gradient(90deg,#666,#999 70%,#666) }
-  .exscene-pencil .t{ width:0; height:0; border-left:12px solid #666; border-top:6px solid transparent; border-bottom:6px solid transparent }
-  .exscene-pencil .e{ width:18px; height:14px; border-radius:4px; background:#ddd; border:2px solid #aaa }
-
-  .exscene-label{ display:block; margin:10px 0 6px; color:var(--ink); z-index:2; position:relative }
-  .exscene-textarea{
-    width:100%; min-height:220px; resize:vertical;
-    padding:12px 12px 12px 16px; border-radius:12px; border:1px dashed var(--line);
-    background: color-mix(in srgb, var(--paper) 92%, white 8%);
-    color:var(--ink); outline:none; z-index:2; position:relative;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,.08);
-  }
-  .exscene-canvas{ width:100%; height:260px; background:var(--paper); border:1px solid var(--line); border-radius:12px; display:block; cursor:crosshair; box-shadow: inset 0 2px 8px rgba(0,0,0,.08) }
-
-  .exscene-footer{ margin-top:8px; color:var(--ink); z-index:2; position:relative }
-
-  /* Animaciones */
-  @keyframes exscene-open{ 0%{transform:perspective(1200px) rotateY(0)} 60%{transform:perspective(1200px) rotateY(-115deg)} 100%{transform:perspective(1200px) rotateY(-180deg)} }
-  @keyframes exscene-pencil-enter{ from{opacity:0; transform:translateX(-16px)} to{opacity:1; transform:translateX(0)} }
-  @keyframes exscene-pencil-bob{ 0%,100%{transform:translateX(0) translateY(0)} 50%{transform:translateX(0) translateY(-2px)} }
-  .exscene-writing .exscene-pencil{ animation: exscene-write .8s ease-in-out infinite }
-  @keyframes exscene-write{ 0%,100%{transform:translateX(0)} 50%{transform:translateX(6px)} }
-
-  /* Responsive */
-  @media (max-width: 960px){
-    .exscene-book{ display:none }
-    .exscene-page{ width:min(94vw,760px); border-radius:14px; border-left:2px solid #000 }
-    .exscene-page.dark{ border-left-color:#fff }
+  @media (max-width:960px){
+    .book{display:none}
+    .page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}
+    .page.dark{border-left-color:#fff}
   }
 </style>
 </head>
 <body>
 
-  <!-- ==================== HERO ==================== -->
-  <section class="exscene-hero" aria-label="Reloj de estación">
-    <!-- Efecto “sangre” (oscuro) -->
-    <div class="exscene-blood" aria-hidden="true"></div>
+  <!-- ===== HERO ===== -->
+  <section class="hero" data-blood="1">
+    <!-- FOTO DE FONDO: cambia 'reloj.jpg' por tu archivo -->
+    <div class="bg" style="background-image:url('reloj.jpg')"></div>
+    <div class="shade"></div>
+    <div class="blood" data-on="1"></div>
 
-    <div class="exscene-quote-wrap">
+    <div class="panel">
       <!-- TU FRASE EXACTA AQUÍ -->
-      <p class="exscene-quote">“Cada mañana a las 8:30, el reloj marcaba lo mismo. Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
-      <p class="exscene-meta">Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</p>
+      <p class="q">“Cada mañana a las 8:30, el reloj marcaba lo mismo. Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
+      <p class="meta">Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</p>
 
-      <div class="exscene-actions">
-        <!-- Botón blanco a LIBRETA -->
-        <button class="exscene-btn" id="exscene-open-notes" type="button" aria-haspopup="dialog" aria-controls="exscene-modal">Abrir libreta</button>
+      <div class="actions">
+        <button class="btn" id="openNotes" type="button" aria-haspopup="dialog" aria-controls="notesModal">Abrir libreta</button>
+        <button class="btn btn-ghost" id="downloadNotes" type="button">Descargar pistas</button>
 
-        <!-- Botón para DESCARGAR PISTAS guardadas -->
-        <button class="exscene-btn exscene-btn--ghost" id="exscene-download" type="button">Descargar pistas</button>
-
-        <!-- (Opcional) coloca aquí tu botón VOLVER para que se vea junto (no cambio su estilo) -->
-        <span class="exscene-slot-volver">
-          <!-- EJEMPLO: <a href="index.html" class="btn-volver">Volver</a> -->
+        <!-- Pega aquí tu propio botón Volver si quieres que se vea junto -->
+        <span class="slot-volver">
+          <!-- ejemplo: <a href="index.html" class="volver">Volver</a> -->
         </span>
       </div>
     </div>
   </section>
 
-  <!-- ==================== MODAL: LIBRETA ==================== -->
-  <section class="exscene-notes" data-note-key="pistas_reloj_station">
-    <div class="exscene-modal" id="exscene-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="exscene-title">
-      <div class="exscene-backdrop" data-exscene-close></div>
+  <!-- ===== MODAL LIBRETA ===== -->
+  <section class="notes" data-key="pistas_reloj_bn">
+    <div class="modal" id="notesModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="notesTitle">
+      <div class="backdrop" data-close></div>
+      <div class="mw">
+        <div class="book" aria-hidden="true"></div>
 
-      <div class="exscene-modal-wrap">
-        <div class="exscene-book" aria-hidden="true"></div>
-
-        <div class="exscene-page" id="exscene-page">
-          <header class="exscene-header">
-            <h3 class="exscene-title" id="exscene-title">Mi libreta</h3>
-            <button class="exscene-close" type="button" title="Cerrar" aria-label="Cerrar" data-exscene-close>&times;</button>
+        <div class="page" id="page">
+          <header class="head">
+            <h3 class="ttl" id="notesTitle">Mi libreta</h3>
+            <button class="close" type="button" data-close>&times;</button>
           </header>
 
-          <div class="exscene-tools">
-            <div class="exscene-left">
-              <div class="exscene-pencil" aria-hidden="true">
-                <div class="b"></div><div class="t"></div><div class="e"></div>
-              </div>
-              <button class="exscene-toggle" id="exscene-theme">Tema: Blanco</button>
-              <button class="exscene-toggle" id="exscene-tool-pencil">Lápiz</button>
-              <button class="exscene-toggle" id="exscene-tool-eraser">Goma</button>
+          <div class="tools">
+            <div class="left">
+              <button class="toggle" id="themeBtn">Tema: Blanco</button>
+              <button class="toggle" id="toolPen">Lápiz</button>
+              <button class="toggle" id="toolEraser">Goma</button>
             </div>
-
-            <div class="exscene-right">
-              <button class="exscene-ctl" id="exscene-save"  type="button">Guardar</button>
-              <button class="exscene-ctl" id="exscene-clear" type="button">Borrar</button>
+            <div class="right">
+              <button class="ctl" id="saveBtn"  type="button">Guardar</button>
+              <button class="ctl" id="clearBtn" type="button">Borrar</button>
             </div>
           </div>
 
-          <label class="exscene-label" for="exscene-text">Escribe tus pistas:</label>
-          <textarea class="exscene-textarea" id="exscene-text" placeholder="Escribe aquí..."></textarea>
+          <label class="label" for="ta">Escribe tus pistas:</label>
+          <textarea class="ta" id="ta" placeholder="Escribe aquí..."></textarea>
 
-          <label class="exscene-label" for="exscene-board">Dibuja (lápiz/goma):</label>
-          <canvas class="exscene-canvas" id="exscene-board"></canvas>
+          <label class="label" for="board">Dibuja (lápiz/goma):</label>
+          <canvas class="board" id="board"></canvas>
 
-          <footer class="exscene-footer"><small>Se guarda en este navegador. Puedes descargar tus pistas desde el botón de la portada.</small></footer>
+          <footer class="ft"><small>Se guarda en este navegador. Puedes descargar tus pistas desde el botón de la portada.</small></footer>
         </div>
       </div>
     </div>
   </section>
 
 <script>
-/* =================== JS: LIBRETA + DESCARGA =================== */
 (() => {
-  const wrap = document.querySelector('.exscene-notes');
-  const storageKey = 'exscene_notes_' + (wrap?.dataset?.noteKey || 'nota');
+  /* ====== referencias ====== */
+  const wrapper   = document.querySelector('.notes');
+  const storageKey= 'notes_' + (wrapper?.dataset?.key || 'pista');
 
-  const openBtn  = document.getElementById('exscene-open-notes');
-  const modal    = document.getElementById('exscene-modal');
-  const page     = document.getElementById('exscene-page');
-  const back     = modal.querySelector('[data-exscene-close]');
-  const closeBtn = modal.querySelector('.exscene-close');
+  const openBtn   = document.getElementById('openNotes');
+  const modal     = document.getElementById('notesModal');
+  const backdrops = modal.querySelectorAll('[data-close]');
+  const page      = document.getElementById('page');
 
-  const themeBtn = document.getElementById('exscene-theme');
-  const toolPen  = document.getElementById('exscene-tool-pencil');
-  const toolEra  = document.getElementById('exscene-tool-eraser');
+  const themeBtn  = document.getElementById('themeBtn');
+  const toolPen   = document.getElementById('toolPen');
+  const toolEra   = document.getElementById('toolEraser');
 
-  const saveBtn  = document.getElementById('exscene-save');
-  const clearBtn = document.getElementById('exscene-clear');
+  const saveBtn   = document.getElementById('saveBtn');
+  const clearBtn  = document.getElementById('clearBtn');
 
-  const textArea = document.getElementById('exscene-text');
-  const board    = document.getElementById('exscene-board');
-  const ctx      = board.getContext('2d');
+  const ta        = document.getElementById('ta');
+  const board     = document.getElementById('board');
+  const ctx       = board.getContext('2d');
 
-  const dlBtn    = document.getElementById('exscene-download');
+  const dlBtn     = document.getElementById('downloadNotes');
 
-  let tool = 'pencil'; // 'pencil' | 'eraser'
+  let tool = 'pencil';
 
-  /* ---------- Abrir / Cerrar ---------- */
-  const open = () => {
+  /* ====== abrir / cerrar ====== */
+  function openModal(){
     modal.setAttribute('aria-hidden', 'false');
 
-    // Cargar guardado
-    try {
+    // restaurar
+    try{
       const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
-      if (data.text) textArea.value = data.text;
-      if (data.img) {
+      if (data.text) ta.value = data.text;
+      if (data.img){
         const img = new Image();
         img.onload = () => { resizeBoard(); ctx.clearRect(0,0,board.width,board.height); ctx.drawImage(img,0,0,board.width,board.height); };
         img.src = data.img;
-      } else {
+      }else{
         resizeBoard();
       }
-      if (data.theme === 'dark') {
-        page.classList.add('dark');
-        themeBtn.textContent = 'Tema: Negro';
-      }
-    } catch(e) { resizeBoard(); }
+      if (data.theme === 'dark'){ page.classList.add('dark'); themeBtn.textContent='Tema: Negro'; }
+    }catch(e){ resizeBoard(); }
 
-    setTimeout(() => textArea.focus(), 50);
-    document.addEventListener('keydown', onEsc);
-  };
-  const close = () => {
+    setTimeout(()=>ta.focus(), 40);
+    document.addEventListener('keydown', escClose);
+  }
+  function closeModal(){
     modal.setAttribute('aria-hidden', 'true');
-    document.removeEventListener('keydown', onEsc);
-  };
-  const onEsc = e => { if (e.key === 'Escape') close(); };
+    document.removeEventListener('keydown', escClose);
+  }
+  function escClose(e){ if(e.key==='Escape') closeModal(); }
 
-  openBtn.addEventListener('click', open);
-  [back, closeBtn].forEach(el => el.addEventListener('click', close));
+  openBtn.addEventListener('click', openModal);
+  backdrops.forEach(el=>el.addEventListener('click', closeModal));
 
-  /* ---------- Tema ---------- */
-  themeBtn.addEventListener('click', () => {
+  /* ====== tema ====== */
+  themeBtn.addEventListener('click', ()=>{
     page.classList.toggle('dark');
     themeBtn.textContent = page.classList.contains('dark') ? 'Tema: Negro' : 'Tema: Blanco';
     resizeBoard();
   });
 
-  /* ---------- Herramientas ---------- */
-  toolPen.addEventListener('click',  () => tool='pencil');
-  toolEra.addEventListener('click',  () => tool='eraser');
+  /* ====== lápiz/goma ====== */
+  toolPen.addEventListener('click', ()=> tool='pencil');
+  toolEra.addEventListener('click', ()=> tool='eraser');
 
-  /* ---------- Canvas responsivo ---------- */
+  /* ====== canvas responsivo ====== */
   function resizeBoard(){
     const r = board.getBoundingClientRect();
     const tmp = document.createElement('canvas');
@@ -335,27 +274,24 @@
   }
   new ResizeObserver(resizeBoard).observe(board);
 
-  /* ---------- Dibujo ---------- */
-  let drawing=false, lastX=0, lastY=0;
-  function start(x,y){ drawing=true; [lastX,lastY]=[x,y]; page.classList.add('exscene-writing'); }
+  /* ====== dibujo ====== */
+  let drawing=false,lastX=0,lastY=0;
+  const color = ()=> page.classList.contains('dark') ? '#fff' : '#000';
+
+  function start(x,y){ drawing=true; [lastX,lastY]=[x,y]; }
   function move(x,y){
     if(!drawing) return;
-    if(tool==='pencil'){
-      ctx.globalCompositeOperation='source-over';
-      ctx.strokeStyle = page.classList.contains('dark') ? '#fff' : '#000';
-    }else{
-      ctx.globalCompositeOperation='destination-out';
-      ctx.strokeStyle='rgba(0,0,0,1)';
-    }
+    if(tool==='pencil'){ ctx.globalCompositeOperation='source-over'; ctx.strokeStyle=color(); }
+    else               { ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='rgba(0,0,0,1)'; }
     ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
     [lastX,lastY]=[x,y];
   }
-  function end(){ drawing=false; setTimeout(()=>page.classList.remove('exscene-writing'), 350); }
+  function end(){ drawing=false; }
 
   function pos(ev){
     const r=board.getBoundingClientRect();
-    if(ev.touches && ev.touches[0]) return {x: ev.touches[0].clientX-r.left, y: ev.touches[0].clientY-r.top};
-    return {x: ev.clientX - r.left, y: ev.clientY - r.top};
+    if(ev.touches && ev.touches[0]) return {x:ev.touches[0].clientX-r.left,y:ev.touches[0].clientY-r.top};
+    return {x:ev.clientX-r.left,y:ev.clientY-r.top};
   }
 
   board.addEventListener('mousedown', e=>{const p=pos(e); start(p.x,p.y);});
@@ -366,64 +302,45 @@
   board.addEventListener('touchmove',  e=>{const p=pos(e); move(p.x,p.y);  e.preventDefault();},{passive:false});
   window.addEventListener('touchend', end, {passive:true});
 
-  /* ---------- Guardar / Borrar ---------- */
+  /* ====== guardar / borrar ====== */
   function save(){
-    const data = {
-      text: textArea.value || '',
-      img: board.toDataURL('image/png'),
-      theme: page.classList.contains('dark') ? 'dark' : 'light'
-    };
+    const data = { text: ta.value || '', img: board.toDataURL('image/png'), theme: page.classList.contains('dark')?'dark':'light' };
     localStorage.setItem(storageKey, JSON.stringify(data));
-    saveBtn.textContent = 'Guardado ✓';
-    setTimeout(()=> saveBtn.textContent='Guardar', 1000);
+    saveBtn.textContent='Guardado ✓'; setTimeout(()=> saveBtn.textContent='Guardar', 1000);
   }
   saveBtn.addEventListener('click', save);
 
   let autosave;
-  textArea.addEventListener('input', ()=>{
-    page.classList.add('exscene-writing');
-    clearTimeout(autosave);
-    autosave=setTimeout(()=>{ save(); page.classList.remove('exscene-writing'); }, 1000);
-  });
+  ta.addEventListener('input', ()=>{ clearTimeout(autosave); autosave=setTimeout(save, 800); });
 
   clearBtn.addEventListener('click', ()=>{
     if(!confirm('¿Borrar la nota y el dibujo?')) return;
     localStorage.removeItem(storageKey);
-    textArea.value=''; ctx.clearRect(0,0,board.width,board.height);
+    ta.value=''; ctx.clearRect(0,0,board.width,board.height);
   });
 
-  /* ---------- Descargar pistas (TXT) ---------- */
+  /* ====== descargar TXT ====== */
   dlBtn.addEventListener('click', ()=>{
     const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
-    const frase  = document.querySelector('.exscene-quote')?.textContent?.trim() || '';
-    const meta   = document.querySelector('.exscene-meta')?.textContent?.trim() || '';
+    const frase  = document.querySelector('.q')?.textContent?.trim() || '';
+    const meta   = document.querySelector('.meta')?.textContent?.trim() || '';
     const text   = stored.text || '';
 
-    const content =
-`Pista:
-${frase}
-
-${meta ? meta + "\n\n" : ""}Notas del lector:
-${text || "(vacío)"}\n`;
-
+    const content = `Pista:\n${frase}\n\n${meta?meta+"\n\n":""}Notas del lector:\n${text || "(vacío)"}\n`;
     const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'pistas.txt';
-    document.body.appendChild(a); a.click();
-    a.remove(); URL.revokeObjectURL(url);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href=url; a.download='pistas.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
+
+  /* ====== sangre ON/OFF desde atributo ====== */
+  const bloodLayer = document.querySelector('.blood');
+  const bloodOn = document.querySelector('.hero')?.dataset?.blood === '1';
+  if(bloodLayer) bloodLayer.setAttribute('data-on', bloodOn ? '1' : '0');
 })();
 </script>
-
 </body>
 </html>
-
-
-
-
-
-
 
 
 
