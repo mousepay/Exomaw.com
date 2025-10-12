@@ -1,192 +1,383 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Portal #P-01 – EXOMAW</title>
-<style>
-  /* FONDO: usa el reloj como imagen de fondo */
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
-  body {
-    /* ⬇️ si "reloj.jpg" está en la RAÍZ del repo, usa esta ruta */
-    background: url('/reloj.jpg') center center / cover no-repeat fixed;
-    /* ⬇️ si lo tuvieras dentro de /portal/, usa en cambio:
-       background: url('reloj.jpg') center center / cover no-repeat fixed;
-    */
-    font-family: "Georgia", "Times New Roman", serif;
-    position: relative;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pista + Libreta Interactiva</title>
 
-  /* Velo oscuro MUY suave para que el texto se lea mejor */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.35); /* sube/baja opacidad si lo ves muy claro/oscuro */
-    pointer-events: none;
-  }
+  <!-- ====== Estilos base para una lectura más cómoda (alto contraste, menos blanco) ====== -->
+  <style>
+    :root{
+      --ex-bg: #efe9da;           /* Fondo cálido, no blanco puro */
+      --ex-ink: #1f1a14;          /* Texto principal */
+      --ex-muted: #5d5346;        /* Texto secundario */
+      --ex-card: #f7f1e4;         /* Tarjeta pergamino */
+      --ex-accent: #2f6d3a;       /* Botones/acentos */
+      --ex-accent-danger:#9b1c1c; /* Borrar */
+      --ex-border: #b89b72;       /* Bordes cálidos */
+    }
 
-  .wrap {
-    min-height: 100%;
-    display: grid;
-    place-items: center;
-    text-align: center;
-    padding: 6vh 6vw;
-  }
+    /* Reset suave */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      background: var(--ex-bg);
+      color: var(--ex-ink);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-  .quote {
-    max-width: 1100px;
-    line-height: 1.35;
-    margin: 0 auto 2.25rem;
-    font-size: clamp(1.2rem, 3.6vw, 2.4rem);
-    font-weight: 500;
-    /* Color: arranca verde pálido y se “lava” a blanco */
-    color: #d9ffe9;
-    animation: fadeToWhite 2.2s ease forwards;
-  }
+    /* Contenedor general (no interfiere con tu botón de inicio) */
+    .ex-container{
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px 48px;
+    }
 
-  .meta {
-    max-width: 1100px;
-    margin: 0 auto 2.5rem;
-    font-style: italic;
-    font-size: clamp(0.95rem, 2.2vw, 1.25rem);
-    color: #f2f7f4;
-    opacity: .9;
-  }
+    /* Encabezado opcional */
+    .ex-header{
+      margin: 10px auto 18px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #f5ead6, #efe3cc);
+      border: 1px solid var(--ex-border);
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+    .ex-title{
+      margin: 0 0 6px;
+      letter-spacing: .2px;
+      font-weight: 800;
+      font-size: clamp(1.35rem, 1.1rem + 1.2vw, 2rem);
+    }
+    .ex-sub{
+      margin: 0;
+      color: var(--ex-muted);
+      font-size: .98rem;
+    }
 
-  .btn {
-    display: inline-block;
-    padding: .75rem 1.25rem;
-    border-radius: .6rem;
-    border: 1px solid rgba(255,255,255,.6);
-    background: rgba(0,0,0,.25);
-    color: #fff;
-    text-decoration: none;
-    transition: .2s ease;
-    backdrop-filter: blur(2px);
-  }
-  .btn:hover {
-    background: rgba(0,0,0,.4);
-    transform: translateY(-1px);
-  }
+    /* ====== Párrafo de la pista: más visible ====== */
+    .ex-hint-card{
+      display: grid; gap: 12px;
+      background: var(--ex-card);
+      border: 2px solid var(--ex-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 26px rgba(0,0,0,.10);
+    }
+    .ex-hint-card p{
+      margin: 0;
+      font-size: clamp(1.05rem, 0.98rem + .5vw, 1.25rem); /* más grande */
+      color: #2a241b;                                      /* más oscuro */
+      text-wrap: pretty;
+    }
+    .ex-cta{
+      justify-self: start;
+      background: var(--ex-accent);
+      color: #fff;
+      border: 0; border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(47,109,58,.28);
+      transition: transform .08s ease, box-shadow .2s ease, opacity .15s ease;
+    }
+    .ex-cta:hover{ box-shadow: 0 6px 18px rgba(47,109,58,.35); }
+    .ex-cta:active{ transform: translateY(1px) scale(.99); }
 
-  @keyframes fadeToWhite {
-    0%   { color:#baf7d7; }
-    60%  { color:#e9fff4; }
-    100% { color:#ffffff; }
-  }
-</style>
+    /* ====== Libreta Interactiva (todo namespaced) ====== */
+    .ex-notes-modal[aria-hidden="true"]{ display:none; }
+    .ex-notes-modal[aria-hidden="false"]{ display:block; }
+
+    .ex-notes-backdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.38);
+      backdrop-filter: blur(2px);
+    }
+    .ex-notes-book{
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+      pointer-events: none;
+      padding: 16px;
+    }
+    .ex-notes-cover, .ex-notes-pages{ pointer-events: auto; height: min(72vh, 700px); }
+
+    .ex-notes-cover{
+      width: min(44vw, 520px);
+      background: linear-gradient(135deg, #704c2b, #8b5e34 60%, #9e6d3b);
+      border-radius: 18px 0 0 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      transform-origin: left center;
+      transform: rotateY(0deg);
+      animation: ex-notes-open 900ms cubic-bezier(.2,.8,.2,1) forwards;
+    }
+
+    .ex-notes-pages{
+      width: min(52vw, 640px);
+      background: #fffdf6;
+      border: 2px solid #c9b393;
+      border-left: 0;
+      border-radius: 0 18px 18px 0;
+      box-shadow: 0 18px 60px rgba(0,0,0,.30);
+      padding: 14px 16px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ex-notes-pages::before{
+      content:"";
+      position:absolute; inset:0;
+      background: repeating-linear-gradient(#fffdf6, #fffdf6 26px, #f0eadb 27px);
+      opacity:.6; pointer-events:none;
+    }
+    .ex-notes-header{
+      position:relative; display:flex; align-items:center; justify-content:space-between;
+      z-index:2; margin-bottom:8px;
+    }
+    .ex-notes-header h3{ margin:0; font-size:1.1rem; color:#4a3a2a; }
+    .ex-notes-close{
+      background: transparent; border:0; font-size:1.8rem; line-height:1;
+      color:#6b533e; cursor:pointer; border-radius:8px; padding:0 6px; transition: background .15s ease;
+    }
+    .ex-notes-close:hover{ background: rgba(0,0,0,.06); }
+
+    .ex-notes-tools{
+      display:flex; align-items:center; justify-content:space-between; gap:.75rem; z-index:2; position:relative;
+    }
+    .ex-notes-actions{ display:flex; gap:.5rem; }
+    .ex-notes-btn{
+      background: var(--ex-accent); color:#fff;
+      border:0; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer;
+      box-shadow:0 4px 10px rgba(47,109,58,.25);
+      transition: transform .08s ease, box-shadow .2s ease;
+    }
+    .ex-notes-btn:hover{ box-shadow:0 6px 16px rgba(0,0,0,.18); }
+    .ex-notes-btn:active{ transform: translateY(1px) scale(.99); }
+    .ex-notes-btn--danger{ background: var(--ex-accent-danger); box-shadow: 0 4px 10px rgba(155,28,28,.25); }
+
+    /* Lápiz */
+    .ex-notes-pencil{
+      position:relative; width: 150px; height: 24px;
+      display:grid; grid-template-columns: 1fr auto auto; align-items:center;
+      transform: translateX(0);
+      animation: ex-pencil-enter 800ms ease 300ms both, ex-pencil-bob 2.4s ease-in-out 1.2s infinite;
+    }
+    .ex-pencil-body{ height:10px; border-radius:6px; background: linear-gradient(90deg, #f0c06b, #f7d284 70%, #f0c06b); }
+    .ex-pencil-tip{ width:0; height:0; border-left:12px solid #f0c06b; border-top:6px solid transparent; border-bottom:6px solid transparent; }
+    .ex-pencil-eraser{ width:18px; height:14px; border-radius:4px; background:#e68fa3; border:2px solid #c46b80; }
+
+    .ex-notes-label{ display:block; margin: 10px 0 6px; color:#5b4a38; z-index:2; position:relative; }
+    .ex-notes-textarea{
+      width:100%; min-height:230px; resize:vertical; z-index:2; position:relative;
+      padding: 12px 12px 12px 16px; border-radius:12px; border:1px dashed var(--ex-border);
+      background: rgba(255,255,255,.84);
+      font-family: "Comic Sans MS","Segoe UI", Roboto, Arial, sans-serif;
+      font-size:1rem; line-height:1.6; color:#1e1b16;
+      outline:none; box-shadow: inset 0 2px 8px rgba(0,0,0,.05);
+    }
+    .ex-notes-textarea::placeholder{ color:#8a816f; }
+    .ex-notes-footer{ margin-top:8px; color:#7b6a56; z-index:2; position:relative; }
+
+    @keyframes ex-notes-open{
+      0%{ transform: perspective(1200px) rotateY(0deg) translateZ(0); }
+      60%{ transform: perspective(1200px) rotateY(-115deg) translateZ(2px); }
+      100%{ transform: perspective(1200px) rotateY(-180deg) translateZ(4px); }
+    }
+    @keyframes ex-pencil-enter{ from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes ex-pencil-bob{
+      0%,100%{ transform: translateX(0) translateY(0); }
+      50%{ transform: translateX(0) translateY(-2px); }
+    }
+    .ex-notes-writing .ex-notes-pencil{ animation: ex-pencil-write .8s ease-in-out infinite; }
+    @keyframes ex-pencil-write{ 0%,100%{transform:translateX(0)} 50%{transform:translateX(6px)} }
+
+    /* Responsive: en móvil mostramos solo páginas (sin tapa animada) */
+    @media (max-width: 960px) {
+      .ex-notes-cover{ display:none; }
+      .ex-notes-pages{
+        width: min(94vw, 720px);
+        border-radius: 14px;
+        border-left: 2px solid #c9b393;
+      }
+    }
+
+    /* ====== (Opcional) Mejora de visibilidad para agujas de reloj si ya tienes un reloj ====== */
+    .ex-clock .ex-hand{
+      background: #111;            /* agujas oscuras */
+      box-shadow: 0 0 2px rgba(0,0,0,.6);
+      border-radius: 2px;
+    }
+    .ex-clock .ex-hand.ex-minute{ opacity: .95; }
+    .ex-clock .ex-hand.ex-hour{ opacity: .98; }
+    .ex-clock .ex-center{
+      width: 10px; height: 10px; background: #111; border-radius: 50%;
+      box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(0,0,0,.3);
+    }
+  </style>
 </head>
 <body>
-  <div class="overlay" aria-hidden="true"></div>
 
-  <main class="wrap">
-    <div>
-      <p class="quote">“Cada mañana a las 8:30, el reloj marcaba lo mismo. Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
-      <p class="meta">Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</p>
-      <a class="btn" href="/">Volver</a>
-    </div>
-  </main>
-  <!-- ====== BLOQUE: Libreta de Notas Interactiva (no toca tu botón de inicio) ====== -->
-<section class="ex-notes-wrapper" data-note-key="pista_general">
-  <!-- Pista mostrada al lector -->
-  <div class="ex-notes-hint">
-    <p class="ex-notes-hint-text">
-      <strong>Pista:</strong> “Observa el reloj… sus agujas dicen más de lo que parece.”
-    </p>
-    <button class="ex-notes-open-btn" type="button" aria-haspopup="dialog" aria-controls="ex-notes-modal">
-      Abrir mi libreta
-    </button>
-  </div>
+  <!-- Tu botón de volver al inicio puede estar en cualquier lugar fuera/antes de esto.
+       No hemos usado IDs genéricos, así que no se toca. -->
 
-  <!-- Modal de libreta -->
-  <div class="ex-notes-modal" id="ex-notes-modal" role="dialog" aria-modal="true" aria-labelledby="ex-notes-title" aria-hidden="true">
-    <div class="ex-notes-backdrop" data-ex-notes-close></div>
+  <main class="ex-container">
 
-    <div class="ex-notes-book">
-      <!-- Tapa izquierda -->
-      <div class="ex-notes-cover"></div>
+    <header class="ex-header">
+      <h1 class="ex-title">Pista del capítulo</h1>
+      <p class="ex-sub">Consejo: lee con atención y toma tu propia nota en la libreta interactiva.</p>
+    </header>
 
-      <!-- Contenido de la libreta -->
-      <div class="ex-notes-pages">
-        <header class="ex-notes-header">
-          <h3 id="ex-notes-title">Mi libreta</h3>
-          <button class="ex-notes-close" type="button" title="Cerrar libreta" aria-label="Cerrar libreta" data-ex-notes-close>&times;</button>
-        </header>
+    <!-- ====== Pista bien visible + botón para abrir libreta ====== -->
+    <section class="ex-hint-card" aria-labelledby="ex-hint-title">
+      <h2 id="ex-hint-title" style="margin:0; font-size:1.05rem; color:#4a3a2a;">Pista</h2>
+      <p><strong>Observa el reloj…</strong> sus agujas dicen más de lo que parece. Fíjate en
+        cómo se alinean a ciertas horas: podrían señalar letras, lugares o un orden oculto.</p>
 
-        <div class="ex-notes-tools">
-          <div class="ex-notes-pencil" aria-hidden="true">
-            <div class="ex-pencil-body"></div>
-            <div class="ex-pencil-tip"></div>
-            <div class="ex-pencil-eraser"></div>
-          </div>
-          <div class="ex-notes-actions">
-            <button class="ex-notes-save" type="button">Guardar nota</button>
-            <button class="ex-notes-clear" type="button">Borrar</button>
+      <button class="ex-cta" type="button" aria-haspopup="dialog" aria-controls="ex-notes-modal">
+        Abrir mi libreta
+      </button>
+    </section>
+
+    <!-- ====== Libreta (Modal) ====== -->
+    <section class="ex-notes-wrapper" data-note-key="pista_reloj">
+      <div class="ex-notes-modal" id="ex-notes-modal" role="dialog" aria-modal="true"
+           aria-labelledby="ex-notes-title" aria-hidden="true">
+        <div class="ex-notes-backdrop" data-ex-notes-close></div>
+
+        <div class="ex-notes-book">
+          <div class="ex-notes-cover" aria-hidden="true"></div>
+
+          <div class="ex-notes-pages">
+            <header class="ex-notes-header">
+              <h3 id="ex-notes-title">Mi libreta</h3>
+              <button class="ex-notes-close" type="button" title="Cerrar libreta" aria-label="Cerrar libreta" data-ex-notes-close>&times;</button>
+            </header>
+
+            <div class="ex-notes-tools">
+              <!-- Lápiz animado -->
+              <div class="ex-notes-pencil" aria-hidden="true">
+                <div class="ex-pencil-body"></div>
+                <div class="ex-pencil-tip"></div>
+                <div class="ex-pencil-eraser"></div>
+              </div>
+
+              <div class="ex-notes-actions">
+                <button class="ex-notes-btn ex-notes-save" type="button">Guardar nota</button>
+                <button class="ex-notes-btn ex-notes-btn--danger ex-notes-clear" type="button">Borrar</button>
+              </div>
+            </div>
+
+            <label class="ex-notes-label" for="ex-notes-textarea">
+              Escribe tu interpretación de la pista:
+            </label>
+            <textarea id="ex-notes-textarea" class="ex-notes-textarea" placeholder="Escribe aquí..."></textarea>
+
+            <footer class="ex-notes-footer">
+              <small>Tu nota se guarda en este navegador. Puedes volver cuando quieras.</small>
+            </footer>
           </div>
         </div>
-
-        <label class="ex-notes-label" for="ex-notes-textarea">Escribe tu interpretación de la pista:</label>
-        <textarea id="ex-notes-textarea" class="ex-notes-textarea" placeholder="Escribe aquí..."></textarea>
-
-        <footer class="ex-notes-footer">
-          <small>Tu nota se guarda en este navegador.</small>
-        </footer>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<style>
-/* ====== ESTILOS NAMESPACED (no colisionan) ====== */
-.ex-notes-wrapper { position: relative; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  </main>
 
-.ex-notes-hint {
-  display: grid; gap: .75rem; align-items: start;
-  background: #f7f4ea; border: 2px solid #b89b72; border-radius: 14px;
-  padding: 14px 16px; box-shadow: 0 6px 20px rgba(0,0,0,.08);
-  max-width: 880px; margin: 0 auto;
-}
-.ex-notes-hint-text { margin: 0; line-height: 1.45; font-size: 1rem; color: #2a241b; }
-.ex-notes-open-btn {
-  justify-self: start;
-  background: #2f6d3a; color: #fff; border: 0; border-radius: 10px;
-  padding: 10px 14px; font-weight: 600; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(47,109,58,.3); transition: transform .08s ease, box-shadow .2s;
-}
-.ex-notes-open-btn:hover { box-shadow: 0 6px 18px rgba(47,109,58,.35); }
-.ex-notes-open-btn:active { transform: translateY(1px) scale(.99); }
+  <!-- ====== JavaScript (namespaced) ====== -->
+  <script>
+    (() => {
+      // Botón "Abrir mi libreta" (fuera del wrapper para mayor flexibilidad)
+      const openBtn = document.querySelector('.ex-cta');
 
-/* ====== MODAL ====== */
-.ex-notes-modal[aria-hidden="true"] { display: none; }
-.ex-notes-modal[aria-hidden="false"] { display: block; }
+      // Elementos dentro del wrapper de la libreta
+      const wrapper  = document.querySelector('.ex-notes-wrapper');
+      const storageKey = 'ex_notes_' + (wrapper?.dataset?.noteKey || 'nota');
 
-.ex-notes-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,.35);
-  backdrop-filter: blur(2px);
-}
+      const modal    = wrapper.querySelector('#ex-notes-modal');
+      const backdrop = wrapper.querySelector('.ex-notes-backdrop');
+      const closeBtn = wrapper.querySelector('.ex-notes-close');
+      const saveBtn  = wrapper.querySelector('.ex-notes-save');
+      const clearBtn = wrapper.querySelector('.ex-notes-clear');
+      const textarea = wrapper.querySelector('.ex-notes-textarea');
+      const pages    = wrapper.querySelector('.ex-notes-pages');
 
-.ex-notes-book {
-  position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none;
-}
+      // Abrir modal
+      const openModal = () => {
+        modal.setAttribute('aria-hidden', 'false');
 
-.ex-notes-cover, .ex-notes-pages {
-  pointer-events: auto;
-  height: min(72vh, 680px);
-}
+        // Recuperar texto guardado
+        const saved = localStorage.getItem(storageKey);
+        if (saved) textarea.value = saved;
 
-.ex-notes-cover {
-  width: min(44vw, 520px);
-  background: linear-gradient(135deg, #704c2b, #8b5e34 60%, #9e6d3b);
-  border-radius: 18px 0 0 18px;
-  box-shadow: 0 18px 60px rgba(0,
+        // Foco accesible
+        setTimeout(() => textarea.focus(), 50);
 
+        // Cerrar con ESC
+        document.addEventListener('keydown', onEscClose);
+      };
+
+      // Cerrar modal
+      const closeModal = () => {
+        modal.setAttribute('aria-hidden', 'true');
+        document.removeEventListener('keydown', onEscClose);
+      };
+
+      const onEscClose = (e) => { if (e.key === 'Escape') closeModal(); };
+
+      // Guardar
+      const saveNote = () => {
+        const txt = textarea.value || '';
+        localStorage.setItem(storageKey, txt);
+        // feedback visual
+        saveBtn.disabled = true;
+        const prev = saveBtn.textContent;
+        saveBtn.textContent = 'Guardado ✔';
+        setTimeout(() => { saveBtn.disabled = false; saveBtn.textContent = prev; }, 900);
+      };
+
+      // Borrar
+      const clearNote = () => {
+        if (!confirm('¿Borrar la nota?')) return;
+        localStorage.removeItem(storageKey);
+        textarea.value = '';
+        textarea.focus();
+      };
+
+      // Animación de “escribiendo”
+      let typingTimer;
+      const onType = () => {
+        pages.classList.add('ex-notes-writing');
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => pages.classList.remove('ex-notes-writing'), 600);
+      };
+
+      // Autoguardado suave
+      let autosaveTimer;
+      const onInput = () => {
+        onType();
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(saveNote, 3000);
+      };
+
+      // Eventos
+      openBtn.addEventListener('click', openModal);
+      [backdrop, closeBtn].forEach(el => el.addEventListener('click', closeModal));
+      saveBtn.addEventListener('click', saveNote);
+      clearBtn.addEventListener('click', clearNote);
+      textarea.addEventListener('input', onInput);
+
+      // Accesibilidad: TAB hacia atrás desde el botón cerrar
+      modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && e.target === closeBtn && e.shiftKey) {
+          e.preventDefault(); textarea.focus();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
 
-  
+
 
 
 
