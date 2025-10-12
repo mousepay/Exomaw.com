@@ -89,10 +89,105 @@
       <a class="btn" href="/">Volver</a>
     </div>
   </main>
+  <!-- ====== BLOQUE: Libreta de Notas Interactiva (no toca tu botón de inicio) ====== -->
+<section class="ex-notes-wrapper" data-note-key="pista_general">
+  <!-- Pista mostrada al lector -->
+  <div class="ex-notes-hint">
+    <p class="ex-notes-hint-text">
+      <strong>Pista:</strong> “Observa el reloj… sus agujas dicen más de lo que parece.”
+    </p>
+    <button class="ex-notes-open-btn" type="button" aria-haspopup="dialog" aria-controls="ex-notes-modal">
+      Abrir mi libreta
+    </button>
+  </div>
+
+  <!-- Modal de libreta -->
+  <div class="ex-notes-modal" id="ex-notes-modal" role="dialog" aria-modal="true" aria-labelledby="ex-notes-title" aria-hidden="true">
+    <div class="ex-notes-backdrop" data-ex-notes-close></div>
+
+    <div class="ex-notes-book">
+      <!-- Tapa izquierda -->
+      <div class="ex-notes-cover"></div>
+
+      <!-- Contenido de la libreta -->
+      <div class="ex-notes-pages">
+        <header class="ex-notes-header">
+          <h3 id="ex-notes-title">Mi libreta</h3>
+          <button class="ex-notes-close" type="button" title="Cerrar libreta" aria-label="Cerrar libreta" data-ex-notes-close>&times;</button>
+        </header>
+
+        <div class="ex-notes-tools">
+          <div class="ex-notes-pencil" aria-hidden="true">
+            <div class="ex-pencil-body"></div>
+            <div class="ex-pencil-tip"></div>
+            <div class="ex-pencil-eraser"></div>
+          </div>
+          <div class="ex-notes-actions">
+            <button class="ex-notes-save" type="button">Guardar nota</button>
+            <button class="ex-notes-clear" type="button">Borrar</button>
+          </div>
+        </div>
+
+        <label class="ex-notes-label" for="ex-notes-textarea">Escribe tu interpretación de la pista:</label>
+        <textarea id="ex-notes-textarea" class="ex-notes-textarea" placeholder="Escribe aquí..."></textarea>
+
+        <footer class="ex-notes-footer">
+          <small>Tu nota se guarda en este navegador.</small>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ====== ESTILOS NAMESPACED (no colisionan) ====== */
+.ex-notes-wrapper { position: relative; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+.ex-notes-hint {
+  display: grid; gap: .75rem; align-items: start;
+  background: #f7f4ea; border: 2px solid #b89b72; border-radius: 14px;
+  padding: 14px 16px; box-shadow: 0 6px 20px rgba(0,0,0,.08);
+  max-width: 880px; margin: 0 auto;
+}
+.ex-notes-hint-text { margin: 0; line-height: 1.45; font-size: 1rem; color: #2a241b; }
+.ex-notes-open-btn {
+  justify-self: start;
+  background: #2f6d3a; color: #fff; border: 0; border-radius: 10px;
+  padding: 10px 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(47,109,58,.3); transition: transform .08s ease, box-shadow .2s;
+}
+.ex-notes-open-btn:hover { box-shadow: 0 6px 18px rgba(47,109,58,.35); }
+.ex-notes-open-btn:active { transform: translateY(1px) scale(.99); }
+
+/* ====== MODAL ====== */
+.ex-notes-modal[aria-hidden="true"] { display: none; }
+.ex-notes-modal[aria-hidden="false"] { display: block; }
+
+.ex-notes-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+}
+
+.ex-notes-book {
+  position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none;
+}
+
+.ex-notes-cover, .ex-notes-pages {
+  pointer-events: auto;
+  height: min(72vh, 680px);
+}
+
+.ex-notes-cover {
+  width: min(44vw, 520px);
+  background: linear-gradient(135deg, #704c2b, #8b5e34 60%, #9e6d3b);
+  border-radius: 18px 0 0 18px;
+  box-shadow: 0 18px 60px rgba(0,
+
 </body>
 </html>
 
   
+
 
 
 
