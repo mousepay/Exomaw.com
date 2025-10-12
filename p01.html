@@ -3,63 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pista 1 — El Taller del Relojero</title>
+  <title>Pista #P-01 — El Taller del Relojero</title>
   <style>
     body {
       margin: 0;
+      padding: 0;
       overflow: hidden;
-      background: url('reloj-antiguo.jpg') no-repeat center center fixed;
-      background-size: cover;
+      background: #000;
       font-family: 'Playfair Display', serif;
       color: rgba(255, 255, 255, 0.9);
-      text-align: center;
-      height: 100vh;
       display: flex;
-      flex-direction: column;
       justify-content: center;
-      backdrop-filter: blur(2px);
+      align-items: center;
+      height: 100vh;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: url('./assets/reloj.png') no-repeat center center/cover;
+      animation: fadein 3s ease-in-out;
+      filter: brightness(0.7) contrast(1.1);
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .glow {
-      color: #9fffd1;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #a3ffcb;
       text-shadow: 0 0 10px #4efcb2, 0 0 20px #4efcb2, 0 0 30px #4efcb2;
-      font-size: 1.3em;
+      font-size: 1.4em;
+      text-align: center;
       animation: flicker 3s infinite alternate;
     }
 
     @keyframes flicker {
-      0% { opacity: 0.8; }
-      100% { opacity: 1; }
+      0% { opacity: 0.85; text-shadow: 0 0 5px #4efcb2, 0 0 15px #4efcb2; }
+      100% { opacity: 1; text-shadow: 0 0 20px #4efcb2, 0 0 30px #4efcb2; }
     }
 
     .btn {
-      margin-top: 30px;
-      padding: 12px 24px;
-      background-color: rgba(255, 255, 255, 0.1);
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background: rgba(159, 255, 209, 0.1);
       border: 1px solid #9fffd1;
       border-radius: 10px;
       color: #9fffd1;
       text-decoration: none;
       transition: background 0.3s;
+      font-size: 1em;
     }
 
     .btn:hover {
-      background-color: rgba(159, 255, 209, 0.3);
+      background: rgba(159, 255, 209, 0.3);
+    }
+
+    audio {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="glow">
-    <p>“Dicen que el tiempo puede curar.<br>
-    Pero nadie habla del polvo que lo hace brillar.”</p>
-    <p><em>Archivo #P-01 — Registro de laboratorio incompleto.</em></p>
+  <div class="scene">
+    <div class="glow">
+      <p>“Cada mañana a las 8:30, el reloj marcaba lo mismo.<br>
+      Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
+      <p><em>Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</em></p>
+    </div>
     <a href="../index.html" class="btn">Volver</a>
+    <audio autoplay loop>
+      <source src="./assets/tic-tac.mp3" type="audio/mpeg">
+    </audio>
   </div>
-
-  <audio autoplay loop>
-    <source src="tic-tac.mp3" type="audio/mpeg">
-  </audio>
 </body>
 </html>
-
 
