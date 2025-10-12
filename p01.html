@@ -3,28 +3,16 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Pista con Libreta</title>
+<title>Pista con Libreta + Cerrar frase</title>
 <style>
-  /* ======= Paleta B/N y reset ======= */
   *,*::before,*::after{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:#0b0b0b;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 
-  /* ======= HERO con imagen de fondo ======= */
-  .hero{
-    position:relative; min-height:72vh; display:grid; place-items:center; overflow:hidden;
-    background:#000;
-  }
-  .hero .bg{
-    position:absolute; inset:0;
-    background-position:center; background-size:cover; background-repeat:no-repeat;
-    filter:grayscale(100%) contrast(115%) brightness(.85);
-    z-index:0;
-  }
-  .hero .shade{
-    position:absolute; inset:0; z-index:0;
-    background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.65));
-  }
+  /* ===== HERO con imagen ===== */
+  .hero{position:relative;min-height:72vh;display:grid;place-items:center;overflow:hidden;background:#000}
+  .bg{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;filter:grayscale(100%) contrast(115%) brightness(.85);z-index:0}
+  .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.65));z-index:0}
 
   /* Sangre opcional */
   .blood{position:absolute;inset:0;pointer-events:none;z-index:1;mix-blend-mode:multiply}
@@ -38,125 +26,87 @@
       radial-gradient(70px 200px at 70% 0%, rgba(80,0,0,.8),  transparent 70%),
       radial-gradient(40px 140px at 88% 0%, rgba(70,0,0,.75),  transparent 70%),
       linear-gradient(180deg, rgba(30,0,0,.7), rgba(10,0,0,.92) 55%, rgba(0,0,0,0) 90%);
-    filter:blur(1px); animation:drip 18s linear infinite;
+    filter:blur(1px);animation:drip 18s linear infinite;
   }
   .blood::after{animation-delay:-9s;opacity:.9}
   @keyframes drip{0%{transform:translateY(-7%)}100%{transform:translateY(7%)}}
 
-  /* Caja de frase y botones */
-  .panel{
-    position:relative; z-index:2;
-    width:min(1200px,92vw);
-    background:rgba(0,0,0,.55);
-    backdrop-filter:blur(4px);
-    border:1px solid rgba(255,255,255,.2);
-    border-radius:16px;
-    padding:clamp(18px,2.8vw,34px);
-    box-shadow:0 24px 60px rgba(0,0,0,.55);
-    text-align:center;
-  }
-  .q{
-    margin:0 0 14px; color:#fff;
-    font-weight:900; letter-spacing:.2px;
-    font-size:clamp(1.25rem,1rem + 2.4vw,3.1rem);
-    text-shadow:
-      0 3px 12px rgba(0,0,0,.85),
-      0 0 1px rgba(255,255,255,.25);
-  }
-  .meta{
-    margin:0 0 18px; color:#e0e0e0; font-style:italic;
-    font-size:clamp(.96rem,.9rem + .55vw,1.2rem);
-    text-shadow:0 2px 8px rgba(0,0,0,.8);
-    opacity:.95;
-  }
+  /* Panel de la frase (con X para cerrar) */
+  .panel{position:relative;z-index:2;width:min(1200px,92vw);background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:clamp(18px,2.8vw,34px);box-shadow:0 24px 60px rgba(0,0,0,.55);text-align:center}
+  .panel.hidden{display:none}
+  .panel .closePhrase{position:absolute;top:10px;right:12px;background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;
+    width:32px;height:32px;border-radius:50%;font-size:18px;line-height:30px;cursor:pointer}
+
+  .q{margin:0 0 14px;color:#fff;font-weight:900;letter-spacing:.2px;font-size:clamp(1.25rem,1rem + 2.4vw,3.1rem);
+    text-shadow:0 3px 12px rgba(0,0,0,.85),0 0 1px rgba(255,255,255,.25)}
+  .meta{margin:0 0 18px;color:#e0e0e0;font-style:italic;font-size:clamp(.96rem,.9rem + .55vw,1.2rem);text-shadow:0 2px 8px rgba(0,0,0,.8);opacity:.95}
+
   .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-  .btn{
-    background:#fff;color:#000;border:1px solid #fff;border-radius:12px;
-    padding:10px 16px;font-weight:800;cursor:pointer;
-    box-shadow:0 8px 26px rgba(0,0,0,.55);
-    transition:transform .08s ease,opacity .15s ease;
-  }
+  .btn{background:#fff;color:#000;border:1px solid #fff;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 26px rgba(0,0,0,.55);transition:transform .08s ease}
   .btn:active{transform:translateY(1px) scale(.99)}
   .btn-ghost{background:transparent;color:#fff;border-color:#fff}
-  /* slot para tu botón Volver (pegas tu HTML dentro y mantiene su estilo) */
   .slot-volver{display:inline-block}
 
-  /* ======= MODAL Libreta ======= */
+  /* Botón flotante para volver a mostrar la frase */
+  .showPhrase{position:fixed;right:14px;bottom:14px;z-index:9000;background:rgba(0,0,0,.6);color:#fff;border:1px solid #fff;border-radius:10px;
+    padding:8px 12px;font-weight:700;cursor:pointer;backdrop-filter:blur(2px);display:none}
+
+  /* ===== MODAL Libreta (z-index MUY alto) ===== */
   .modal[aria-hidden="true"]{display:none}
   .modal[aria-hidden="false"]{display:block}
-  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(2px)}
-  .mw{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;padding:16px}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(2px);z-index:10000}
+  .mw{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;padding:16px;z-index:10001}
   .book,.page{pointer-events:auto;height:min(78vh,780px)}
-  .book{
-    width:min(44vw,520px);
-    background:repeating-linear-gradient(135deg,#222,#222 14px,#111 14px,#111 28px);
-    border-radius:18px 0 0 18px;box-shadow:0 18px 60px rgba(0,0,0,.7);
-    transform-origin:left center;animation:open 900ms cubic-bezier(.2,.8,.2,1) forwards
-  }
-  .page{
-    --paper:#fff;--ink:#111;--line:#000;
-    width:min(54vw,760px);
-    background:var(--paper); color:var(--ink);
-    border:2px solid #000;border-left:0;border-radius:0 18px 18px 0;
-    box-shadow:0 18px 60px rgba(0,0,0,.8);
-    padding:14px 16px 16px;position:relative;overflow:hidden
-  }
+  .book{width:min(44vw,520px);background:repeating-linear-gradient(135deg,#222,#222 14px,#111 14px,#111 28px);border-radius:18px 0 0 18px;
+    box-shadow:0 18px 60px rgba(0,0,0,.7);transform-origin:left center;animation:open 900ms cubic-bezier(.2,.8,.2,1) forwards}
+  .page{--paper:#fff;--ink:#111;--line:#000;width:min(54vw,760px);background:var(--paper);color:var(--ink);border:2px solid #000;border-left:0;
+    border-radius:0 18px 18px 0;box-shadow:0 18px 60px rgba(0,0,0,.8);padding:14px 16px 16px;position:relative;overflow:hidden}
   .page.dark{--paper:#0f0f0f;--ink:#f1f1f1;--line:#fff}
-  .page::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(var(--paper),var(--paper) 26px,rgba(0,0,0,.07) 27px);opacity:.35}
-
+  .page::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(var(--paper),var(--paper) 26px,rgba(0,0,0,.07) 27px);opacity:.35;pointer-events:none}
   .head{position:relative;display:flex;justify-content:space-between;align-items:center;z-index:2}
   .ttl{margin:0;font-size:1.05rem}
   .close{background:transparent;color:var(--ink);border:0;font-size:1.8rem;line-height:1;cursor:pointer;padding:0 6px}
-
   .tools{display:flex;justify-content:space-between;align-items:center;gap:.75rem;z-index:2;position:relative;margin-top:8px}
   .left{display:flex;align-items:center;gap:.5rem}
   .toggle{background:transparent;color:var(--ink);border:1px solid var(--ink);padding:6px 10px;border-radius:8px;font-weight:800;cursor:pointer}
   .ctl{background:#000;color:#fff;border:1px solid #000;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
   .page.dark .ctl{background:#fff;color:#000;border-color:#fff}
-
   .label{display:block;margin:10px 0 6px;color:var(--ink);z-index:2;position:relative}
-  .ta{
-    width:100%;min-height:220px;resize:vertical;padding:12px 12px 12px 16px;border-radius:12px;border:1px dashed var(--line);
-    background:color-mix(in srgb,var(--paper) 92%, white 8%);color:var(--ink);
-    outline:none;box-shadow:inset 0 2px 8px rgba(0,0,0,.08);z-index:2;position:relative
-  }
+  .ta{width:100%;min-height:220px;resize:vertical;padding:12px 12px 12px 16px;border-radius:12px;border:1px dashed var(--line);
+    background:color-mix(in srgb,var(--paper) 92%, white 8%);color:var(--ink);outline:none;box-shadow:inset 0 2px 8px rgba(0,0,0,.08);z-index:2;position:relative}
   .board{width:100%;height:260px;background:var(--paper);border:1px solid var(--line);border-radius:12px;display:block;cursor:crosshair;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
   .ft{margin-top:8px;color:var(--ink);z-index:2;position:relative}
-
   @keyframes open{0%{transform:perspective(1200px) rotateY(0)}60%{transform:perspective(1200px) rotateY(-115deg)}100%{transform:perspective(1200px) rotateY(-180deg)}}
-
-  @media (max-width:960px){
-    .book{display:none}
-    .page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}
-    .page.dark{border-left-color:#fff}
-  }
+  @media (max-width:960px){.book{display:none}.page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}.page.dark{border-left-color:#fff}}
 </style>
 </head>
 <body>
 
   <!-- ===== HERO ===== -->
   <section class="hero" data-blood="1">
-    <!-- FOTO DE FONDO: cambia 'reloj.jpg' por tu archivo -->
+    <!-- Cambia 'reloj.jpg' por tu imagen real -->
     <div class="bg" style="background-image:url('reloj.jpg')"></div>
     <div class="shade"></div>
     <div class="blood" data-on="1"></div>
 
-    <div class="panel">
-      <!-- TU FRASE EXACTA AQUÍ -->
+    <div class="panel" id="phrasePanel">
+      <button class="closePhrase" id="closePhrase" title="Cerrar frase" aria-label="Cerrar frase">×</button>
       <p class="q">“Cada mañana a las 8:30, el reloj marcaba lo mismo. Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
       <p class="meta">Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</p>
 
       <div class="actions">
         <button class="btn" id="openNotes" type="button" aria-haspopup="dialog" aria-controls="notesModal">Abrir libreta</button>
         <button class="btn btn-ghost" id="downloadNotes" type="button">Descargar pistas</button>
-
-        <!-- Pega aquí tu propio botón Volver si quieres que se vea junto -->
-        <span class="slot-volver">
-          <!-- ejemplo: <a href="index.html" class="volver">Volver</a> -->
-        </span>
+        <!-- Pega aquí tu propio botón VOLVER si quieres que se vea junto -->
+        <span class="slot-volver"><!-- ejemplo: <a href="index.html" class="volver">Volver</a> --></span>
       </div>
     </div>
   </section>
+
+  <!-- Botón flotante para volver a mostrar la frase -->
+  <button class="showPhrase" id="showPhrase" type="button">Mostrar frase</button>
 
   <!-- ===== MODAL LIBRETA ===== -->
   <section class="notes" data-key="pistas_reloj_bn">
@@ -168,7 +118,7 @@
         <div class="page" id="page">
           <header class="head">
             <h3 class="ttl" id="notesTitle">Mi libreta</h3>
-            <button class="close" type="button" data-close>&times;</button>
+            <button class="close" type="button" data-close aria-label="Cerrar">×</button>
           </header>
 
           <div class="tools">
@@ -197,7 +147,20 @@
 
 <script>
 (() => {
-  /* ====== referencias ====== */
+  /* ===== Frase: cerrar/mostrar ===== */
+  const phrasePanel = document.getElementById('phrasePanel');
+  const closePhrase = document.getElementById('closePhrase');
+  const showPhrase  = document.getElementById('showPhrase');
+  closePhrase.addEventListener('click', () => {
+    phrasePanel.classList.add('hidden');
+    showPhrase.style.display = 'inline-block';
+  });
+  showPhrase.addEventListener('click', () => {
+    phrasePanel.classList.remove('hidden');
+    showPhrase.style.display = 'none';
+  });
+
+  /* ===== Libreta ===== */
   const wrapper   = document.querySelector('.notes');
   const storageKey= 'notes_' + (wrapper?.dataset?.key || 'pista');
 
@@ -221,11 +184,11 @@
 
   let tool = 'pencil';
 
-  /* ====== abrir / cerrar ====== */
   function openModal(){
-    modal.setAttribute('aria-hidden', 'false');
+    modal.setAttribute('aria-hidden','false');
+    // opcional: ocultar la frase al abrir la libreta para que no moleste
+    phrasePanel.classList.add('hidden'); showPhrase.style.display='inline-block';
 
-    // restaurar
     try{
       const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
       if (data.text) ta.value = data.text;
@@ -233,17 +196,15 @@
         const img = new Image();
         img.onload = () => { resizeBoard(); ctx.clearRect(0,0,board.width,board.height); ctx.drawImage(img,0,0,board.width,board.height); };
         img.src = data.img;
-      }else{
-        resizeBoard();
-      }
+      } else { resizeBoard(); }
       if (data.theme === 'dark'){ page.classList.add('dark'); themeBtn.textContent='Tema: Negro'; }
     }catch(e){ resizeBoard(); }
 
-    setTimeout(()=>ta.focus(), 40);
+    setTimeout(()=>ta.focus(),40);
     document.addEventListener('keydown', escClose);
   }
   function closeModal(){
-    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('aria-hidden','true');
     document.removeEventListener('keydown', escClose);
   }
   function escClose(e){ if(e.key==='Escape') closeModal(); }
@@ -251,18 +212,14 @@
   openBtn.addEventListener('click', openModal);
   backdrops.forEach(el=>el.addEventListener('click', closeModal));
 
-  /* ====== tema ====== */
   themeBtn.addEventListener('click', ()=>{
     page.classList.toggle('dark');
     themeBtn.textContent = page.classList.contains('dark') ? 'Tema: Negro' : 'Tema: Blanco';
     resizeBoard();
   });
-
-  /* ====== lápiz/goma ====== */
   toolPen.addEventListener('click', ()=> tool='pencil');
   toolEra.addEventListener('click', ()=> tool='eraser');
 
-  /* ====== canvas responsivo ====== */
   function resizeBoard(){
     const r = board.getBoundingClientRect();
     const tmp = document.createElement('canvas');
@@ -274,7 +231,6 @@
   }
   new ResizeObserver(resizeBoard).observe(board);
 
-  /* ====== dibujo ====== */
   let drawing=false,lastX=0,lastY=0;
   const color = ()=> page.classList.contains('dark') ? '#fff' : '#000';
 
@@ -302,11 +258,10 @@
   board.addEventListener('touchmove',  e=>{const p=pos(e); move(p.x,p.y);  e.preventDefault();},{passive:false});
   window.addEventListener('touchend', end, {passive:true});
 
-  /* ====== guardar / borrar ====== */
   function save(){
     const data = { text: ta.value || '', img: board.toDataURL('image/png'), theme: page.classList.contains('dark')?'dark':'light' };
     localStorage.setItem(storageKey, JSON.stringify(data));
-    saveBtn.textContent='Guardado ✓'; setTimeout(()=> saveBtn.textContent='Guardar', 1000);
+    saveBtn.textContent='Guardado ✓'; setTimeout(()=> saveBtn.textContent='Guardar', 900);
   }
   saveBtn.addEventListener('click', save);
 
@@ -319,28 +274,28 @@
     ta.value=''; ctx.clearRect(0,0,board.width,board.height);
   });
 
-  /* ====== descargar TXT ====== */
   dlBtn.addEventListener('click', ()=>{
     const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
     const frase  = document.querySelector('.q')?.textContent?.trim() || '';
     const meta   = document.querySelector('.meta')?.textContent?.trim() || '';
     const text   = stored.text || '';
-
     const content = `Pista:\n${frase}\n\n${meta?meta+"\n\n":""}Notas del lector:\n${text || "(vacío)"}\n`;
     const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
     const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href=url; a.download='pistas.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    const a    = document.createElement('a'); a.href=url; a.download='pistas.txt';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
-  /* ====== sangre ON/OFF desde atributo ====== */
+  /* Sangre ON/OFF por data-attribute */
   const bloodLayer = document.querySelector('.blood');
   const bloodOn = document.querySelector('.hero')?.dataset?.blood === '1';
   if(bloodLayer) bloodLayer.setAttribute('data-on', bloodOn ? '1' : '0');
 })();
 </script>
+
 </body>
 </html>
+
 
 
 
