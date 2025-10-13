@@ -919,9 +919,55 @@
 })();
 </script>
 <!-- ===== FIN MODO MÁQUINA (auto) ===== -->
+<!-- ===== PARCHE: overlay que evita la tapa y siempre se ve completo ===== -->
+<style>
+  /* Subimos z-index para que quede por encima de la tapa rayada (.book) */
+  #typeOverlayAuto{
+    z-index: 10002 !important; /* .mw≈10001 → lo pasamos por encima, sin capturar eventos */
+    pointer-events: none !important;
+  }
+</style>
+
+<script>
+(function(){
+  const modal   = document.getElementById('notesModal');
+  const overlay = document.getElementById('typeOverlayAuto'); // creado por el modo máquina
+  if(!modal || !overlay) return;
+
+  function positionOverlay(){
+    // Si existe la tapa (.book) y es visible (solo en escritorio)
+    const book = modal.querySelector('.book');
+    if (book && getComputedStyle(book).display !== 'none') {
+      const r = book.getBoundingClientRect();
+      // Dejamos un margen de 24px a la derecha de la tapa
+      overlay.style.left   = Math.round(r.left + r.width + 24) + 'px';
+      overlay.style.right  = '0';
+      // Opcional: quitamos padding lateral excesivo ahora que ya desplazamos el overlay
+      overlay.style.paddingLeft  = '6vw';
+      overlay.style.paddingRight = '6vw';
+    } else {
+      // En móvil (sin tapa), el overlay ocupa todo el ancho con padding cómodo
+      overlay.style.left   = '0';
+      overlay.style.right  = '0';
+      overlay.style.paddingLeft  = '10vw';
+      overlay.style.paddingRight = '10vw';
+    }
+  }
+
+  // Reposiciona cuando se abre la libreta y al redimensionar
+  const openBtn = document.getElementById('openNotes');
+  openBtn?.addEventListener('click', () => setTimeout(positionOverlay, 120));
+  window.addEventListener('resize', positionOverlay);
+
+  // Por si el overlay ya estaba encendido, lo recolocamos ahora mismo:
+  positionOverlay();
+})();
+</script>
+<!-- ===== FIN PARCHE ===== -->
 
 </body>
 </html>
+
 
 
 
