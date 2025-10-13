@@ -586,9 +586,147 @@
 })();
 </script>
 <!-- ===== FIN DEL PARCHE ===== -->
+<!-- ===== PARCHE: botón "Mostrar en libreta" + vista real en la libreta ===== -->
+<style>
+  /* Hoja visible de la libreta (vista previa) */
+  #notePreview2{
+    width:100%; height:380px; display:block;
+    background:var(--paper, #111);
+    border:1px solid var(--line,#fff);
+    border-radius:12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.08);
+    margin: 10px 0 14px;
+  }
+  .page.light #notePreview2{ background:#fff; border-color:#000; }
+
+  /* Efecto de “flash” al actualizar */
+  #notePreview2.flash{ box-shadow:0 0 0 3px rgba(255,255,255,.6), inset 0 2px 8px rgba(0,0,0,.08); }
+</style>
+
+<script>
+(function(){
+  const page   = document.getElementById('page');
+  if(!page) return;
+
+  const ta     = document.getElementById('ta');
+  const toolsR = page.querySelector('.tools .right');
+
+  /* 1) Crear botón "Mostrar en libreta" sin tocar tu HTML */
+  const showBtn = document.createElement('button');
+  showBtn.className = 'ctl';
+  showBtn.type = 'button';
+  showBtn.id   = 'showOnNotebook';
+  showBtn.textContent = 'Mostrar en libreta';
+  // Lo ponemos al principio de la zona de botones de la derecha
+  toolsR?.insertAdjacentElement('afterbegin', showBtn);
+
+  /* 2) Asegurar hoja (canvas) donde se dibuja el texto */
+  function ensurePreview(){
+    let pv = document.getElementById('notePreview2');
+    if(!pv){
+      pv = document.createElement('canvas');
+      pv.id = 'notePreview2';
+      // Colocamos la hoja justo DESPUÉS del encabezado, al inicio de la libreta
+      const head = page.querySelector('.head');
+      if(head){
+        head.insertAdjacentElement('afterend', pv);
+      }else{
+        page.insertAdjacentElement('afterbegin', pv);
+      }
+    }
+    return pv;
+  }
+
+  /* 3) Colores según tema */
+  const isLight  = ()=> page.classList.contains('light');
+  const penColor = ()=> isLight() ? '#000' : '#fff';
+  const lineCol  = ()=> isLight() ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.10)';
+  const bgCol    = ()=> isLight() ? '#fff' : '#111';
+  const borderCol= ()=> isLight() ? '#000' : '#fff';
+
+  /* 4) Redibujar la hoja con el contenido del textarea */
+  function drawNotebook(){
+    const pv = ensurePreview();
+    // Ajustar tamaño al ancho visible
+    const r = pv.getBoundingClientRect();
+    pv.width  = Math.max(300, r.width);
+    pv.height = r.height || 380;
+
+    const ctx = pv.getContext('2d');
+    const w = pv.width, h = pv.height;
+    const padX = 18, padY = 18, lineH = 28;
+
+    // Fondo
+    ctx.fillStyle = bgCol(); ctx.fillRect(0,0,w,h);
+    // Líneas
+    ctx.strokeStyle = lineCol(); ctx.lineWidth = 1;
+    for(let y = padY + lineH; y < h - 6; y += lineH){
+      ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(w - padX, y); ctx.stroke();
+    }
+    // Texto envuelto
+    const txt = (ta && ta.value) ? ta.value : '';
+    ctx.fillStyle = penColor();
+    ctx.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif';
+    ctx.textBaseline = 'top';
+
+    const maxW = w - padX*2;
+    const words = txt.split(/\s+/);
+    let line = '', y = padY;
+
+    function writeLine(s){
+      ctx.fillText(s, padX, y);
+      y += lineH;
+      return y <= h - padY; // seguimos mientras quepa
+    }
+
+    for(let i=0;i<words.length;i++){
+      const test = line ? line + ' ' + words[i] : words[i];
+      if(ctx.measureText(test).width <= maxW){
+        line = test;
+      }else{
+        if(!writeLine(line)) break;
+        line = words[i];
+      }
+    }
+    if(line) writeLine(line);
+
+    // Flash visual de actualización
+    pv.classList.add('flash');
+    setTimeout(()=>pv.classList.remove('flash'), 350);
+
+    // Asegurar contraste del borde
+    pv.style.borderColor = borderCol();
+  }
+
+  /* 5) Acción del botón: dibujar y subir al inicio de la libreta */
+  showBtn.addEventListener('click', ()=>{
+    drawNotebook();
+    const pv = document.getElementById('notePreview2');
+    pv?.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  /* 6) Si existe textarea, también actualizamos en vivo cuando ya se creó la hoja */
+  ta?.addEventListener('input', ()=>{
+    if(document.getElementById('notePreview2')) drawNotebook();
+  });
+
+  /* 7) Al cambiar tema, repintamos */
+  const themeBtn = document.getElementById('themeBtn');
+  themeBtn?.addEventListener('click', ()=> setTimeout(drawNotebook, 80));
+
+  /* 8) Al abrir la libreta, primera medida */
+  const openBtn = document.getElementById('openNotes');
+  openBtn?.addEventListener('click', ()=> setTimeout(drawNotebook, 150));
+  window.addEventListener('resize', ()=> {
+    if(document.getElementById('notePreview2')) drawNotebook();
+  });
+})();
+</script>
+<!-- ===== FIN PARCHE ===== -->
 
 </body>
 </html>
+
 
 
 
