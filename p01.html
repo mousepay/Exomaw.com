@@ -93,6 +93,22 @@
   @keyframes open{0%{transform:perspective(1200px) rotateY(0)}60%{transform:perspective(1200px) rotateY(-115deg)}100%{transform:perspective(1200px) rotateY(-180deg)}}
   @media (max-width:960px){.book{display:none}.page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}}
 </style>
+ /* ==== Oculta botones innecesarios de la libreta ==== */
+#penBtn,
+#eraserBtn,
+#downloadBtn,
+#deleteBtn,
+#screenBtn,
+#showNotesBtn {
+  display: none !important;
+}
+
+/* Dejamos visibles solo los que queremos */
+#themeBtn,
+#saveNotesBtn {
+  display: inline-block !important;
+}
+
 </head>
 <body>
 
@@ -967,6 +983,7 @@
 
 </body>
 </html>
+
 
 
 
