@@ -821,9 +821,108 @@
 })();
 </script>
 <!-- ===== FIN MODO MÁQUINA ===== -->
+<!-- ===== MODO MÁQUINA (auto): texto en el panel negro grande ===== -->
+<style>
+  /* Capa fija de texto (encima del fondo, debajo de la libreta) */
+  #typeOverlayAuto{
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    /* ocupa el área negra superior (ajusta si quieres) */
+    height: 60vh; 
+    padding: 8vh 10vw 0;
+    z-index: 10000;          /* backdrop=10000, libreta(.mw)=10001 ⇒ queda debajo de la libreta */
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+    font-size: clamp(18px, 1.4vw, 30px);
+    line-height: 1.7;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  }
+  #typeOverlayAuto.on{ opacity: .95; }
+
+  /* Cuando la libreta esté en tema blanco, el overlay cambia a negro */
+  .page.light ~ #typeOverlayAuto{
+    color:#000 !important;
+    text-shadow:none !important;
+  }
+</style>
+
+<script>
+(function(){
+  const modal   = document.getElementById('notesModal');
+  const page    = document.getElementById('page');
+  const ta      = document.getElementById('ta');
+  const openBtn = document.getElementById('openNotes');
+  if(!modal || !page || !openBtn) return;
+
+  // Crea (si no existe) la capa de texto fija
+  let overlay = document.getElementById('typeOverlayAuto');
+  function ensureOverlay(){
+    if(!overlay){
+      overlay = document.createElement('div');
+      overlay.id = 'typeOverlayAuto';
+      // Lo añadimos DENTRO del modal, como último hijo,
+      // z-index = 10000, así queda por ENCIMA del backdrop (10000) 
+      // y por DEBAJO de la libreta (.mw, 10001)
+      modal.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function syncOverlay(){
+    ensureOverlay();
+    overlay.textContent = (ta?.value || '').trim();
+    // color según tema
+    if(page.classList.contains('light')){
+      overlay.style.color = '#000';
+      overlay.style.textShadow = 'none';
+    }else{
+      overlay.style.color = '#fff';
+      overlay.style.textShadow = '0 2px 6px rgba(0,0,0,.6)';
+    }
+  }
+
+  function turnOn(){
+    ensureOverlay();
+    syncOverlay();
+    overlay.classList.add('on');
+  }
+  function turnOff(){
+    if(overlay) overlay.classList.remove('on');
+  }
+
+  // Abrir/ cerrar libreta
+  openBtn.addEventListener('click', () => {
+    // Espera mínima para que mida alturas
+    setTimeout(turnOn, 120);
+  });
+  // Cierre por backdrop o botón ×
+  modal.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', turnOff);
+  });
+  // Cierre por Escape (si tu script ya lo maneja, esto es un seguro)
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') turnOff();
+  });
+
+  // Actualización en vivo al escribir
+  ta?.addEventListener('input', () => { if(overlay && overlay.classList.contains('on')) syncOverlay(); });
+
+  // Si cambias el tema, re-sincroniza colores/texto
+  const mo = new MutationObserver(()=> { if(overlay && overlay.classList.contains('on')) syncOverlay(); });
+  mo.observe(page, {attributes:true, attributeFilter:['class']});
+
+  // Recalcular al redimensionar
+  window.addEventListener('resize', ()=> { if(overlay && overlay.classList.contains('on')) syncOverlay(); });
+})();
+</script>
+<!-- ===== FIN MODO MÁQUINA (auto) ===== -->
 
 </body>
 </html>
+
 
 
 
