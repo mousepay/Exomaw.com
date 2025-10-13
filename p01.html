@@ -456,9 +456,140 @@
 })();
 </script>
 <!-- ===== FIN PARCHE ===== -->
+<!-- ===== PARCHE: vista previa de la libreta que refleja lo escrito ===== -->
+<style>
+  /* Área de vista previa (se ve como la hoja de la libreta) */
+  #notePreview{
+    width:100%; height:260px; display:block;
+    background:var(--paper, #111);
+    border:1px solid var(--line, #fff);
+    border-radius:12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.08);
+    margin: 8px 0 10px;
+  }
+  /* En tema blanco */
+  .page.light #notePreview{
+    background:#fff; border-color:#000;
+  }
+</style>
+
+<script>
+(function(){
+  const page   = document.getElementById('page');
+  const ta     = document.getElementById('ta');          // tu textarea existente
+  const board  = document.getElementById('board');       // tu canvas de dibujo existente
+  const themeBtn = document.getElementById('themeBtn');  // botón de tema
+
+  if (!page) return;
+
+  // 1) Crear el canvas de vista previa si no existe
+  let preview = document.getElementById('notePreview');
+  if (!preview){
+    // Lo colocamos ANTES del canvas de dibujo para que la “hoja escrita” quede sobre la libreta
+    preview = document.createElement('canvas');
+    preview.id = 'notePreview';
+    const label = document.createElement('label');
+    label.className = 'label';
+    label.textContent = 'Así queda en tu libreta:';
+    if (board){
+      board.insertAdjacentElement('beforebegin', preview);
+      preview.insertAdjacentElement('beforebegin', label);
+    }else if (ta){
+      ta.insertAdjacentElement('beforebegin', preview);
+      preview.insertAdjacentElement('beforebegin', label);
+    }else{
+      page.appendChild(preview);
+    }
+  }
+
+  // 2) Dibujar líneas + texto envuelto en el canvas
+  function penColor(){ return page.classList.contains('light') ? '#000' : '#fff'; }
+  function lineColor(){ return page.classList.contains('light') ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.10)'; }
+  function bgColor(){ return page.classList.contains('light') ? '#fff' : '#111'; }
+  function borderColor(){ return page.classList.contains('light') ? '#000' : '#fff'; }
+
+  function resizePreview(){
+    const r = preview.getBoundingClientRect();
+    preview.width  = r.width;
+    preview.height = r.height;
+    drawPreview();
+  }
+
+  function drawPreview(){
+    const ctx = preview.getContext('2d');
+    const w = preview.width, h = preview.height;
+    const padX = 18, padY = 18, lineH = 28;
+    // Fondo
+    ctx.fillStyle = bgColor();
+    ctx.fillRect(0,0,w,h);
+    // Líneas horizontales
+    ctx.strokeStyle = lineColor();
+    ctx.lineWidth = 1;
+    for (let y = padY + lineH; y < h - 6; y += lineH){
+      ctx.beginPath();
+      ctx.moveTo(padX, y);
+      ctx.lineTo(w - padX, y);
+      ctx.stroke();
+    }
+    // Texto (envuelto a línea)
+    const text = (ta && ta.value) ? ta.value : '';
+    ctx.fillStyle = penColor();
+    ctx.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif';
+    ctx.textBaseline = 'top';
+
+    const maxWidth = w - padX*2;
+    const words = text.split(/\s+/);
+    let line = '', y = padY;
+
+    function writeLine(str){
+      ctx.fillText(str, padX, y);
+      y += lineH;
+      if (y > h - padY) return false; // nos salimos; no crecer para mantener altura fija
+      return true;
+    }
+
+    for (let i=0;i<words.length;i++){
+      const test = line ? line + ' ' + words[i] : words[i];
+      const m = ctx.measureText(test).width;
+      if (m <= maxWidth){
+        line = test;
+      } else {
+        if (!writeLine(line)) break;
+        line = words[i];
+      }
+    }
+    if (line) writeLine(line);
+  }
+
+  // 3) Eventos: escribir, cambiar tema y redimensionar
+  if (ta){
+    ta.addEventListener('input', drawPreview);
+  }
+  if (themeBtn){
+    themeBtn.addEventListener('click', () => {
+      // reestilamos borde/fondo vía CSS variables implícitas
+      preview.style.background = bgColor();
+      preview.style.borderColor = borderColor();
+      setTimeout(drawPreview, 50);
+    });
+  }
+  window.addEventListener('resize', ()=>{ resizePreview(); });
+
+  // 4) Primera medida y pintado (esperamos a que el modal mida tamaños)
+  setTimeout(resizePreview, 150);
+
+  // 5) Si se abre la libreta con un botón “openNotes”, repintamos al abrir
+  const openBtn = document.getElementById('openNotes');
+  if (openBtn){
+    openBtn.addEventListener('click', () => setTimeout(resizePreview, 150));
+  }
+})();
+</script>
+<!-- ===== FIN DEL PARCHE ===== -->
 
 </body>
 </html>
+
 
 
 
