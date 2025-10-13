@@ -986,9 +986,55 @@
 })();
 </script>
 <!-- ===== FIN PARCHE ===== -->
+<script>
+(function hideNotebookButtons(){
+  // IDs que queremos ocultar (si existen)
+  const idsToHide = [
+    'toolPen','toolEraser','downloadNotesTop','downloadNotesIn',
+    'clearBtn','toggleScreen','showOnNotebook'
+  ];
+  const idsToShow = ['themeBtn','saveBtn']; // los que sí queremos
+
+  function applyHide(){
+    // 1) por ID
+    idsToHide.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    idsToShow.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'inline-block'; });
+
+    // 2) por texto visible (por si los IDs cambian)
+    const labelsToHide = ['lápiz','goma','descargar','borrar','en pantalla','mostrar en libreta'];
+    document.querySelectorAll('.tools button, .tools .left button, .tools .right button')
+      .forEach(btn => {
+        const t = (btn.textContent || '').trim().toLowerCase();
+        if (labelsToHide.some(lbl => t.includes(lbl))) {
+          btn.style.display = 'none';
+        }
+      });
+
+    // aseguramos que sólo queden Tema y Guardar
+    document.querySelectorAll('.tools button').forEach(btn=>{
+      const t = (btn.textContent || '').trim().toLowerCase();
+      if (!(t.startsWith('tema') || t.includes('guardar'))) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+
+  // Ejecuta al cargar…
+  applyHide();
+  // …y de nuevo tras pequeños retrasos por si algo se inyecta tarde
+  setTimeout(applyHide, 150);
+  setTimeout(applyHide, 600);
+
+  // Observa cambios en la barra de herramientas y vuelve a aplicar
+  const tools = document.querySelector('.tools') || document.body;
+  const mo = new MutationObserver(applyHide);
+  mo.observe(tools, {childList:true, subtree:true});
+})();
+</script>
 
 </body>
 </html>
+
 
 
 
