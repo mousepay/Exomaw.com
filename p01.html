@@ -325,8 +325,45 @@
 
 })();
 </script>
+ <!-- ===== PARCHE CSS: permitir scroll dentro de la libreta y asegurar el textarea ===== -->
+<style>
+  /* Deja que el contenido de la libreta pueda desplazarse */
+  .page{
+    overflow: auto !important;         /* <- antes era hidden */
+  }
+  /* Que el textarea siempre sea visible y alto suficiente */
+  .ta{
+    display: block !important;
+    min-height: 260px !important;
+  }
+  /* Centrado vertical del contenedor del modal */
+  .mw{
+    align-items: center !important;
+  }
+</style>
+
+<!-- ===== PARCHE JS: al abrir la libreta, sube al inicio y enfoca el textarea ===== -->
+<script>
+  (function(){
+    const openBtn = document.getElementById('openNotes');
+    const page    = document.getElementById('page');
+    const ta      = document.getElementById('ta');
+
+    if (openBtn && page && ta) {
+      openBtn.addEventListener('click', () => {
+        // pequeña espera para que el modal termine de abrirse
+        setTimeout(() => {
+          page.scrollTop = 0;  // sube al principio de la página de la libreta
+          ta.focus();          // cursor listo para escribir
+        }, 100);
+      });
+    }
+  })();
+</script>
+
 </body>
 </html>
+
 
 
 
