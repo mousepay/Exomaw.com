@@ -723,9 +723,108 @@
 })();
 </script>
 <!-- ===== FIN PARCHE ===== -->
+<!-- ===== MODO MÁQUINA: mostrar lo escrito en el panel negro grande ===== -->
+<style>
+  /* Botón adicional en la barra de la libreta */
+  .ctl.outline {
+    background: transparent !important;
+    color: var(--ink, #fff) !important;
+    border: 1px solid var(--ink, #fff) !important;
+  }
+  .page.light .ctl.outline{
+    color: #000 !important; border-color:#000 !important;
+  }
+
+  /* Overlay de texto a pantalla: por debajo de la libreta, por encima del fondo */
+  #typeOverlay{
+    position: fixed; inset: 0; z-index: 10000; /* backdrop=10000, libreta=10001 */
+    pointer-events: none;
+    padding: 8vh 10vw 12vh;
+    color: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+    font-size: clamp(18px, 1.4vw, 28px);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    opacity: 0; transition: opacity .18s ease;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  }
+  #typeOverlay.is-on{ opacity: .95; }
+  /* cuando la libreta esté en tema claro, el overlay se ve oscuro */
+  .page.light ~ #typeOverlay { color:#000; text-shadow:none; }
+</style>
+
+<script>
+(function(){
+  const page      = document.getElementById('page');
+  const ta        = document.getElementById('ta');
+  const toolsRight= page?.querySelector('.tools .right');
+
+  if(!page || !toolsRight) return;
+
+  /* 1) Botón "En pantalla" (mostrar/ocultar overlay) */
+  const screenBtn = document.createElement('button');
+  screenBtn.type = 'button';
+  screenBtn.className = 'ctl outline';
+  screenBtn.id = 'toggleScreen';
+  screenBtn.textContent = 'En pantalla';
+  toolsRight.insertAdjacentElement('afterbegin', screenBtn);
+
+  /* 2) Overlay de texto (debajo de la libreta, encima del fondo) */
+  let overlay = document.getElementById('typeOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'typeOverlay';
+    // Lo añadimos junto a la libreta para que comparta z-index base del modal
+    // (insertamos como hermano de .mw, dentro del modal)
+    const modal = document.getElementById('notesModal');
+    modal?.appendChild(overlay);
+  }
+
+  /* 3) Estado + sincronización */
+  let visible = false;
+  function syncOverlay(){
+    if(!overlay) return;
+    overlay.textContent = (ta?.value || '').trim();
+    // Color correcto según tema
+    if(page.classList.contains('light')){
+      overlay.style.color = '#000';
+      overlay.style.textShadow = 'none';
+    }else{
+      overlay.style.color = '#fff';
+      overlay.style.textShadow = '0 2px 6px rgba(0,0,0,.6)';
+    }
+  }
+
+  // Toggle del overlay
+  screenBtn.addEventListener('click', ()=>{
+    visible = !visible;
+    overlay.classList.toggle('is-on', visible);
+    syncOverlay();
+  });
+
+  // Actualiza en vivo al escribir
+  ta?.addEventListener('input', ()=> { if(visible) syncOverlay(); });
+
+  // Al cambiar tema, re-sincroniza (ya tendrás el listener del tema; nos enganchamos a mutación por si acaso)
+  const obs = new MutationObserver(()=> { if(visible) syncOverlay(); });
+  obs.observe(page, {attributes:true, attributeFilter:['class']});
+
+  // Al abrir la libreta, si estaba visible, sincroniza; al cerrar, escondemos
+  const openBtn  = document.getElementById('openNotes');
+  const modal    = document.getElementById('notesModal');
+  const closes   = modal?.querySelectorAll('[data-close]') || [];
+  openBtn?.addEventListener('click', ()=> setTimeout(()=>{ if(visible) syncOverlay(); }, 120));
+  closes.forEach(btn => btn.addEventListener('click', ()=> { visible=false; overlay.classList.remove('is-on'); }));
+
+  // Responder a cambios de tamaño
+  window.addEventListener('resize', ()=> { if(visible) syncOverlay(); });
+})();
+</script>
+<!-- ===== FIN MODO MÁQUINA ===== -->
 
 </body>
 </html>
+
 
 
 
