@@ -1,42 +1,315 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal #P-01 — EXOMAW</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0a0c10;
-      color: #eaf1fb;
-      font: 16px/1.6 system-ui, Segoe UI, Roboto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .wrap {
-      max-width: 720px;
-      padding: 2rem;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      text-align: center;
-    }
-    a {
-      color: #8be9fd;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pista 2 — Tren + Mapa con chinchetas</title>
+
+<!-- Leaflet (mapas) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#0b0b0b;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+
+  /* ===== HERO con vídeo ===== */
+  .hero{position:relative;min-height:100vh;display:grid;place-items:center;overflow:hidden;background:#000}
+  .bgVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(100%) contrast(110%) brightness(.9)}
+  .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.75));pointer-events:none}
+
+  .panel{position:relative;z-index:2;width:min(1100px,92vw);background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:clamp(18px,2.8vw,34px);
+    box-shadow:0 24px 60px rgba(0,0,0,.55);text-align:center}
+  .q{margin:0 0 14px;color:#fff;font-weight:900;letter-spacing:.2px;
+    font-size:clamp(1.25rem,1rem + 2.4vw,2.6rem);
+    text-shadow:0 3px 12px rgba(0,0,0,.85),0 0 1px rgba(255,255,255,.25)}
+  .meta{margin:0 0 18px;color:#e0e0e0;font-style:italic;font-size:clamp(.96rem,.9rem + .55vw,1.1rem);opacity:.95}
+
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{background:#fff;color:#000;border:1px solid #fff;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 26px rgba(0,0,0,.55);transition:transform .08s ease}
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn-ghost{background:transparent;color:#fff;border-color:#fff}
+
+  /* ===== MODAL MAPA ===== */
+  .modal[aria-hidden="true"]{display:none}
+  .modal[aria-hidden="false"]{display:block}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(2px);z-index:10000}
+  .mw{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr;z-index:10001}
+  .toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 12px;background:rgba(0,0,0,.85);border-bottom:1px solid rgba(255,255,255,.15)
+  }
+  .toolbar .group{display:flex;gap:8px;flex-wrap:wrap}
+  .tool{background:#fff;color:#000;border:1px solid #fff;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+  .tool.inverse{background:transparent;color:#fff;border-color:#fff}
+  .tool:active{transform:translateY(1px)}
+  .mapWrap{position:relative}
+  #map{width:100%;height:calc(100vh - 64px)} /* altura ventana menos la barra */
+  .hint{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.65);color:#fff;padding:6px 10px;border-radius:10px;font-size:.9rem;border:1px solid rgba(255,255,255,.2)}
+  .file{display:none}
+
+  /* Popup editable del marcador */
+  .pinForm{min-width:220px}
+  .pinForm label{display:block;font-size:.85rem;margin:.2rem 0 .1rem;opacity:.9}
+  .pinForm input,.pinForm textarea{
+    width:100%;border-radius:8px;border:1px solid #ddd;padding:8px 10px;font:inherit}
+  .pinForm textarea{min-height:70px;resize:vertical}
+  .pinRow{display:flex;gap:8px;margin-top:8px}
+  .pinRow .tool{flex:1}
+
+  /* En pantallas pequeñas ajustamos un poco */
+  @media (max-width:740px){
+    .q{font-size:clamp(1.1rem,1rem + 2.4vw,1.8rem)}
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Portal #P-01</h1>
-    <p>Este es un portal de prueba. Cuando el libro esté publicado, aquí aparecerá la primera pista.</p>
-    <p><a href="/">← Volver al inicio</a></p>
-  </div>
+
+  <!-- ===== HERO con vídeo del tren ===== -->
+  <section class="hero">
+    <video class="bgVideo" src="p02.mp4" autoplay muted playsinline loop></video>
+    <div class="shade"></div>
+
+    <div class="panel">
+      <p class="q">“Donde la luz se atrapa, se conservan moldes, planos y frascos.”</p>
+      <p class="meta">Archivo #P-02 — Bitácora de estación. Tren 1868.</p>
+      <div class="actions">
+        <button class="btn" id="openMap" type="button" aria-haspopup="dialog" aria-controls="mapModal">Ir al mapa</button>
+        <a class="btn btn-ghost" href="index.html">Volver</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MODAL del MAPA ===== -->
+  <section class="modal" id="mapModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="mapTitle">
+    <div class="backdrop" data-close></div>
+    <div class="mw">
+      <div class="toolbar">
+        <strong id="mapTitle" style="letter-spacing:.3px">Mapa — Cataluña &amp; sur de Francia</strong>
+        <div class="group">
+          <button class="tool inverse" id="saveAll">Guardar mapa</button>
+          <button class="tool inverse" id="delLast">Borrar última</button>
+          <button class="tool inverse" id="delAll">Borrar todo</button>
+          <button class="tool inverse" id="exportBtn">Exportar</button>
+          <button class="tool inverse" id="importBtn">Importar</button>
+          <input type="file" accept="application/json" id="importFile" class="file">
+          <button class="tool" data-close>&times; Cerrar</button>
+        </div>
+      </div>
+      <div class="mapWrap">
+        <div id="map" aria-label="Mapa interactivo"></div>
+        <div class="hint">Toca/clic en el mapa para poner una chincheta. Arrástrala para recolocar. Pulsa en la chincheta para editar o eliminar.</div>
+      </div>
+    </div>
+  </section>
+
+<script>
+(() => {
+  /* ===== Modal abrir/cerrar ===== */
+  const openBtn = document.getElementById('openMap');
+  const modal   = document.getElementById('mapModal');
+  const closers = modal.querySelectorAll('[data-close]');
+
+  function openModal(){
+    modal.setAttribute('aria-hidden','false');
+    setTimeout(()=>{ map.invalidateSize(); }, 200);
+  }
+  function closeModal(){
+    modal.setAttribute('aria-hidden','true');
+  }
+  openBtn.addEventListener('click', openModal);
+  closers.forEach(el => el.addEventListener('click', closeModal));
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+  /* ====== Mapa (Leaflet) ====== */
+  // Límite aproximado que abarca Catalunya y parte sur de Francia
+  const bounds = L.latLngBounds([ [40.4, -1.2], [44.7, 4.2] ]);
+  const center = [42.3, 2.8]; // zona Girona – Cap de Creus / Perpiñán
+  const localKey = 'p02_mapa_chinchetas';
+
+  const map = L.map('map', {
+    center: center,
+    zoom: 8,
+    minZoom: 6,
+    maxBounds: bounds,
+    maxBoundsViscosity: 0.75,
+    zoomControl: true
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 19
+  }).addTo(map);
+
+  /** Almacén en vivo de marcadores */
+  const markers = [];
+
+  /** Crea popup editable para un marcador concreto */
+  function setMarkerPopup(marker, data = {}){
+    const id   = data.id || ('m_' + Math.random().toString(36).slice(2));
+    marker._pinId = id;
+
+    const titulo = data.titulo || '';
+    const nota   = data.nota || '';
+
+    const html = `
+      <div class="pinForm" data-id="${id}">
+        <label>Título</label>
+        <input type="text" class="pinTitle" value="${escapeHtml(titulo)}" placeholder="p.ej. Cadaqués"/>
+        <label>Nota</label>
+        <textarea class="pinNote" placeholder="Apunta algo...">${escapeHtml(nota)}</textarea>
+        <div class="pinRow">
+          <button class="tool savePin"  type="button">Guardar</button>
+          <button class="tool inverse delPin" type="button">Eliminar</button>
+        </div>
+      </div>
+    `;
+    marker.bindPopup(html);
+
+    marker.on('popupopen', (e)=>{
+      const root   = e.popup.getElement();
+      const saveBt = root.querySelector('.savePin');
+      const delBt  = root.querySelector('.delPin');
+      const inpT   = root.querySelector('.pinTitle');
+      const inpN   = root.querySelector('.pinNote');
+
+      saveBt.addEventListener('click', ()=>{
+        marker._pinData = {
+          id,
+          titulo: (inpT.value || '').trim(),
+          nota: (inpN.value || '').trim()
+        };
+        // Pequeña confirmación
+        saveBt.textContent = 'Guardado ✓';
+        setTimeout(()=> saveBt.textContent='Guardar', 900);
+      });
+
+      delBt.addEventListener('click', ()=>{
+        map.removeLayer(marker);
+        // quitar de nuestro array
+        const idx = markers.indexOf(marker);
+        if (idx>=0) markers.splice(idx,1);
+      });
+    });
+  }
+
+  /** Escapado simple para inputs dentro del popup */
+  function escapeHtml(str){
+    return (str || '').replace(/[&<>"']/g, s => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[s]));
+  }
+
+  /** Crear marcador nuevo en un punto */
+  function addMarker(latlng, data = {}){
+    const m = L.marker(latlng, {draggable:true}).addTo(map);
+    setMarkerPopup(m, data);
+    if (data && data.titulo) m.openPopup();
+    markers.push(m);
+    return m;
+  }
+
+  /** Click para crear chincheta */
+  map.on('click', (e)=>{
+    const m = addMarker(e.latlng);
+    m.openPopup();
+  });
+
+  /** Guardar todos en localStorage */
+  function saveAll(){
+    const arr = markers.map(m => {
+      const p = m.getLatLng();
+      const d = m._pinData || {id:m._pinId, titulo:'', nota:''};
+      return { id: d.id || m._pinId, lat:p.lat, lng:p.lng, titulo:d.titulo||'', nota:d.nota||'' };
+    });
+    localStorage.setItem(localKey, JSON.stringify(arr));
+  }
+
+  /** Cargar desde localStorage */
+  function loadAll(){
+    try{
+      const raw = localStorage.getItem(localKey);
+      if(!raw) return;
+      const arr = JSON.parse(raw);
+      arr.forEach(it=>{
+        const m = addMarker([it.lat, it.lng], {id:it.id, titulo:it.titulo, nota:it.nota});
+        m._pinData = {id:it.id, titulo:it.titulo||'', nota:it.nota||''};
+      });
+      if (arr.length){
+        const b = L.latLngBounds(arr.map(it=>[it.lat,it.lng]));
+        map.fitBounds(b.pad(.2));
+      }
+    }catch(e){}
+  }
+  loadAll();
+
+  /** Borrar última chincheta */
+  function delLast(){
+    const m = markers.pop();
+    if (m){ map.removeLayer(m); }
+  }
+
+  /** Borrar todas */
+  function delAll(){
+    if (!markers.length) return;
+    if (!confirm('¿Borrar todas las chinchetas?')) return;
+    while(markers.length){
+      const m = markers.pop();
+      map.removeLayer(m);
+    }
+    localStorage.removeItem(localKey);
+  }
+
+  /** Exportar JSON */
+  function exportJSON(){
+    const raw = localStorage.getItem(localKey) || '[]';
+    const blob = new Blob([raw], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='chinchetas_p02.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  /** Importar JSON */
+  function importJSON(file){
+    const reader = new FileReader();
+    reader.onload = e => {
+      try{
+        const arr = JSON.parse(e.target.result || '[]');
+        delAll(); // limpia mapa y storage
+        arr.forEach(it=>{
+          const m = addMarker([it.lat, it.lng], {id:it.id, titulo:it.titulo, nota:it.nota});
+          m._pinData = {id:it.id, titulo:it.titulo||'', nota:it.nota||''};
+        });
+        saveAll();
+      }catch(err){
+        alert('Archivo no válido.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Botones toolbar
+  document.getElementById('saveAll').addEventListener('click', ()=>{ saveAll(); alert('Mapa guardado ✓'); });
+  document.getElementById('delLast').addEventListener('click', delLast);
+  document.getElementById('delAll').addEventListener('click', delAll);
+  document.getElementById('exportBtn').addEventListener('click', exportJSON);
+  const importBtn  = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+  importBtn.addEventListener('click', ()=> importFile.click());
+  importFile.addEventListener('change', (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if (f) importJSON(f);
+    importFile.value = '';
+  });
+
+})();
+</script>
 </body>
 </html>
+
+
