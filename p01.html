@@ -390,6 +390,13 @@ PISTA NUMERO 1
 </script>
 <!-- ===== PARCHE: asegura que se vea y funcione el espacio para escribir ===== -->
 <style>
+ /* Ocultar la previsualización "Así queda en tu libreta" (canvas) y su etiqueta */
+#notePreview,
+label[for="notePreview"],
+label.label:has(+ #notePreview) {
+  display: none !important;
+}
+
   /* 1) La página de la libreta debe poder hacer scroll */
   .page{
     overflow: auto !important;
@@ -1179,6 +1186,7 @@ PISTA NUMERO 1
 
 </body>
 </html>
+
 
 
 
