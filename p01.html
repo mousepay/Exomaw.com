@@ -111,6 +111,17 @@
 
 /* (Opcional) compactar la barra de herramientas */
 .tools .right { gap: 10px; }
+ /* --- Solo mostrar en el modal; ocultar espejos en la página --- */
+.outTitle,           /* "Así queda en tu libreta:" */
+#out,                /* contenedor del texto duplicado */
+#cronologia,         /* bloque de "Cronología:" */
+#timeline,           /* cualquier línea de tiempo si la hay */
+.preview,            /* posibles vistas previas */
+#savedPreview        /* texto guardado en espejo */
+{ 
+  display: none !important; 
+}
+
 </style>
 
 
@@ -1077,6 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
