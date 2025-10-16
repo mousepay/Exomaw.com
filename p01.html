@@ -1449,9 +1449,53 @@ label.label:has(+ #notePreview) {
 })();
 </script>
 <!-- ===== FIN PARCHE PORTADA ===== -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const box = document.getElementById('xpNav');
+  if (!box) return;
+
+  // Busca la X dentro de la caja (por clase o data-atributo)
+  const btnClose = box.querySelector('.xp-close,[data-xp="close"]');
+
+  // Crea (o usa) el botón flotante "Pistas"
+  let btnOpen = document.getElementById('xpOpen');
+  if (!btnOpen) {
+    btnOpen = document.createElement('button');
+    btnOpen.id = 'xpOpen';
+    btnOpen.className = 'xp-open';
+    btnOpen.type = 'button';
+    btnOpen.textContent = 'Pistas';
+    document.body.appendChild(btnOpen);
+  }
+
+  function hideBox() {
+    box.classList.add('is-hidden');
+    btnOpen.style.display = 'inline-flex';
+  }
+
+  function showBox() {
+    box.classList.remove('is-hidden');
+    btnOpen.style.display = 'none';
+    // opcional: scroll hasta la caja al abrirla
+    try { window.scrollTo({ top: box.offsetTop - 24, behavior: 'smooth' }); } catch(e) {}
+  }
+
+  // Enlaza la X
+  if (btnClose) btnClose.addEventListener('click', hideBox);
+
+  // Enlaza el botón flotante
+  btnOpen.addEventListener('click', showBox);
+
+  // Cerrar con ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !box.classList.contains('is-hidden')) hideBox();
+  });
+});
+</script>
 
 </body>
 </html>
+
 
 
 
