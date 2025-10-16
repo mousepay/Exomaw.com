@@ -1288,9 +1288,69 @@ label.label:has(+ #notePreview) {
 
 </body>
 </html>
+<style>
+  /* ——— Ocultar cabecera “Próximamente…” y el contador ——— */
+  /* Metemos varios selectores “prudentes” para no romper nada si cambian clases */
+  .hero .countdown,
+  .hero .timer,
+  .hero .xp-count,
+  .hero .announce .title,
+  .hero .announce h2,
+  .hero .announce .cta-timer,
+  .hero .announce .progress {
+    display: none !important;
+  }
+
+  /* ——— Estilo del nuevo botón (mismo look & feel de tus botones) ——— */
+  .cta-pistas {
+    display:inline-block;
+    background:#fff;
+    color:#000;
+    font-weight:800;
+    padding:12px 18px;
+    border-radius:12px;
+    text-decoration:none;
+    box-shadow:0 8px 26px rgba(0,0,0,.45);
+    border:1px solid #fff;
+  }
+  .cta-pistas:active { transform: translateY(1px) scale(.99); }
+</style>
+
+<script>
+  // Al cargar la portada: cambia el link azul por un botón a p01.html
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1) Localizamos el enlace azul actual (texto “Ver portal de prueba” u otro)
+    const linkCandidatos = [
+      // si existe un enlace que contenga ese texto
+      Array.from(document.querySelectorAll('a')).find(a => /portal de prueba/i.test(a.textContent || '')),
+      // fallback: primer enlace dentro del panel anunciador
+      document.querySelector('.hero .announce a'),
+      // último recurso: cualquier enlace visible en el panel
+      document.querySelector('.hero a')
+    ];
+    const enlace = linkCandidatos.find(Boolean);
+
+    if (enlace) {
+      // 2) Texto del botón (elige uno de los dos)
+      const textoBoton = 'El cuaderno de Nora Torres';
+      // const textoBoton = 'Entra y sé parte de la investigación';
+
+      // 3) Convertimos el enlace en botón y lo apuntamos a p01.html
+      enlace.textContent = textoBoton;
+      enlace.href = 'p01.html';
+      enlace.classList.add('cta-pistas');   // aspecto de botón
+      enlace.setAttribute('role','button');
+
+      // 4) Ocultamos título “Próximamente…” y contador (por si el CSS no los cazó)
+      ['.announce h2','.countdown','.timer','.xp-count','.announce .title','.announce .cta-timer','.announce .progress']
+        .forEach(sel => document.querySelectorAll(sel).forEach(el => el.style.display = 'none'));
+    }
+  });
+</script>
 
 </body>
 </html>
+
 
 
 
