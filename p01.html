@@ -1198,9 +1198,100 @@ label.label:has(+ #notePreview) {
   render();
 })();
 </script>
+<!-- ===== CAJA DE PISTAS (misteriosa) — pegar justo después de <body> ===== -->
+<style>
+  .xp-nav-wrap{
+    position:relative; z-index:12050; /* por encima de tu fondo pero debajo de modales */
+    display:grid; place-items:center; padding:16px;
+  }
+  .xp-nav{
+    width:min(960px, 92vw);
+    background:rgba(0,0,0,.66);
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:16px;
+    padding:clamp(14px, 2vw, 22px);
+    box-shadow:0 22px 50px rgba(0,0,0,.55);
+    backdrop-filter:blur(4px);
+  }
+  .xp-nav .xp-title{
+    margin:0 0 8px; color:#fff; font-weight:900; letter-spacing:.2px;
+    font-size:clamp(1.1rem, .9rem + 1.8vw, 1.8rem);
+    text-shadow:0 2px 10px rgba(0,0,0,.7);
+  }
+  .xp-nav .xp-phrase{
+    margin:0 0 14px; color:#eaeaea; font-style:italic; opacity:.95;
+    font-size:clamp(.95rem, .9rem + .6vw, 1.1rem);
+  }
+  .xp-grid{
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:10px; margin-top:8px;
+  }
+  .xp-btn{
+    display:inline-block; text-align:center; text-decoration:none; cursor:pointer;
+    background:#fff; color:#000; border:1px solid #fff; border-radius:12px;
+    padding:10px 12px; font-weight:800; box-shadow:0 8px 24px rgba(0,0,0,.45);
+  }
+  .xp-btn:active{ transform:translateY(1px) }
+  @media (max-width:680px){ .xp-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+</style>
+
+<div class="xp-nav-wrap">
+  <div class="xp-nav">
+    <h2 class="xp-title">Elige tu siguiente pista…</h2>
+    <p class="xp-phrase">Cada pista abre una puerta distinta en el tiempo.</p>
+    <div class="xp-grid">
+      <a class="xp-btn" href="p01.html">Pista 1</a>
+      <a class="xp-btn" href="p02.html">Pista 2</a>
+      <a class="xp-btn" href="p03.html">Pista 3</a>
+      <a class="xp-btn" href="p04.html">Pista 4</a>
+      <a class="xp-btn" href="p05.html">Pista 5</a>
+      <a class="xp-btn" href="index.html">Portada</a>
+    </div>
+  </div>
+</div>
+<!-- ===== FIN CAJA DE PISTAS ===== -->
+  <!-- Aquí van tus scripts, botones, etc. -->
+
+  <!-- ===== OCULTAR "Próximamente", cronómetro y enlace azul ===== -->
+  <style>
+    #countdown, .countdown, #comingSoon, .coming-soon,
+    .soon, .soon-link, .soonBox, .proximamente, .proximo,
+    a.soon, a.proximamente { display:none !important; }
+  </style>
+  <script>
+    (function(){
+      const hideByText = (root, words=[])=>{
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null);
+        while(walker.nextNode()){
+          const el = walker.currentNode;
+          const t = (el.textContent || '').toLowerCase().trim();
+          if (!t) continue;
+          if (words.some(w => t.includes(w))){
+            el.style.display = 'none';
+          }
+        }
+      };
+      const words = ['próximamente','proximamente'];
+      hideByText(document.body, words);
+      document.querySelectorAll('[data-countdown], [data-counter], [data-timer]').forEach(el=>{
+        el.style.display='none';
+      });
+      document.querySelectorAll('a').forEach(a=>{
+        const txt = (a.textContent||'').toLowerCase();
+        if (txt.includes('próximamente') || txt.includes('proximamente')){
+          a.style.display='none';
+        }
+      });
+    })();
+  </script>
+  <!-- ===== FIN OCULTAR ===== -->
 
 </body>
 </html>
+
+</body>
+</html>
+
 
 
 
