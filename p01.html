@@ -1235,8 +1235,10 @@ label.label:has(+ #notePreview) {
   @media (max-width:680px){ .xp-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 </style>
 
-<div class="xp-nav-wrap">
-  <div class="xp-nav">
+<!-- ===== CAJA DE PISTAS ===== -->
+<div class="xp-nav" id="xpNav">
+  <button type="button" class="xp-close" id="xpClose" aria-label="Ocultar selector">×</button>
+  <div class="xp-box">
     <h2 class="xp-title">Elige tu siguiente pista…</h2>
     <p class="xp-phrase">Cada pista abre una puerta distinta en el tiempo.</p>
     <div class="xp-grid">
@@ -1246,6 +1248,14 @@ label.label:has(+ #notePreview) {
       <a class="xp-btn" href="p04.html">Pista 4</a>
       <a class="xp-btn" href="p05.html">Pista 5</a>
       <a class="xp-btn" href="index.html">Portada</a>
+    </div>
+  </div>
+</div>
+
+<!-- Botón flotante para abrir la caja cuando esté oculta -->
+<button class="xp-open" id="xpOpen" type="button" aria-controls="xpNav" aria-expanded="false" style="display:none">Pistas</button>
+<!-- ===== FIN CAJA DE PISTAS ===== -->
+
     </div>
   </div>
 </div>
@@ -1410,6 +1420,7 @@ label.label:has(+ #notePreview) {
 
 </body>
 </html>
+
 
 
 
