@@ -1034,9 +1034,48 @@
   mo.observe(tools, {childList:true, subtree:true});
 })();
 </script>
+<script>
+// ===== Sistema de libretas persistentes =====
+// Guarda cada texto nuevo y conserva el historial anterior.
+
+document.addEventListener("DOMContentLoaded", () => {
+  const textarea = document.getElementById("ta"); // tu campo para escribir
+  const saveBtn = document.getElementById("saveBtn"); // tu botón Guardar
+  const libretaSalida = document.createElement("div"); // zona donde se verá el historial
+  libretaSalida.className = "exbw-libreta-historial";
+  libretaSalida.style.marginTop = "15px";
+  libretaSalida.style.padding = "10px";
+  libretaSalida.style.border = "1px dashed #666";
+  libretaSalida.style.color = "#ccc";
+  libretaSalida.style.fontStyle = "italic";
+
+  // Lo añadimos después del textarea
+  textarea.parentNode.insertBefore(libretaSalida, textarea.nextSibling);
+
+  // Cargar historial guardado
+  const historial = JSON.parse(localStorage.getItem("exbw_libreta_historial")) || [];
+  if (historial.length > 0) {
+    libretaSalida.innerHTML = "<strong>Así queda en tu libreta:</strong><br>" + 
+      historial.map(t => `<p>${t}</p>`).join("");
+  }
+
+  // Guardar nuevo texto
+  saveBtn.addEventListener("click", () => {
+    const texto = textarea.value.trim();
+    if (texto !== "") {
+      historial.push(texto);
+      localStorage.setItem("exbw_libreta_historial", JSON.stringify(historial));
+      libretaSalida.innerHTML = "<strong>Así queda en tu libreta:</strong><br>" + 
+        historial.map(t => `<p>${t}</p>`).join("");
+      textarea.value = ""; // limpia el campo para escribir otra frase
+    }
+  });
+});
+</script>
 
 </body>
 </html>
+
 
 
 
