@@ -801,6 +801,38 @@ label.label:has(+ #notePreview) {
   #typeOverlay.is-on{ opacity: .95; }
   /* cuando la libreta esté en tema claro, el overlay se ve oscuro */
   .page.light ~ #typeOverlay { color:#000; text-shadow:none; }
+ <script>
+(() => {
+  const nav   = document.getElementById('xpNav');
+  const btnX  = document.getElementById('xpClose');
+  const btnOp = document.getElementById('xpOpen');
+
+  if (!nav || !btnX || !btnOp) return;
+
+  // Cerrar la caja (aparece el botón flotante "Pistas")
+  function hideNav() {
+    nav.classList.add('is-hidden');
+    btnOp.style.display = 'inline-block';
+    // Opcional: sube un poco la pantalla para que veas la libreta al cerrar
+    // setTimeout(() => window.scrollTo({ top: window.scrollY + 1, behavior: 'instant' }), 0);
+  }
+
+  // Abrir la caja (se oculta el botón flotante)
+  function showNav() {
+    nav.classList.remove('is-hidden');
+    btnOp.style.display = 'none';
+  }
+
+  btnX.addEventListener('click', hideNav);
+  btnOp.addEventListener('click', showNav);
+
+  // Si quieres que la caja arranque abierta, deja esto así.
+  // Si prefieres que arranque cerrada, descomenta las 2 líneas de abajo:
+  // nav.classList.add('is-hidden');
+  // btnOp.style.display = 'inline-block';
+})();
+</script>
+
 </style>
 
 <script>
@@ -1420,6 +1452,7 @@ label.label:has(+ #notePreview) {
 
 </body>
 </html>
+
 
 
 
