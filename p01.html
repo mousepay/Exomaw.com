@@ -120,6 +120,8 @@
 #savedPreview        /* texto guardado en espejo */
 { 
   display: none !important; 
+ .notes { display: none !important; }
+
 }
 
 </style>
@@ -164,6 +166,12 @@
             <h3 class="ttl" id="notesTitle">Mi libreta</h3>
             <button class="close" type="button" data-close aria-label="Cerrar">×</button>
           </header>
+         <!-- Botón para borrar libreta -->
+<div class="tools right">
+  <button class="btn" id="clearSaved" type="button">Borrar libreta</button>
+</div>
+
+
 
           <div class="tools">
             <div class="left">
@@ -1085,9 +1093,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+<script>
+  // --- Botón "Borrar libreta" ---
+  const clearBtn = document.getElementById("clearSaved");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", function() {
+      if (confirm("¿Seguro que quieres borrar todo el contenido guardado de tu libreta?")) {
+        localStorage.clear();
+        alert("Tu libreta ha sido borrada correctamente.");
+        location.reload(); // Recarga la página para limpiar la vista
+      }
+    });
+  }
+</script>
 
 </body>
 </html>
+
 
 
 
