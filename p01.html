@@ -1347,9 +1347,70 @@ label.label:has(+ #notePreview) {
     }
   });
 </script>
+<!-- ===== PARCHE PORTADA: limpiar “Próximamente…”, contador y CTA ===== -->
+<style>
+  /* 1) Forzar a ocultar TÍTULO “Próximamente…”, contador y su progreso */
+  .announce .title,
+  .announce h2,
+  .announce .countdown,
+  .announce .timer,
+  .announce .xp-count,
+  .announce .cta-timer,
+  .announce .progress { display: none !important; }
+
+  /* 2) Estilo del nuevo botón (reemplaza el enlace azul) */
+  .cta-pistas{
+    display:inline-block; padding:.8rem 1.1rem; border-radius:.8rem;
+    background:#fff; color:#000; font-weight:800; text-decoration:none;
+    border:1px solid #fff; box-shadow:0 8px 26px rgba(0,0,0,.45);
+  }
+  .cta-pistas:active{ transform:translateY(1px) scale(.99); }
+</style>
+
+<script>
+(() => {
+  // 1) Reescribir el titular de la tarjeta de presentación
+  const caja = document.querySelector('.announce');
+  if (caja){
+    const h2 = caja.querySelector('h2, .title');
+    if (h2){
+      h2.style.display = ''; // por si el CSS anterior ocultó un h2 genérico
+      h2.textContent = 'EXOMAW presenta a Nora Torres en su primer diario como investigadora aficionada.';
+    }
+  }
+
+  // 2) Convertir el enlace azul en botón que lleva a p01.html
+  //    (buscamos dentro de la caja de presentación)
+  const enlaceCandidatos = Array.from(
+    document.querySelectorAll('.announce a, .announce .link a, .announce a[href]')
+  );
+  // priorizamos el que pone "Ver portal de prueba" o cualquiera que haya en la announce
+  const enlace = enlaceCandidatos.find(a => /portal|ver/i.test(a.textContent)) || enlaceCandidatos[0];
+  if (enlace){
+    enlace.textContent = 'El cuaderno de Nora Torres';
+    enlace.href = 'p01.html';
+    enlace.classList.add('cta-pistas');
+    enlace.setAttribute('role','button');
+  }
+
+  // 3) Ocultar, por si persistiera, las partes del contador que algunos navegadores inlinean
+  ['.announce .countdown','.announce .timer','.announce .xp-count','.announce .cta-timer','.announce .progress']
+    .forEach(sel => document.querySelectorAll(sel).forEach(el => el.style.display='none'));
+
+  // 4) Actualizar créditos/footers de la portada (sin tocar la libreta)
+  //    Buscamos un footer visible que contenga “EXOMAW” y “Demo”
+  const posiblesFooters = Array.from(document.querySelectorAll('footer, .site-footer, .credits, .xp-footer, .page-footer'));
+  const footerDemo = posiblesFooters.find(f => /exomaw/i.test(f.textContent) && /demo/i.test(f.textContent));
+  if (footerDemo){
+    footerDemo.textContent = 'EXOMAW — Literatura inmersiva. Todos los derechos reservados, 2025.';
+  }
+})();
+</script>
+<!-- ===== FIN PARCHE PORTADA ===== -->
 
 </body>
 </html>
+
 
 
 
