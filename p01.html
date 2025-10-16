@@ -391,6 +391,21 @@ PISTA NUMERO 1
 <!-- ===== PARCHE: asegura que se vea y funcione el espacio para escribir ===== -->
 <style>
  /* Ocultar la previsualización "Así queda en tu libreta" (canvas) y su etiqueta */
+ /* Ocultar el canvas de dibujo que deja la caja negra */
+#board,
+canvas.board {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+/* (Opcional) Ocultar el pie de la libreta si no lo necesitas */
+.ft {
+  display: none !important;
+}
+
 #notePreview,
 label[for="notePreview"],
 label.label:has(+ #notePreview) {
@@ -1186,6 +1201,7 @@ label.label:has(+ #notePreview) {
 
 </body>
 </html>
+
 
 
 
