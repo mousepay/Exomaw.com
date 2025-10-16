@@ -955,6 +955,31 @@ PISTA NUMERO 1
     pointer-events: none !important;
   }
 </style>
+<style>
+  /* Oculta las dos secciones de "Mi libreta" y "Así queda en tu libreta" */
+  .head, /* título "Mi libreta" */
+  label.label:has(+ #notePreview), /* etiqueta "Así queda..." */
+  #notePreview, #notePreview2 { 
+    display: none !important;
+  }
+
+  /* Mantiene visible solo la zona donde se escribe */
+  .page, .ta, .tools {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Mejora el centrado visual */
+  .page {
+    margin-top: 50px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(255,255,255,0.2);
+  }
+</style>
 
 <script>
 (function(){
@@ -1154,6 +1179,7 @@ PISTA NUMERO 1
 
 </body>
 </html>
+
 
 
 
