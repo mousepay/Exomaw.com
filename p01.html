@@ -1,3 +1,6 @@
+PISTA NUMERO 1
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -111,19 +114,6 @@
 
 /* (Opcional) compactar la barra de herramientas */
 .tools .right { gap: 10px; }
- /* --- Solo mostrar en el modal; ocultar espejos en la página --- */
-.outTitle,           /* "Así queda en tu libreta:" */
-#out,                /* contenedor del texto duplicado */
-#cronologia,         /* bloque de "Cronología:" */
-#timeline,           /* cualquier línea de tiempo si la hay */
-.preview,            /* posibles vistas previas */
-#savedPreview        /* texto guardado en espejo */
-{ 
-  display: none !important; 
- .notes { display: none !important; }
-
-}
-
 </style>
 
 
@@ -166,12 +156,6 @@
             <h3 class="ttl" id="notesTitle">Mi libreta</h3>
             <button class="close" type="button" data-close aria-label="Cerrar">×</button>
           </header>
-         <!-- Botón para borrar libreta -->
-<div class="tools right">
-  <button class="btn" id="clearSaved" type="button">Borrar libreta</button>
-</div>
-
-
 
           <div class="tools">
             <div class="left">
@@ -180,8 +164,6 @@
               <button class="toggle" id="toolEraser">Goma</button>
             </div>
             <div class="right">
-             <button class="ctl" id="verTodoBtn" type="button">Ver todo en la libreta</button>
-
               <button class="ctl" id="saveBtn"  type="button">Guardar</button>
               <button class="ctl" id="downloadNotesIn" type="button">Descargar</button>
               <button class="ctl" id="clearBtn" type="button">Borrar</button>
@@ -203,9 +185,6 @@
       </div>
     </div>
   </section>
- <div id="out" class="outTitle">
-  <strong>Así queda en tu libreta:</strong>
-</div>
 
 <script>
 (() => {
@@ -1059,64 +1038,122 @@
 })();
 </script>
 <script>
-// ===== Sistema de libretas persistentes =====
-// Guarda cada texto nuevo y conserva el historial anterior.
+(function() {
+  // ——— Claves de almacenamiento ———
+  const wrapper  = document.querySelector('.notes');
+  const notesKey = 'notes_' + (wrapper?.dataset?.key || 'pista');   // texto+dibujo de ESTA libreta
+  const histKey  = 'exbw_libreta_historial';                         // historial de frases guardadas
 
-document.addEventListener("DOMContentLoaded", () => {
-  const textarea = document.getElementById("ta"); // tu campo para escribir
-  const saveBtn = document.getElementById("saveBtn"); // tu botón Guardar
-  const libretaSalida = document.createElement("div"); // zona donde se verá el historial
-  libretaSalida.className = "exbw-libreta-historial";
-  libretaSalida.style.marginTop = "15px";
-  libretaSalida.style.padding = "10px";
-  libretaSalida.style.border = "1px dashed #666";
-  libretaSalida.style.color = "#ccc";
-  libretaSalida.style.fontStyle = "italic";
+  // ——— Referencias básicas ———
+  const ta      = document.getElementById('ta');
+  const saveBtn = document.getElementById('saveBtn');
 
-  // Lo añadimos después del textarea
-  textarea.parentNode.insertBefore(libretaSalida, textarea.nextSibling);
+  // ——— Caja de historial (debajo del textarea) ———
+  const box = document.createElement('div');
+  box.className = 'exbw-hist';
+  box.style.marginTop    = '14px';
+  box.style.padding      = '10px';
+  box.style.border       = '1px dashed #666';
+  box.style.borderRadius = '10px';
+  box.style.color        = '#ccc';
 
-  // Cargar historial guardado
-  const historial = JSON.parse(localStorage.getItem("exbw_libreta_historial")) || [];
-  if (historial.length > 0) {
-    libretaSalida.innerHTML = "<strong>Así queda en tu libreta:</strong><br>" + 
-      historial.map(t => `<p>${t}</p>`).join("");
+  const title = document.createElement('div');
+  title.innerHTML = '<strong>Así queda en tu libreta:</strong>';
+  title.style.marginBottom = '8px';
+
+  const list = document.createElement('div'); // aquí pintamos las entradas
+
+  const row = document.createElement('div');
+  row.style.display   = 'flex';
+  row.style.gap       = '10px';
+  row.style.flexWrap  = 'wrap';
+  row.style.marginTop = '10px';
+
+  const btnLast = document.createElement('button'); // Borrar última
+  btnLast.type = 'button';
+  btnLast.textContent = 'Borrar última';
+  Object.assign(btnLast.style, {padding:'6px 10px',borderRadius:'8px',border:'1px solid #888',background:'transparent',color:'inherit',cursor:'pointer'});
+
+  const btnAll  = document.createElement('button'); // Borrar TODO (solo esta libreta)
+  btnAll.type = 'button';
+  btnAll.textContent = 'Borrar todo';
+  Object.assign(btnAll.style, {padding:'6px 10px',borderRadius:'8px',border:'1px solid #888',background:'transparent',color:'inherit',cursor:'pointer'});
+
+  row.append(btnLast, btnAll);
+  box.append(title, list, row);
+
+  if (ta && ta.parentNode) {
+    ta.parentNode.insertBefore(box, ta.nextSibling);
   }
 
-  // Guardar nuevo texto
-  saveBtn.addEventListener("click", () => {
-    const texto = textarea.value.trim();
-    if (texto !== "") {
-      historial.push(texto);
-      localStorage.setItem("exbw_libreta_historial", JSON.stringify(historial));
-      libretaSalida.innerHTML = "<strong>Así queda en tu libreta:</strong><br>" + 
-        historial.map(t => `<p>${t}</p>`).join("");
-      textarea.value = ""; // limpia el campo para escribir otra frase
+  // ——— Utilidades de historial ———
+  function loadHist() {
+    try { return JSON.parse(localStorage.getItem(histKey) || '[]'); }
+    catch(_) { return []; }
+  }
+  function saveHist(arr) {
+    localStorage.setItem(histKey, JSON.stringify(arr || []));
+  }
+  function render() {
+    const items = loadHist();
+    if (!items.length) {
+      list.innerHTML = '<em>(Vacío)</em>';
+      btnLast.disabled = true;
+      btnAll.disabled  = true;
+      return;
     }
-  });
-});
-</script>
-<script>
-  // --- Botón "Borrar libreta" ---
-  const clearBtn = document.getElementById("clearSaved");
-  if (clearBtn) {
-    clearBtn.addEventListener("click", function() {
-      if (confirm("¿Seguro que quieres borrar todo el contenido guardado de tu libreta?")) {
-        localStorage.clear();
-        alert("Tu libreta ha sido borrada correctamente.");
-        location.reload(); // Recarga la página para limpiar la vista
-      }
+    btnLast.disabled = false;
+    btnAll.disabled  = false;
+    list.innerHTML   = items.map(t => `<p style="margin:.4em 0;">${escapeHtml(t)}</p>`).join('');
+  }
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ——— Guardar: añade entrada al historial y limpia textarea ———
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      const txt = (ta?.value || '').trim();
+      if (!txt) return;
+      const items = loadHist();
+      items.push(txt);
+      saveHist(items);
+      render();
+      // deja la nota en la vista previa (porque ya se guarda con tu save() original)
+      ta.value = ''; // y limpia para que escribas la siguiente
     });
   }
+
+  // ——— Borrar última ———
+  btnLast.addEventListener('click', () => {
+    const items = loadHist();
+    if (!items.length) return alert('No hay nada que borrar.');
+    if (!confirm('¿Borrar solo la última entrada?')) return;
+    items.pop();
+    saveHist(items);
+    render();
+  });
+
+  // ——— Borrar TODO (solo lo de esta libreta) ———
+  btnAll.addEventListener('click', () => {
+    if (!confirm('¿Borrar todo lo guardado en esta libreta? (texto/dibujo + historial)')) return;
+    localStorage.removeItem(histKey);   // historial
+    localStorage.removeItem(notesKey);  // nota+dibujo
+    // limpiar UI
+    if (ta) ta.value = '';
+    const canvas = document.getElementById('board');
+    const ctx    = canvas?.getContext?.('2d');
+    if (ctx) ctx.clearRect(0,0,canvas.width,canvas.height);
+    render();
+  });
+
+  // arranque
+  render();
+})();
 </script>
 
 </body>
 </html>
-
-
-
-
-
 
 
 
