@@ -90,6 +90,7 @@
   .pz-board{
     background:#0a0a0a; border:1px solid rgba(255,255,255,.18);
     border-radius:16px; padding:14px; box-shadow: inset 0 2px 10px rgba(0,0,0,.35);
+    position:relative; /* para el banner */
   }
   .pz-grid{
     display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 1fr);
@@ -124,6 +125,34 @@
     0%{ box-shadow:0 0 0 rgba(255,255,255,0) }
     50%{ box-shadow:0 0 30px rgba(255,255,200,.85) }
     100%{ box-shadow:0 0 0 rgba(255,255,255,0) }
+  }
+
+  /* Brillo del marco al completar */
+  .pz-board.pz-complete{
+    animation: glow 1500ms ease-out 1;
+    box-shadow:
+      0 0 0 2px rgba(255,255,200,.65),
+      0 0 40px rgba(255,255,160,.35),
+      inset 0 0 35px rgba(255,255,180,.18);
+  }
+  @keyframes glow{
+    0%{ box-shadow:0 0 0 0 rgba(255,255,200,0) }
+    60%{ box-shadow:0 0 0 3px rgba(255,255,200,.85), 0 0 60px rgba(255,255,160,.45), inset 0 0 50px rgba(255,255,200,.25) }
+    100%{ box-shadow:0 0 0 2px rgba(255,255,200,.65), 0 0 40px rgba(255,255,160,.35), inset 0 0 35px rgba(255,255,180,.18) }
+  }
+
+  /* Banner con la frase final */
+  .pz-banner{
+    position:absolute; inset:0; display:grid; place-items:center;
+    pointer-events:none; opacity:0; transition:opacity .6s ease .2s;
+  }
+  .pz-banner.show{ opacity:1; }
+  .pz-banner .pill{
+    background:rgba(0,0,0,.62);
+    border:1px solid rgba(255,255,255,.5);
+    padding:14px 18px; border-radius:14px; text-align:center; font-weight:800;
+    box-shadow:0 0 28px rgba(255,255,200,.55);
+    max-width:min(90%,780px);
   }
 
   .pz-actions{ display:flex; flex-wrap:wrap; gap:12px; margin-top:14px }
@@ -180,7 +209,7 @@
           <button class="chip" data-name="Aceite de linaza" data-color="#f3d27a">Aceite de linaza</button>
           <button class="chip" data-name="Betún de judea"   data-color="#2b1c12">Betún de judea</button>
           <button class="chip" data-name="Barniz copal"     data-color="#eecb8b">Barniz copal</button>
-          <!-- “pista” luminiscente opcional -->
+          <!-- pista luminiscente opcional -->
           <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
           <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
           <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
@@ -211,7 +240,7 @@
         <h2>Puzle del banco de relojero</h2>
         <p class="muted">Descubre las 6 piezas y colócalas en su sitio. Cuando encajen todas, verás un destello en las agujas.</p>
 
-        <div class="pz-board">
+        <div class="pz-board" id="pzBoard">
           <div class="pz-grid" id="pzGrid">
             <div class="pz-cell" data-idx="0" aria-filled="false"></div>
             <div class="pz-cell" data-idx="1" aria-filled="false"></div>
@@ -219,6 +248,10 @@
             <div class="pz-cell" data-idx="3" aria-filled="false"></div>
             <div class="pz-cell" data-idx="4" aria-filled="false"></div>
             <div class="pz-cell" data-idx="5" aria-filled="false"></div>
+          </div>
+          <!-- Banner con la frase final -->
+          <div class="pz-banner" id="pzBanner">
+            <div class="pill">“Hay veces que el tiempo reconoce a su maquinaria.”</div>
           </div>
         </div>
 
@@ -355,6 +388,8 @@
   const CELLS = 6;                 // 3 x 2
   const SKEY_PZ = 'p03_puzzle_v1';
 
+  const board = document.getElementById('pzBoard');
+  const banner = document.getElementById('pzBanner');
   const grid = document.getElementById('pzGrid');
   const tray = document.getElementById('pzTray');
   const emptyMsg = document.getElementById('pzEmpty');
@@ -418,6 +453,8 @@
       const cIndex = Number(cell.dataset.idx);
       if(state[cIndex] === null) return;
       addToTray(state[cIndex]); clearCell(cell); state[cIndex] = null; renderEmptyMsg();
+      // si descolocan algo, quitamos celebración
+      board.classList.remove('pz-complete'); banner.classList.remove('show');
     });
   });
 
@@ -436,7 +473,10 @@
   function checkComplete(){
     const ok = state.every((v,i)=> v === i);
     if(!ok) return;
+    // Destello en el tablero + frase
     grid.classList.add('pz-flash'); setTimeout(()=> grid.classList.remove('pz-flash'), 700);
+    board.classList.add('pz-complete');
+    banner.classList.add('show');
   }
 
   btnSave.addEventListener('click', ()=>{
@@ -451,6 +491,7 @@
     grid.querySelectorAll('.pz-cell').forEach(clearCell);
     state = new Array(CELLS).fill(null);
     tray.innerHTML = '';
+    board.classList.remove('pz-complete'); banner.classList.remove('show');
     renderEmptyMsg();
   });
 
@@ -459,7 +500,7 @@
   (function restore(){
     try{
       const saved = JSON.parse(localStorage.getItem(SKEY_PZ)||'null');
-      if(!saved) return;
+      if(!saved) { renderEmptyMsg(); return; }
       state = saved.state && Array.isArray(saved.state) && saved.state.length===CELLS ? saved.state : new Array(CELLS).fill(null);
       grid.querySelectorAll('.pz-cell').forEach(cell=>{
         const i = Number(cell.dataset.idx);
@@ -467,9 +508,13 @@
       });
       (saved.tray||[]).forEach(addToTray);
       renderEmptyMsg();
-    }catch(_){}
+      // si ya estaba completo, vuelves a ver la celebración
+      if(state.every((v,i)=>v===i)){ board.classList.add('pz-complete'); banner.classList.add('show'); }
+    }catch(_){ renderEmptyMsg(); }
   })();
 })();
 </script>
 </body>
 </html>
+
+
