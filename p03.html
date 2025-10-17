@@ -13,7 +13,7 @@ body {
   text-align: center;
 }
 
-/* ==== SECCIÓN VIDEO ==== */
+/* ==== VIDEO DE INTRO ==== */
 #video-section {
   position: relative;
   width: 100%;
@@ -21,55 +21,42 @@ body {
   overflow: hidden;
 }
 
-#video-section video {
+#introVideo {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-#frase {
-  position: absolute;
-  bottom: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.6em;
-  color: white;
-  text-shadow: 0 0 10px black;
-  animation: mover 6s ease-in-out infinite alternate;
-}
-
-@keyframes mover {
-  0% { transform: translate(-50%, 0); }
-  100% { transform: translate(-50%, -15px); }
-}
-
 #entrarBtn {
   position: absolute;
-  bottom: 10%;
+  bottom: 8%;
   left: 50%;
   transform: translateX(-50%);
-  padding: 12px 24px;
+  padding: 12px 28px;
   background: #e6a857;
-  color: black;
+  color: #000;
   font-weight: bold;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 1.1em;
   display: none;
 }
 
-/* ==== SECCIÓN TALLER ==== */
+/* ==== TALLER ==== */
 #taller {
   display: none;
-  background-image: url('reloj_taller.jpg'); /* tu imagen sepia */
+  background-image: url('reloj_taller.jpg'); /* Tu imagen del taller */
   background-size: cover;
   background-position: center;
   height: 100vh;
-  padding: 20px;
+  padding: 25px;
 }
 
 #taller h1 {
   text-shadow: 0 0 10px black;
+  font-size: 2em;
+  color: #f8e6c2;
 }
 
 .frascos {
@@ -111,7 +98,7 @@ body {
 }
 
 button {
-  margin: 5px;
+  margin: 6px;
   padding: 10px 16px;
   border-radius: 8px;
   border: none;
@@ -122,7 +109,6 @@ button {
 #piezaBtn { background: #2196F3; color: white; }
 #borrarBtn { background: #f44336; color: white; }
 
-/* ==== INVENTARIO ==== */
 #inventario {
   background: rgba(0,0,0,0.7);
   margin-top: 25px;
@@ -137,14 +123,13 @@ button {
 </head>
 <body>
 
-<!-- ===== SECCIÓN VIDEO ===== -->
+<!-- ===== VIDEO ===== -->
 <section id="video-section">
   <video id="introVideo" src="video_taller.mp4" autoplay muted></video>
-  <div id="frase">"El silencio del museo guardaba más secretos que el tiempo mismo."</div>
   <button id="entrarBtn">Entrar al Taller</button>
 </section>
 
-<!-- ===== SECCIÓN TALLER ===== -->
+<!-- ===== TALLER ===== -->
 <section id="taller">
   <h1>El Taller del Reloj</h1>
   <p>Mezcla los líquidos y guarda tus fórmulas favoritas.</p>
@@ -174,6 +159,7 @@ button {
 </section>
 
 <script>
+/* ==== CONTROL DE VIDEO ==== */
 const video = document.getElementById('introVideo');
 const entrarBtn = document.getElementById('entrarBtn');
 const videoSection = document.getElementById('video-section');
@@ -198,9 +184,7 @@ frascos.forEach(f => {
   f.addEventListener('click', () => {
     seleccion.push(f.dataset.color);
     if (seleccion.length === 2) {
-      const color1 = seleccion[0];
-      const color2 = seleccion[1];
-      const mix = mezclarColores(color1, color2);
+      const mix = mezclarColores(seleccion[0], seleccion[1]);
       colorMezcla.style.background = mix;
       textoMezcla.textContent = `Color resultante: ${mix}`;
       seleccion = [];
@@ -217,7 +201,7 @@ function mezclarColores(c1, c2) {
   return rgbToHex(mix);
 }
 
-/* ==== GUARDAR EN INVENTARIO ==== */
+/* ==== INVENTARIO ==== */
 const guardarBtn = document.getElementById('guardarBtn');
 const piezaBtn = document.getElementById('piezaBtn');
 const borrarBtn = document.getElementById('borrarBtn');
@@ -242,7 +226,6 @@ borrarBtn.addEventListener('click', () => {
   textoMezcla.textContent = 'Elige dos líquidos para mezclar.';
 });
 </script>
-
 </body>
 </html>
 
