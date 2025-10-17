@@ -271,6 +271,15 @@
       </div>
     </div>
   </div>
+  /* Piezas del puzzle: fondo siempre del mismo sprite */
+.pz-piece{
+  background-image: url('p03.png'); /* misma imagen base del taller */
+  background-repeat: no-repeat;
+  /* Para rejilla 3x2: 300% x 200% fija */
+  background-size: 300% 200% !important;
+  touch-action: none; /* mejor arrastre en móvil */
+}
+
 </section>
 
 <script>
@@ -514,8 +523,170 @@
   })();
 })();
 </script>
+  <script>
+(() => {
+  // Selecciona contenedores existentes de tu puzzle
+  const board = document.getElementById('pzBoard');     // el tablero 3x2 negro
+  const bag   = document.getElementById('pzBag');       // la “bandeja”/caja donde caen las piezas
+  const btnDiscover = document.getElementById('pzDiscover'); // botón "Descubrir pieza"
+  const btnReset    = document.getElementById('pzReset');    // "Desarmar puzzle"
+  if (!board || !bag || !btnDiscover) return;
+
+  const COLS = 3, ROWS = 2;       // 6 piezas
+  const total = COLS * ROWS;
+  const used = new Set();         // índices ya descubiertos
+
+  // Utilidad: crea una pieza con su trozo exacto
+  function createPiece(idx) {
+    const col = idx % COLS;
+    const row = Math.floor(idx / COLS);
+
+    const el = document.createElement('div');
+    el.className = 'pz-piece';
+    el.dataset.idx = String(idx);
+    // tamaño visual (ajusta si usas otros)
+    el.style.width  = '120px';
+    el.style.height = '120px';
+    el.style.border = '1px solid rgba(255,255,255,.18)';
+    el.style.borderRadius = '10px';
+    el.style.boxShadow = '0 6px 16px rgba(0,0,0,.35)';
+    el.style.backgroundSize = '300% 200%'; // Fijo a 3x2
+
+    // Posición de fondo por coordenadas de la rejilla: 0%, 50%, 100%
+    const posX = (COLS === 1) ? 0 : (col / (COLS - 1)) * 100;
+    const posY = (ROWS === 1) ? 0 : (row / (ROWS - 1)) * 100;
+    el.style.backgroundPosition = `${posX}% ${posY}%`;
+
+    // Hacerla draggable (compatible móvil)
+    enableDrag(el);
+    return el;
+  }
+
+  // Descubrir una nueva pieza (no repetida)
+  function discoverOne() {
+    if (used.size >= total) return;
+    // encuentra el primer índice libre (puedes randomizar si quieres)
+    let idx = 0;
+    while (idx < total && used.has(idx)) idx++;
+    if (idx >= total) return;
+
+    used.add(idx);
+    const piece = createPiece(idx);
+    bag.appendChild(piece);
+  }
+
+  // Reset del puzzle: vacía bandeja + tablero
+  function resetPuzzle() {
+    used.clear();
+    ;[...bag.children, ...board.querySelectorAll('.pz-piece')].forEach(n => n.remove());
+  }
+
+  // Drag & drop simple con pointer events (va en móvil)
+  function enableDrag(el){
+    let ox=0, oy=0, sx=0, sy=0, dragging=false;
+
+    el.style.position='absolute';
+    el.style.left = '0px';
+    el.style.top  = '0px';
+
+    const onDown = (e)=>{
+      dragging = true;
+      const p = getPoint(e);
+      ox = p.x; oy = p.y;
+      const r = el.getBoundingClientRect();
+      sx = r.left + window.scrollX;
+      sy = r.top  + window.scrollY;
+      el.setPointerCapture(e.pointerId || 1);
+    };
+    const onMove = (e)=>{
+      if(!dragging) return;
+      const p = getPoint(e);
+      const dx = p.x - ox;
+      const dy = p.y - oy;
+      el.style.left = (sx + dx - bag.getBoundingClientRect().left - window.scrollX) + 'px';
+      el.style.top  = (sy + dy - bag.getBoundingClientRect().top  - window.scrollY) + 'px';
+    };
+    const onUp = ()=>{
+      dragging = false;
+      // Si sueltas sobre el tablero, lo metemos dentro y lo “snappeamos”
+      const br = board.getBoundingClientRect();
+      const er = el.getBoundingClientRect();
+      const centerX = er.left + er.width/2;
+      const centerY = er.top  + er.height/2;
+
+      if (centerX >= br.left && centerX <= br.right && centerY >= br.top && centerY <= br.bottom){
+        // mover al tablero
+        board.appendChild(el);
+        el.style.position = 'absolute';
+
+        // calcula celda destino según centro
+        const cW = br.width / COLS;
+        const cH = br.height / ROWS;
+        const col = Math.max(0, Math.min(COLS-1, Math.floor((centerX - br.left) / cW)));
+        const row = Math.max(0, Math.min(ROWS-1, Math.floor((centerY - br.top)  / cH)));
+
+        // encajar (snap)
+        el.style.left = (col * cW) + 'px';
+        el.style.top  = (row * cH) + 'px';
+        el.style.width  = cW + 'px';
+        el.style.height = cH + 'px';
+
+        // ¿completado? si hay 6 piezas dentro, mostramos glow + frase (si ya lo tenías, esto no molesta)
+        const placed = board.querySelectorAll('.pz-piece').length;
+        if (placed === total){
+          board.classList.add('pz-complete');
+          showSolvedLine(); // si ya tenías esta función, genial; si no, no hace nada
+        }
+      } else {
+        // vuelve a la bandeja si soltó fuera
+        bag.appendChild(el);
+        el.style.width  = '120px';
+        el.style.height = '120px';
+        el.style.left = '0px';
+        el.style.top  = '0px';
+      }
+    };
+
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup',   onUp);
+    el.addEventListener('pointercancel', onUp);
+  }
+
+  function getPoint(e){
+    if (e.touches && e.touches[0]) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+    return {x:e.clientX || 0, y:e.clientY || 0};
+  }
+
+  // Botones
+  btnDiscover.addEventListener('click', discoverOne);
+  btnReset?.addEventListener('click', resetPuzzle);
+
+  // Estilos de “completado” si aún no los tienes
+  const style = document.createElement('style');
+  style.textContent = `
+    #pzBoard{ position:relative; }
+    #pzBoard.pz-complete{ box-shadow:0 0 0 3px rgba(255,255,255,.6), 0 0 24px rgba(255,255,255,.35) inset; }
+  `;
+  document.head.appendChild(style);
+
+  // (Opcional) marca de completado si no existía
+  function showSolvedLine(){
+    if (document.getElementById('pzSolved')) return;
+    const line = document.createElement('div');
+    line.id = 'pzSolved';
+    line.textContent = 'A veces, el tiempo se reconoce en su engranaje.';
+    Object.assign(line.style, {
+      marginTop:'10px', textAlign:'center', fontWeight:'800', opacity:'.95'
+    });
+    board.parentElement.appendChild(line);
+  }
+})();
+</script>
+
 </body>
 </html>
+
 
 
 
