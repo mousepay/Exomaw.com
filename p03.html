@@ -1,233 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pista 3 — El Taller del Reloj</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pista 03 — Taller</title>
 <style>
-body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background-color: #000;
-  color: white;
-  text-align: center;
-}
-
-/* ==== VIDEO DE INTRO ==== */
-#video-section {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
-
-#introVideo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-#entrarBtn {
-  position: absolute;
-  bottom: 8%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 12px 28px;
-  background: #e6a857;
-  color: #000;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.1em;
-  display: none;
-}
-
-/* ==== TALLER ==== */
-#taller {
-  display: none;
-  background-image: url('reloj_taller.jpg'); /* Tu imagen del taller */
-  background-size: cover;
-  background-position: center;
-  height: 100vh;
-  padding: 25px;
-}
-
-#taller h1 {
-  text-shadow: 0 0 10px black;
-  font-size: 2em;
-  color: #f8e6c2;
-}
-
-.frascos {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 40px;
-}
-
-.frasco {
-  background: rgba(255,255,255,0.1);
-  border: 2px solid #e6a857;
-  border-radius: 12px;
-  padding: 20px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.frasco:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-#resultado {
-  margin-top: 30px;
-  font-size: 1.2em;
-}
-
-#colorMezcla {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  margin: 15px auto;
-  border: 2px solid white;
-  background: #333;
-}
-
-.botones {
-  margin-top: 20px;
-}
-
-button {
-  margin: 6px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-}
-
-#guardarBtn { background: #4CAF50; color: white; }
-#piezaBtn { background: #2196F3; color: white; }
-#borrarBtn { background: #f44336; color: white; }
-
-#inventario {
-  background: rgba(0,0,0,0.7);
-  margin-top: 25px;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid #e6a857;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
+  :root{--bg:#000;--fg:#fff}
+  html,body{height:100%}
+  body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  .stage{min-height:100vh;display:grid;place-items:center;position:relative}
+  /* Video a pantalla */
+  .vidwrap{position:relative;width:min(900px,94vw);aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.6)}
+  video{width:100%;height:100%;display:block;background:#000}
+  .overlay-quote{position:absolute;inset:auto 6% 7% 6%;text-align:center;font-size:clamp(18px,1.8vw,28px);text-shadow:0 2px 10px rgba(0,0,0,.7);opacity:.95}
+  .cta{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none}
+  .btn{background:#fff;color:#000;border:1px solid #fff;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  /* Taller */
+  .taller{position:fixed;inset:0;display:none;background:#000}
+  .taller.on{display:grid;grid-template-columns:1fr;align-items:center;justify-items:center}
+  .taller .bg{position:absolute;inset:0;background:url('p03.png') center/cover no-repeat;filter:grayscale(20%) contrast(110%) brightness(.75)}
+  .taller .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.4),rgba(0,0,0,.75))}
+  .panel{position:relative;z-index:2;width:min(1100px,94vw);background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+         border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:clamp(14px,2vw,22px);box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .panel h2{margin:0 0 10px;font-size:clamp(20px,1.8vw,28px)}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+  .chip{background:#fff;color:#000;border:1px solid #fff;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer;text-align:center}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+  .box{flex:1 1 260px;min-height:84px;border-radius:12px;border:1px dashed rgba(255,255,255,.6);padding:10px}
+  .small{font-size:.92rem;opacity:.9}
+  .tools{display:flex;gap:10px}
+  .btn.ghost{background:transparent;color:#fff;border-color:#fff}
+  @media (max-width:760px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
 </style>
 </head>
 <body>
 
-<!-- ===== VIDEO ===== -->
-<section id="video-section">
-  <video id="introVideo" src="video_taller.mp4" autoplay muted></video>
-  <button id="entrarBtn">Entrar al Taller</button>
+<section class="stage" id="stage">
+  <div class="vidwrap">
+    <!-- Si tu vídeo es HEVC verás el póster; con H264 se reproducirá -->
+    <video id="v"
+      src="p03.mp4"
+      poster="p03.png"
+      muted
+      playsinline
+      autoplay
+      preload="metadata">
+      <!-- Puedes dejar controls mientras pruebas: -->
+      <!-- controls -->
+    </video>
+
+    <!-- Si tu vídeo ya trae la frase, NO muestres esta capa.
+         Déjala por si necesitas una frase temporal. -->
+    <!-- <div class="overlay-quote">"El silencio del museo guardaba más secretos que el tiempo mismo."</div> -->
+
+    <div class="cta"><button class="btn" id="goTaller">Entrar al taller</button></div>
+  </div>
 </section>
 
-<!-- ===== TALLER ===== -->
-<section id="taller">
-  <h1>El Taller del Reloj</h1>
-  <p>Mezcla los líquidos y guarda tus fórmulas favoritas.</p>
+<section class="taller" id="taller">
+  <div class="bg"></div><div class="shade"></div>
+  <div class="panel">
+    <h2>Taller de relojería</h2>
+    <p class="small">Selecciona productos y mezcla. Puedes guardar fórmulas en tu libreta.</p>
 
-  <div class="frascos">
-    <div class="frasco" data-color="#c68b59">Barniz</div>
-    <div class="frasco" data-color="#a0d6b4">Alcohol</div>
-    <div class="frasco" data-color="#b4b4b4">Zinc</div>
-    <div class="frasco" data-color="#7b4f2e">Hierro</div>
-  </div>
+    <div class="grid" id="botes">
+      <!-- ejemplo de “botes” clicables -->
+      <button class="chip" data-k="Barniz copal">Barniz copal</button>
+      <button class="chip" data-k="Goma laca">Goma laca</button>
+      <button class="chip" data-k="Aceite lino">Aceite de lino</button>
+      <button class="chip" data-k="Alcohol etílico">Alcohol etílico</button>
+      <button class="chip" data-k="Dióxido de zinc">Dióxido de zinc</button>
+      <button class="chip" data-k="Óxido de hierro">Óxido de hierro</button>
+      <button class="chip" data-k="Resina sandáraca">Resina sandáraca</button>
+      <button class="chip" data-k="Cera carnauba">Cera de carnauba</button>
+      <button class="chip" data-k="Bálsamo de Canadá">Bálsamo de Canadá</button>
+    </div>
 
-  <div id="resultado">
-    <div id="colorMezcla"></div>
-    <p id="textoMezcla">Elige dos líquidos para mezclar.</p>
-  </div>
-
-  <div class="botones">
-    <button id="guardarBtn">Guardar fórmula</button>
-    <button id="piezaBtn">Guardar pieza</button>
-    <button id="borrarBtn">Borrar todo</button>
-  </div>
-
-  <div id="inventario">
-    <h3>Inventario</h3>
-    <div id="lista"></div>
+    <div class="row">
+      <div class="box" id="mixBox" aria-label="mezcla"></div>
+      <div class="tools">
+        <button class="chip" id="resolver">Mezclar</button>
+        <button class="chip ghost" id="guardar">Guardar fórmula</button>
+        <button class="chip ghost" id="limpiar">Limpiar</button>
+        <button class="chip ghost" id="volver">Volver al vídeo</button>
+      </div>
+    </div>
   </div>
 </section>
 
 <script>
-/* ==== CONTROL DE VIDEO ==== */
-const video = document.getElementById('introVideo');
-const entrarBtn = document.getElementById('entrarBtn');
-const videoSection = document.getElementById('video-section');
-const taller = document.getElementById('taller');
+  // --- mostrar botón al terminar o a los 12s (fallback si el vídeo no reproduce) ---
+  const v = document.getElementById('v');
+  const cta = document.querySelector('.cta');
+  const go = document.getElementById('goTaller');
+  const taller = document.getElementById('taller');
+  const stage  = document.getElementById('stage');
 
-video.addEventListener('ended', () => {
-  entrarBtn.style.display = 'block';
-});
+  let shown = false;
+  function showCTA(){ if(!shown){ shown = true; cta.style.display = 'block'; } }
 
-entrarBtn.addEventListener('click', () => {
-  videoSection.style.display = 'none';
-  taller.style.display = 'block';
-});
+  v?.addEventListener('ended', showCTA);
+  // Fallback por si el vídeo no puede reproducirse (códec incompatible)
+  setTimeout(showCTA, 12000);
 
-/* ==== LÓGICA DE MEZCLA ==== */
-let seleccion = [];
-const frascos = document.querySelectorAll('.frasco');
-const colorMezcla = document.getElementById('colorMezcla');
-const textoMezcla = document.getElementById('textoMezcla');
-
-frascos.forEach(f => {
-  f.addEventListener('click', () => {
-    seleccion.push(f.dataset.color);
-    if (seleccion.length === 2) {
-      const mix = mezclarColores(seleccion[0], seleccion[1]);
-      colorMezcla.style.background = mix;
-      textoMezcla.textContent = `Color resultante: ${mix}`;
-      seleccion = [];
-    }
+  go.addEventListener('click', ()=> {
+    stage.style.display = 'none';
+    taller.classList.add('on');
   });
-});
 
-function mezclarColores(c1, c2) {
-  const hexToRgb = hex => hex.match(/\w\w/g).map(x => parseInt(x, 16));
-  const rgbToHex = rgb => '#' + rgb.map(x => x.toString(16).padStart(2, '0')).join('');
-  const [r1,g1,b1] = hexToRgb(c1);
-  const [r2,g2,b2] = hexToRgb(c2);
-  const mix = [Math.floor((r1+r2)/2), Math.floor((g1+g2)/2), Math.floor((b1+b2)/2)];
-  return rgbToHex(mix);
-}
+  // --- lógica simple de mezcla/guardado ---
+  const mix = [];
+  const mixBox = document.getElementById('mixBox');
 
-/* ==== INVENTARIO ==== */
-const guardarBtn = document.getElementById('guardarBtn');
-const piezaBtn = document.getElementById('piezaBtn');
-const borrarBtn = document.getElementById('borrarBtn');
-const lista = document.getElementById('lista');
+  document.getElementById('botes').addEventListener('click', (e)=>{
+    const k = e.target?.dataset?.k;
+    if(!k) return;
+    if (mix.length >= 2) { alert('Máx. 2 ingredientes por intento. Pulsa “Limpiar” para empezar de nuevo.'); return; }
+    mix.push(k);
+    renderMix();
+  });
 
-guardarBtn.addEventListener('click', () => {
-  const color = colorMezcla.style.background || '#000';
-  const item = document.createElement('div');
-  item.textContent = `🧪 Fórmula guardada: ${color}`;
-  lista.appendChild(item);
-});
+  function renderMix(){
+    mixBox.textContent = mix.length ? 'Mezcla: ' + mix.join(' + ') : '(vacío)';
+  }
 
-piezaBtn.addEventListener('click', () => {
-  const pieza = document.createElement('div');
-  pieza.textContent = '⚙️ Pieza de reloj guardada';
-  lista.appendChild(pieza);
-});
+  document.getElementById('limpiar').addEventListener('click', ()=>{
+    mix.splice(0, mix.length); renderMix();
+  });
 
-borrarBtn.addEventListener('click', () => {
-  lista.innerHTML = '';
-  colorMezcla.style.background = '#333';
-  textoMezcla.textContent = 'Elige dos líquidos para mezclar.';
-});
+  document.getElementById('resolver').addEventListener('click', ()=>{
+    if (mix.length < 1){ alert('Añade al menos 1 bote.'); return; }
+    // simulamos color resultante
+    const colors = ['#d3b37b','#b3882c','#c34c2e','#917a56','#f2e6a7','#888','#222'];
+    const col = colors[(mix.join('').length + Date.now()) % colors.length];
+    mixBox.style.background = col;
+    mixBox.style.borderColor = 'rgba(255,255,255,.2)';
+  });
+
+  document.getElementById('guardar').addEventListener('click', ()=>{
+    const key = 'pista03_formulas';
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    const item = { at: new Date().toISOString(), mix: mix.slice(0), note: '' };
+    arr.push(item);
+    localStorage.setItem(key, JSON.stringify(arr));
+    alert('Fórmula guardada en tu libreta local.');
+  });
+
+  document.getElementById('volver').addEventListener('click', ()=>{
+    taller.classList.remove('on'); stage.style.display = 'grid'; cta.style.display='none'; shown=false;
+    // reintenta reproducir
+    v.currentTime = 0; v.play().catch(()=>{});
+    setTimeout(showCTA, 12000);
+  });
 </script>
 </body>
 </html>
-
-
 
