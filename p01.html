@@ -1344,6 +1344,27 @@ label.label:has(+ #notePreview) {
 
 </body>
 </html>
+/* === NAV PISTAS: ajuste final === */
+.xp-nav{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+}
+
+.xp-nav.is-hidden{
+  /* Fuerza que desaparezca aunque otros estilos digan lo contrario */
+  display: none !important;
+}
+
+/* Botón flotante "Pistas" */
+#xpOpen{
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10000;
+  display: none;            /* se muestra cuando cierras la caja */
+}
+
 <style>
   /* ——— Ocultar cabecera “Próximamente…” y el contador ——— */
   /* Metemos varios selectores “prudentes” para no romper nada si cambian clases */
@@ -1509,6 +1530,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
+
 
 
 
