@@ -1,6 +1,3 @@
-PISTA NUMERO 1
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -140,20 +137,6 @@ PISTA NUMERO 1
       </div>
     </div>
   </section>
-<!-- ==== CAJA DE PISTAS ==== -->
-<div id="xpNav" class="xp-nav">
-  <button class="xp-close" type="button" aria-controls="xpNav" aria-label="Cerrar">×</button>
-  <h2>Elige tu siguiente pista...</h2>
-  <p><em>Cada pista abre una puerta distinta en el tiempo.</em></p>
-  <div class="xp-buttons">
-    <button>Pista 1</button>
-    <button>Pista 2</button>
-    <button>Pista 3</button>
-    <button>Pista 4</button>
-    <button>Pista 5</button>
-    <button>Portada</button>
-  </div>
-</div>
 
   <!-- Botón flotante para volver a mostrar la frase -->
   <button class="showPhrase" id="showPhrase" type="button">Mostrar frase</button>
@@ -815,38 +798,1211 @@ label.label:has(+ #notePreview) {
   #typeOverlay.is-on{ opacity: .95; }
   /* cuando la libreta esté en tema claro, el overlay se ve oscuro */
   .page.light ~ #typeOverlay { color:#000; text-shadow:none; }
- <script>
-(() => {
-  const nav   = document.getElementById('xpNav');
-  const btnX  = document.getElementById('xpClose');
-  const btnOp = document.getElementById('xpOpen');
+</style>
 
-  if (!nav || !btnX || !btnOp) return;
+<script>
+(function(){
+  const page      = document.getElementById('page');
+  const ta        = document.getElementById('ta');
+  const toolsRight= page?.querySelector('.tools .right');
 
-  // Cerrar la caja (aparece el botón flotante "Pistas")
-  function hideNav() {
-    nav.classList.add('is-hidden');
-    btnOp.style.display = 'inline-block';
-    // Opcional: sube un poco la pantalla para que veas la libreta al cerrar
-    // setTimeout(() => window.scrollTo({ top: window.scrollY + 1, behavior: 'instant' }), 0);
+  if(!page || !toolsRight) return;
+
+  /* 1) Botón "En pantalla" (mostrar/ocultar overlay) */
+  const screenBtn = document.createElement('button');
+  screenBtn.type = 'button';
+  screenBtn.className = 'ctl outline';
+  screenBtn.id = 'toggleScreen';
+  screenBtn.textContent = 'En pantalla';
+  toolsRight.insertAdjacentElement('afterbegin', screenBtn);
+
+  /* 2) Overlay de texto (debajo de la libreta, encima del fondo) */
+  let overlay = document.getElementById('typeOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'typeOverlay';
+    // Lo añadimos junto a la libreta para que comparta z-index base del modal
+    // (insertamos como hermano de .mw, dentro del modal)
+    const modal = document.getElementById('notesModal');
+    modal?.appendChild(overlay);
   }
 
-  // Abrir la caja (se oculta el botón flotante)
-  function showNav() {
-    nav.classList.remove('is-hidden');
-    btnOp.style.display = 'none';
+  /* 3) Estado + sincronización */
+  let visible = false;
+  function syncOverlay(){
+    if(!overlay) return;
+    overlay.textContent = (ta?.value || '').trim();
+    // Color correcto según tema
+    if(page.classList.contains('light')){
+      overlay.style.color = '#000';
+      overlay.style.textShadow = 'none';
+    }else{
+      overlay.style.color = '#fff';
+      overlay.style.textShadow = '0 2px 6px rgba(0,0,0,.6)';
+    }
   }
 
-  btnX.addEventListener('click', hideNav);
-  btnOp.addEventListener('click', showNav);
+  // Toggle del overlay
+  screenBtn.addEventListener('click', ()=>{
+    visible = !visible;
+    overlay.classList.toggle('is-on', visible);
+    syncOverlay();
+  });
 
-  // Si quieres que la caja arranque abierta, deja esto así.
-  // Si prefieres que arranque cerrada, descomenta las 2 líneas de abajo:
-  // nav.classList.add('is-hidden');
-  // btnOp.style.display = 'inline-block';
+  // Actualiza en vivo al escribir
+  ta?.addEventListener('input', ()=> { if(visible) syncOverlay(); });
+
+  // Al cambiar tema, re-sincroniza (ya tendrás el listener del tema; nos enganchamos a mutación por si acaso)
+  const obs = new MutationObserver(()=> { if(visible) syncOverlay(); });
+  obs.observe(page, {attributes:true, attributeFilter:['class']});
+
+  // Al abrir la libreta, si estaba visible, sincroniza; al cerrar, escondemos
+  const openBtn  = document.getElementById('openNotes');
+  const modal    = document.getElementById('notesModal');
+  const closes   = modal?.querySelectorAll('[data-close]') || [];
+  openBtn?.addEventListener('click', ()=> setTimeout(()=>{ if(visible) syncOverlay(); }, 120));
+  closes.forEach(btn => btn.addEventListener('click', ()=> { visible=false; overlay.classList.remove('is-on'); }));
+
+  // Responder a cambios de tamaño
+  window.addEventListener('resize', ()=> { if(visible) syncOverlay(); });
+})();
+</script>
+<!-- ===== FIN MODO MÁQUINA ===== -->
+<!-- ===== MODO MÁQUINA (auto): texto en el panel negro grande ===== -->
+<style>
+  /* Capa fija de texto (encima del fondo, debajo de la libreta) */
+  #typeOverlayAuto{
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    /* ocupa el área negra superior (ajusta si quieres) */
+    height: 60vh; 
+    padding: 8vh 10vw 0;
+    z-index: 10000;          /* backdrop=10000, libreta(.mw)=10001 ⇒ queda debajo de la libreta */
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+    font-size: clamp(18px, 1.4vw, 30px);
+    line-height: 1.7;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  }
+  #typeOverlayAuto.on{ opacity: .95; }
+
+  /* Cuando la libreta esté en tema blanco, el overlay cambia a negro */
+  .page.light ~ #typeOverlayAuto{
+    color:#000 !important;
+    text-shadow:none !important;
+  }
+</style>
+
+<script>
+(function(){
+  const modal   = document.getElementById('notesModal');
+  const page    = document.getElementById('page');
+  const ta      = document.getElementById('ta');
+  const openBtn = document.getElementById('openNotes');
+  if(!modal || !page || !openBtn) return;
+
+  // Crea (si no existe) la capa de texto fija
+  let overlay = document.getElementById('typeOverlayAuto');
+  function ensureOverlay(){
+    if(!overlay){
+      overlay = document.createElement('div');
+      overlay.id = 'typeOverlayAuto';
+      // Lo añadimos DENTRO del modal, como último hijo,
+      // z-index = 10000, así queda por ENCIMA del backdrop (10000) 
+      // y por DEBAJO de la libreta (.mw, 10001)
+      modal.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function syncOverlay(){
+    ensureOverlay();
+    overlay.textContent = (ta?.value || '').trim();
+    // color según tema
+    if(page.classList.contains('light')){
+      overlay.style.color = '#000';
+      overlay.style.textShadow = 'none';
+    }else{
+      overlay.style.color = '#fff';
+      overlay.style.textShadow = '0 2px 6px rgba(0,0,0,.6)';
+    }
+  }
+
+  function turnOn(){
+    ensureOverlay();
+    syncOverlay();
+    overlay.classList.add('on');
+  }
+  function turnOff(){
+    if(overlay) overlay.classList.remove('on');
+  }
+
+  // Abrir/ cerrar libreta
+  openBtn.addEventListener('click', () => {
+    // Espera mínima para que mida alturas
+    setTimeout(turnOn, 120);
+  });
+  // Cierre por backdrop o botón ×
+  modal.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', turnOff);
+  });
+  // Cierre por Escape (si tu script ya lo maneja, esto es un seguro)
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') turnOff();
+  });
+
+  // Actualización en vivo al escribir
+  ta?.addEventListener('input', () => { if(overlay && overlay.classList.contains('on')) syncOverlay(); });
+
+  // Si cambias el tema, re-sincroniza colores/texto
+  const mo = new MutationObserver(()=> { if(overlay && overlay.classList.contains('on')) syncOverlay(); });
+  mo.observe(page, {attributes:true, attributeFilter:['class']});
+
+  // Recalcular al redimensionar
+  window.addEventListener('resize', ()=> { if(overlay && overlay.classList.contains('on')) syncOverlay(); });
+})();
+</script>
+<!-- ===== FIN MODO MÁQUINA (auto) ===== -->
+<!-- ===== PARCHE: overlay que evita la tapa y siempre se ve completo ===== -->
+<style>
+  /* Subimos z-index para que quede por encima de la tapa rayada (.book) */
+  #typeOverlayAuto{
+    z-index: 10002 !important; /* .mw≈10001 → lo pasamos por encima, sin capturar eventos */
+    pointer-events: none !important;
+  }
+</style>
+<style>
+  /* Oculta las dos secciones de "Mi libreta" y "Así queda en tu libreta" */
+  .head, /* título "Mi libreta" */
+  label.label:has(+ #notePreview), /* etiqueta "Así queda..." */
+  #notePreview, #notePreview2 { 
+    display: none !important;
+  }
+
+  /* Mantiene visible solo la zona donde se escribe */
+  .page, .ta, .tools {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Mejora el centrado visual */
+  .page {
+    margin-top: 50px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(255,255,255,0.2);
+  }
+</style>
+
+<script>
+(function(){
+  const modal   = document.getElementById('notesModal');
+  const overlay = document.getElementById('typeOverlayAuto'); // creado por el modo máquina
+  if(!modal || !overlay) return;
+
+  function positionOverlay(){
+    // Si existe la tapa (.book) y es visible (solo en escritorio)
+    const book = modal.querySelector('.book');
+    if (book && getComputedStyle(book).display !== 'none') {
+      const r = book.getBoundingClientRect();
+      // Dejamos un margen de 24px a la derecha de la tapa
+      overlay.style.left   = Math.round(r.left + r.width + 24) + 'px';
+      overlay.style.right  = '0';
+      // Opcional: quitamos padding lateral excesivo ahora que ya desplazamos el overlay
+      overlay.style.paddingLeft  = '6vw';
+      overlay.style.paddingRight = '6vw';
+    } else {
+      // En móvil (sin tapa), el overlay ocupa todo el ancho con padding cómodo
+      overlay.style.left   = '0';
+      overlay.style.right  = '0';
+      overlay.style.paddingLeft  = '10vw';
+      overlay.style.paddingRight = '10vw';
+    }
+  }
+
+  // Reposiciona cuando se abre la libreta y al redimensionar
+  const openBtn = document.getElementById('openNotes');
+  openBtn?.addEventListener('click', () => setTimeout(positionOverlay, 120));
+  window.addEventListener('resize', positionOverlay);
+
+  // Por si el overlay ya estaba encendido, lo recolocamos ahora mismo:
+  positionOverlay();
+})();
+</script>
+<!-- ===== FIN PARCHE ===== -->
+<script>
+(function hideNotebookButtons(){
+  // IDs que queremos ocultar (si existen)
+  const idsToHide = [
+    'toolPen','toolEraser','downloadNotesTop','downloadNotesIn',
+    'clearBtn','toggleScreen','showOnNotebook'
+  ];
+  const idsToShow = ['themeBtn','saveBtn']; // los que sí queremos
+
+  function applyHide(){
+    // 1) por ID
+    idsToHide.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    idsToShow.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'inline-block'; });
+
+    // 2) por texto visible (por si los IDs cambian)
+    const labelsToHide = ['lápiz','goma','descargar','borrar','en pantalla','mostrar en libreta'];
+    document.querySelectorAll('.tools button, .tools .left button, .tools .right button')
+      .forEach(btn => {
+        const t = (btn.textContent || '').trim().toLowerCase();
+        if (labelsToHide.some(lbl => t.includes(lbl))) {
+          btn.style.display = 'none';
+        }
+      });
+
+    // aseguramos que sólo queden Tema y Guardar
+    document.querySelectorAll('.tools button').forEach(btn=>{
+      const t = (btn.textContent || '').trim().toLowerCase();
+      if (!(t.startsWith('tema') || t.includes('guardar'))) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+
+  // Ejecuta al cargar…
+  applyHide();
+  // …y de nuevo tras pequeños retrasos por si algo se inyecta tarde
+  setTimeout(applyHide, 150);
+  setTimeout(applyHide, 600);
+
+  // Observa cambios en la barra de herramientas y vuelve a aplicar
+  const tools = document.querySelector('.tools') || document.body;
+  const mo = new MutationObserver(applyHide);
+  mo.observe(tools, {childList:true, subtree:true});
+})();
+</script>
+<script>
+(function() {
+  // ——— Claves de almacenamiento ———
+  const wrapper  = document.querySelector('.notes');
+  const notesKey = 'notes_' + (wrapper?.dataset?.key || 'pista');   // texto+dibujo de ESTA libreta
+  const histKey  = 'exbw_libreta_historial';                         // historial de frases guardadas
+
+  // ——— Referencias básicas ———
+  const ta      = document.getElementById('ta');
+  const saveBtn = document.getElementById('saveBtn');
+
+  // ——— Caja de historial (debajo del textarea) ———
+  const box = document.createElement('div');
+  box.className = 'exbw-hist';
+  box.style.marginTop    = '14px';
+  box.style.padding      = '10px';
+  box.style.border       = '1px dashed #666';
+  box.style.borderRadius = '10px';
+  box.style.color        = '#ccc';
+
+  const title = document.createElement('div');
+  title.innerHTML = '<strong>Así queda en tu libreta:</strong>';
+  title.style.marginBottom = '8px';
+
+  const list = document.createElement('div'); // aquí pintamos las entradas
+
+  const row = document.createElement('div');
+  row.style.display   = 'flex';
+  row.style.gap       = '10px';
+  row.style.flexWrap  = 'wrap';
+  row.style.marginTop = '10px';
+
+  const btnLast = document.createElement('button'); // Borrar última
+  btnLast.type = 'button';
+  btnLast.textContent = 'Borrar última';
+  Object.assign(btnLast.style, {padding:'6px 10px',borderRadius:'8px',border:'1px solid #888',background:'transparent',color:'inherit',cursor:'pointer'});
+
+  const btnAll  = document.createElement('button'); // Borrar TODO (solo esta libreta)
+  btnAll.type = 'button';
+  btnAll.textContent = 'Borrar todo';
+  Object.assign(btnAll.style, {padding:'6px 10px',borderRadius:'8px',border:'1px solid #888',background:'transparent',color:'inherit',cursor:'pointer'});
+
+  row.append(btnLast, btnAll);
+  box.append(title, list, row);
+
+  if (ta && ta.parentNode) {
+    ta.parentNode.insertBefore(box, ta.nextSibling);
+  }
+
+  // ——— Utilidades de historial ———
+  function loadHist() {
+    try { return JSON.parse(localStorage.getItem(histKey) || '[]'); }
+    catch(_) { return []; }
+  }
+  function saveHist(arr) {
+    localStorage.setItem(histKey, JSON.stringify(arr || []));
+  }
+  function render() {
+    const items = loadHist();
+    if (!items.length) {
+      list.innerHTML = '<em>(Vacío)</em>';
+      btnLast.disabled = true;
+      btnAll.disabled  = true;
+      return;
+    }
+    btnLast.disabled = false;
+    btnAll.disabled  = false;
+    list.innerHTML   = items.map(t => `<p style="margin:.4em 0;">${escapeHtml(t)}</p>`).join('');
+  }
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ——— Guardar: añade entrada al historial y limpia textarea ———
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      const txt = (ta?.value || '').trim();
+      if (!txt) return;
+      const items = loadHist();
+      items.push(txt);
+      saveHist(items);
+      render();
+      // deja la nota en la vista previa (porque ya se guarda con tu save() original)
+      ta.value = ''; // y limpia para que escribas la siguiente
+    });
+  }
+
+  // ——— Borrar última ———
+  btnLast.addEventListener('click', () => {
+    const items = loadHist();
+    if (!items.length) return alert('No hay nada que borrar.');
+    if (!confirm('¿Borrar solo la última entrada?')) return;
+    items.pop();
+    saveHist(items);
+    render();
+  });
+
+  // ——— Borrar TODO (solo lo de esta libreta) ———
+  btnAll.addEventListener('click', () => {
+    if (!confirm('¿Borrar todo lo guardado en esta libreta? (texto/dibujo + historial)')) return;
+    localStorage.removeItem(histKey);   // historial
+    localStorage.removeItem(notesKey);  // nota+dibujo
+    // limpiar UI
+    if (ta) ta.value = '';
+    const canvas = document.getElementById('board');
+    const ctx    = canvas?.getContext?.('2d');
+    if (ctx) ctx.clearRect(0,0,canvas.width,canvas.height);
+    render();
+  });
+
+  // arranque
+  render();
 })();
 </script>
 
+</body>
+</html>
+
+INCREIBLE CON  LA PSITA NUMERO  2 YA INSERTADA .  
+PISTA NUMERO 1
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pista + Libreta (B/N) con sangre al cerrar</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#0b0b0b;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+
+  /* ===== HERO con imagen ===== */
+  .hero{position:relative;min-height:72vh;display:grid;place-items:center;overflow:hidden;background:#000}
+  .bg{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;filter:grayscale(100%) contrast(115%) brightness(.85);z-index:0}
+  .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.65));z-index:0}
+
+  /* Sangre */
+  .blood{position:absolute;inset:0;pointer-events:none;z-index:1;mix-blend-mode:multiply;opacity:.85}
+  .blood[data-on="0"]{display:none}
+  .blood::before,.blood::after{
+    content:"";position:absolute;left:0;top:-110%;width:100%;height:220%;
+    background:
+      radial-gradient(40px 140px at 8% 0%,  rgba(90,0,0,.75), transparent 70%),
+      radial-gradient(60px 180px at 24% 0%, rgba(90,0,0,.8),  transparent 70%),
+      radial-gradient(50px 160px at 46% 0%, rgba(70,0,0,.75),  transparent 70%),
+      radial-gradient(70px 200px at 70% 0%, rgba(80,0,0,.8),  transparent 70%),
+      radial-gradient(40px 140px at 88% 0%, rgba(70,0,0,.75),  transparent 70%),
+      linear-gradient(180deg, rgba(30,0,0,.7), rgba(10,0,0,.92) 55%, rgba(0,0,0,0) 90%);
+    filter:blur(1px);
+    animation: drip 18s linear infinite;
+  }
+  .blood::after{animation-delay:-9s;opacity:.9}
+
+  /* Al CERRAR libreta: cubrir (flood) */
+  .blood.flood::before,.blood.flood::after{
+    animation: cover 9s ease-in forwards;
+  }
+  @keyframes drip{0%{transform:translateY(-7%)}100%{transform:translateY(7%)}}
+  @keyframes cover{
+    0%  {transform:translateY(-20%); opacity:.9}
+    50% {transform:translateY(10%);  opacity:1}
+    100%{transform:translateY(40%);  opacity:1}
+  }
+
+  /* Panel de frase (con X) */
+  .panel{position:relative;z-index:2;width:min(1200px,92vw);background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:clamp(18px,2.8vw,34px);box-shadow:0 24px 60px rgba(0,0,0,.55);text-align:center}
+  .panel.hidden{display:none}
+  .panel .closePhrase{position:absolute;top:10px;right:12px;background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;
+    width:32px;height:32px;border-radius:50%;font-size:18px;line-height:30px;cursor:pointer}
+
+  .q{margin:0 0 14px;color:#fff;font-weight:900;letter-spacing:.2px;font-size:clamp(1.25rem,1rem + 2.4vw,3.1rem);
+    text-shadow:0 3px 12px rgba(0,0,0,.85),0 0 1px rgba(255,255,255,.25)}
+  .meta{margin:0 0 18px;color:#e0e0e0;font-style:italic;font-size:clamp(.96rem,.9rem + .55vw,1.2rem);text-shadow:0 2px 8px rgba(0,0,0,.8);opacity:.95}
+
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{background:#fff;color:#000;border:1px solid #fff;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 26px rgba(0,0,0,.55);transition:transform .08s ease}
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn-ghost{background:transparent;color:#fff;border-color:#fff}
+  .slot-volver{display:inline-block}
+
+  /* Botón flotante para volver a mostrar la frase */
+  .showPhrase{position:fixed;right:14px;bottom:14px;z-index:9000;background:rgba(0,0,0,.6);color:#fff;border:1px solid #fff;border-radius:10px;
+    padding:8px 12px;font-weight:700;cursor:pointer;backdrop-filter:blur(2px);display:none}
+
+  /* ===== MODAL Libreta (z-index alto) ===== */
+  .modal[aria-hidden="true"]{display:none}
+  .modal[aria-hidden="false"]{display:block}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(2px);z-index:10000}
+  .mw{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;padding:16px;z-index:10001}
+  .book,.page{pointer-events:auto;height:min(78vh,780px)}
+  .book{width:min(44vw,520px);background:repeating-linear-gradient(135deg,#222,#222 14px,#111 14px,#111 28px);border-radius:18px 0 0 18px;
+    box-shadow:0 18px 60px rgba(0,0,0,.7);transform-origin:left center;animation:open 900ms cubic-bezier(.2,.8,.2,1) forwards}
+  .page{--paper:#111;--ink:#f1f1f1;--line:#fff; /* ← por defecto NEGRO */ 
+    width:min(54vw,760px);background:var(--paper);color:var(--ink);border:2px solid #000;border-left:0;
+    border-radius:0 18px 18px 0;box-shadow:0 18px 60px rgba(0,0,0,.8);padding:14px 16px 16px;position:relative;overflow:hidden}
+  .page.light{--paper:#fff;--ink:#111;--line:#000}
+  .page::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(var(--paper),var(--paper) 26px,rgba(0,0,0,.07) 27px);opacity:.35;pointer-events:none}
+  .head{position:relative;display:flex;justify-content:space-between;align-items:center;z-index:2}
+  .ttl{margin:0;font-size:1.05rem}
+  .close{background:transparent;color:var(--ink);border:0;font-size:1.8rem;line-height:1;cursor:pointer;padding:0 6px}
+  .tools{display:flex;justify-content:space-between;align-items:center;gap:.75rem;z-index:2;position:relative;margin-top:8px}
+  .left{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .toggle{background:transparent;color:var(--ink);border:1px solid var(--ink);padding:6px 10px;border-radius:8px;font-weight:800;cursor:pointer}
+  .ctl{background:#000;color:#fff;border:1px solid #000;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+  .page:not(.light) .ctl{background:#fff;color:#000;border-color:#fff}
+  .label{display:block;margin:10px 0 6px;color:var(--ink);z-index:2;position:relative}
+  .ta{width:100%;min-height:220px;resize:vertical;padding:12px 12px 12px 16px;border-radius:12px;border:1px dashed var(--line);
+    background:color-mix(in srgb,var(--paper) 92%, white 8%);color:var(--ink);outline:none;box-shadow:inset 0 2px 8px rgba(0,0,0,.08);z-index:2;position:relative}
+  .board{width:100%;height:260px;background:var(--paper);border:1px solid var(--line);border-radius:12px;display:block;cursor:crosshair;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
+  .ft{margin-top:8px;color:var(--ink);z-index:2;position:relative}
+  @keyframes open{0%{transform:perspective(1200px) rotateY(0)}60%{transform:perspective(1200px) rotateY(-115deg)}100%{transform:perspective(1200px) rotateY(-180deg)}}
+  @media (max-width:960px){.book{display:none}.page{width:min(94vw,760px);border-radius:14px;border-left:2px solid #000}}
+ /* Ocultar botones que no quieres ver */
+#toolPen,
+#toolEraser,
+#downloadNotesTop,
+#downloadNotesIn,
+#clearBtn,
+#toggleScreen,
+#showOnNotebook {
+  display: none !important;
+}
+
+/* Mantener visibles estos dos */
+#themeBtn,
+#saveBtn {
+  display: inline-block !important;
+}
+
+/* (Opcional) compactar la barra de herramientas */
+.tools .right { gap: 10px; }
+</style>
+
+
+</head>
+<body>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" data-blood="1">
+    <!-- Cambia 'reloj.jpg' por tu imagen real -->
+    <div class="bg" style="background-image:url('reloj.jpg')"></div>
+    <div class="shade"></div>
+    <div class="blood" id="blood" data-on="1"></div>
+
+    <div class="panel" id="phrasePanel">
+      <button class="closePhrase" id="closePhrase" title="Cerrar frase" aria-label="Cerrar frase">×</button>
+      <p class="q">“Cada mañana a las 8:30, el reloj marcaba lo mismo. Las agujas brillaban, como si guardaran el secreto de quien las tocaba.”</p>
+      <p class="meta">Archivo #P-01 — Bitácora de estación. Frecuencia: 8:30 h.</p>
+
+      <div class="actions">
+        <button class="btn" id="openNotes" type="button" aria-haspopup="dialog" aria-controls="notesModal">Abrir libreta</button>
+        <button class="btn btn-ghost" id="downloadNotesTop" type="button">Descargar pistas</button>
+        <!-- Tu botón VOLVER aquí si quieres verlo junto (mantiene sus estilos) -->
+        <span class="slot-volver"><!-- ej: <a href="index.html" class="volver">Volver</a> --></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Botón flotante para volver a mostrar la frase -->
+  <button class="showPhrase" id="showPhrase" type="button">Mostrar frase</button>
+
+  <!-- ===== MODAL LIBRETA ===== -->
+  <section class="notes" data-key="pistas_reloj_bn">
+    <div class="modal" id="notesModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="notesTitle">
+      <div class="backdrop" data-close></div>
+      <div class="mw">
+        <div class="book" aria-hidden="true"></div>
+
+        <div class="page" id="page">
+          <header class="head">
+            <h3 class="ttl" id="notesTitle">Mi libreta</h3>
+            <button class="close" type="button" data-close aria-label="Cerrar">×</button>
+          </header>
+
+          <div class="tools">
+            <div class="left">
+              <button class="toggle" id="themeBtn">Tema: Negro</button>
+              <button class="toggle" id="toolPen">Lápiz</button>
+              <button class="toggle" id="toolEraser">Goma</button>
+            </div>
+            <div class="right">
+              <button class="ctl" id="saveBtn"  type="button">Guardar</button>
+              <button class="ctl" id="downloadNotesIn" type="button">Descargar</button>
+              <button class="ctl" id="clearBtn" type="button">Borrar</button>
+            </div>
+          </div>
+
+          <label class="label" for="ta">Escribe tus pistas:</label>
+         <p style="color:#ccc; font-style:italic; font-size:0.95em; margin:6px 0 10px;">
+  “Anota aquí tus observaciones.<br>
+  Cada detalle puede alterar la secuencia del tiempo.”
+</p>
+          <textarea class="ta" id="ta" placeholder="Escribe aquí..."></textarea>
+
+          
+          <canvas class="board" id="board"></canvas>
+
+          <footer class="ft"><small>Se guarda en este navegador. Puedes descargar tus pistas desde aquí o desde la portada.</small></footer>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<script>
+(() => {
+  /* ===== Frase: cerrar/mostrar ===== */
+  const phrasePanel = document.getElementById('phrasePanel');
+  const closePhrase = document.getElementById('closePhrase');
+  const showPhrase  = document.getElementById('showPhrase');
+  closePhrase.addEventListener('click', () => {
+    phrasePanel.classList.add('hidden');
+    showPhrase.style.display = 'inline-block';
+  });
+  showPhrase.addEventListener('click', () => {
+    phrasePanel.classList.remove('hidden');
+    showPhrase.style.display = 'none';
+  });
+
+  /* ===== Libreta ===== */
+  const wrapper   = document.querySelector('.notes');
+  const storageKey= 'notes_' + (wrapper?.dataset?.key || 'pista');
+
+  const openBtn   = document.getElementById('openNotes');
+  const modal     = document.getElementById('notesModal');
+  const backdrops = modal.querySelectorAll('[data-close]');
+  const page      = document.getElementById('page');
+
+  const themeBtn  = document.getElementById('themeBtn');
+  const toolPen   = document.getElementById('toolPen');
+  const toolEra   = document.getElementById('toolEraser');
+
+  const saveBtn   = document.getElementById('saveBtn');
+  const clearBtn  = document.getElementById('clearBtn');
+  const dlTop     = document.getElementById('downloadNotesTop');
+  const dlIn      = document.getElementById('downloadNotesIn');
+
+  const ta        = document.getElementById('ta');
+  const board     = document.getElementById('board');
+  const ctx       = board.getContext('2d');
+
+  const blood     = document.getElementById('blood');
+
+  let tool = 'pencil';
+
+  function isLight(){ return page.classList.contains('light'); }
+  function penColor(){ return isLight() ? '#000' : '#fff'; }
+
+  function openModal(){
+    modal.setAttribute('aria-hidden','false');
+    // ocultar frase para que no moleste
+    phrasePanel.classList.add('hidden'); showPhrase.style.display='inline-block';
+    // quitar “flood” si estaba activo
+    blood.classList.remove('flood');
+
+    try{
+      const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      if (data.text) ta.value = data.text;
+      if (data.img){
+        const img = new Image();
+        img.onload = () => { resizeBoard(); ctx.clearRect(0,0,board.width,board.height); ctx.drawImage(img,0,0,board.width,board.height); };
+        img.src = data.img;
+      } else { resizeBoard(); }
+      // por defecto tema NEGRO; si había guardado blanco, se aplica
+      if (data.theme === 'light'){ page.classList.add('light'); themeBtn.textContent='Tema: Blanco'; }
+      else { page.classList.remove('light'); themeBtn.textContent='Tema: Negro'; }
+    }catch(e){ resizeBoard(); }
+
+    setTimeout(()=>ta.focus(),40);
+    document.addEventListener('keydown', escClose);
+  }
+  function closeModal(){
+    modal.setAttribute('aria-hidden','true');
+    document.removeEventListener('keydown', escClose);
+    // activar efecto de sangre que cubre la imagen
+    blood.classList.add('flood');
+  }
+  function escClose(e){ if(e.key==='Escape') closeModal(); }
+
+  openBtn.addEventListener('click', openModal);
+  backdrops.forEach(el=>el.addEventListener('click', closeModal));
+
+  /* Tema: cambia entre Negro (por defecto) y Blanco */
+  themeBtn.addEventListener('click', ()=>{
+    page.classList.toggle('light');
+    themeBtn.textContent = isLight() ? 'Tema: Blanco' : 'Tema: Negro';
+    resizeBoard(); // reconfigura canvas
+  });
+  toolPen.addEventListener('click', ()=> tool='pencil');
+  toolEra.addEventListener('click', ()=> tool='eraser');
+
+  /* Canvas responsivo */
+  function resizeBoard(){
+    const r = board.getBoundingClientRect();
+    const tmp = document.createElement('canvas');
+    tmp.width = r.width; tmp.height = r.height;
+    tmp.getContext('2d').drawImage(board,0,0,r.width,r.height);
+    board.width = r.width; board.height = r.height;
+    ctx.drawImage(tmp,0,0);
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=2.2;
+    // ajustar color del lápiz según tema actual
+    ctx.strokeStyle = penColor();
+    ctx.globalCompositeOperation='source-over';
+  }
+  new ResizeObserver(resizeBoard).observe(board);
+
+  /* Dibujo */
+  let drawing=false,lastX=0,lastY=0;
+  function start(x,y){ drawing=true; [lastX,lastY]=[x,y]; }
+  function move(x,y){
+    if(!drawing) return;
+    if(tool==='pencil'){
+      ctx.globalCompositeOperation='source-over';
+      ctx.strokeStyle = penColor();     // <— BLANCO en tema negro, NEGRO en tema blanco
+    }else{
+      ctx.globalCompositeOperation='destination-out';
+      ctx.strokeStyle='rgba(0,0,0,1)';
+    }
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+    [lastX,lastY]=[x,y];
+  }
+  function end(){ drawing=false; }
+
+  function pos(ev){
+    const r=board.getBoundingClientRect();
+    if(ev.touches && ev.touches[0]) return {x:ev.touches[0].clientX-r.left,y:ev.touches[0].clientY-r.top};
+    return {x:ev.clientX-r.left,y:ev.clientY-r.top};
+  }
+
+  board.addEventListener('mousedown', e=>{const p=pos(e); start(p.x,p.y);});
+  board.addEventListener('mousemove', e=>{const p=pos(e); move(p.x,p.y);});
+  window.addEventListener('mouseup', end);
+
+  board.addEventListener('touchstart', e=>{const p=pos(e); start(p.x,p.y); e.preventDefault();},{passive:false});
+  board.addEventListener('touchmove',  e=>{const p=pos(e); move(p.x,p.y);  e.preventDefault();},{passive:false});
+  window.addEventListener('touchend', end, {passive:true});
+
+  /* Guardar / Borrar */
+  function save(){
+    const data = { text: ta.value || '', img: board.toDataURL('image/png'), theme: isLight() ? 'light' : 'dark' };
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    saveBtn.textContent='Guardado ✓'; setTimeout(()=> saveBtn.textContent='Guardar', 900);
+  }
+  saveBtn.addEventListener('click', save);
+
+  let autosave;
+  ta.addEventListener('input', ()=>{ clearTimeout(autosave); autosave=setTimeout(save, 800); });
+
+  clearBtn.addEventListener('click', ()=>{
+    if(!confirm('¿Borrar la nota y el dibujo?')) return;
+    localStorage.removeItem(storageKey);
+    ta.value=''; ctx.clearRect(0,0,board.width,board.height);
+  });
+
+  /* Descargar (portada y dentro de libreta) */
+  function downloadNotes(){
+    const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    const frase  = document.querySelector('.q')?.textContent?.trim() || '';
+    const meta   = document.querySelector('.meta')?.textContent?.trim() || '';
+    const text   = stored.text || '';
+    const content = `Pista:\n${frase}\n\n${meta?meta+"\n\n":""}Notas del lector:\n${text || "(vacío)"}\n`;
+    const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href=url; a.download='pistas.txt';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+  dlTop.addEventListener('click', downloadNotes);
+  dlIn.addEventListener('click', downloadNotes);
+
+})();
+</script>
+ <!-- ===== PARCHE CSS: permitir scroll dentro de la libreta y asegurar el textarea ===== -->
+<style>
+  /* Deja que el contenido de la libreta pueda desplazarse */
+  .page{
+    overflow: auto !important;         /* <- antes era hidden */
+  }
+  /* Que el textarea siempre sea visible y alto suficiente */
+  .ta{
+    display: block !important;
+    min-height: 260px !important;
+  }
+  /* Centrado vertical del contenedor del modal */
+  .mw{
+    align-items: center !important;
+  }
+</style>
+
+<!-- ===== PARCHE JS: al abrir la libreta, sube al inicio y enfoca el textarea ===== -->
+<script>
+  (function(){
+    const openBtn = document.getElementById('openNotes');
+    const page    = document.getElementById('page');
+    const ta      = document.getElementById('ta');
+
+    if (openBtn && page && ta) {
+      openBtn.addEventListener('click', () => {
+        // pequeña espera para que el modal termine de abrirse
+        setTimeout(() => {
+          page.scrollTop = 0;  // sube al principio de la página de la libreta
+          ta.focus();          // cursor listo para escribir
+        }, 100);
+      });
+    }
+  })();
+</script>
+<!-- ===== PARCHE: asegura que se vea y funcione el espacio para escribir ===== -->
+<style>
+ /* Ocultar la previsualización "Así queda en tu libreta" (canvas) y su etiqueta */
+ /* Ocultar el canvas de dibujo que deja la caja negra */
+#board,
+canvas.board {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+/* (Opcional) Ocultar el pie de la libreta si no lo necesitas */
+.ft {
+  display: none !important;
+}
+
+#notePreview,
+label[for="notePreview"],
+label.label:has(+ #notePreview) {
+  display: none !important;
+}
+
+  /* 1) La página de la libreta debe poder hacer scroll */
+  .page{
+    overflow: auto !important;
+  }
+
+  /* 2) Estilos del área de texto (tema negro por defecto) */
+  .ta{
+    display: block !important;
+    width: 100% !important;
+    min-height: 260px !important;
+    margin-top: 10px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    border: 2px dashed var(--line, #fff) !important;
+    background: var(--paper, #111) !important;
+    color: var(--ink, #f1f1f1) !important;
+    outline: none !important;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.08) !important;
+    font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif !important;
+  }
+  /* 3) Cuando la libreta esté en tema blanco */
+  .page.light .ta{
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #000 !important;
+  }
+</style>
+
+<script>
+(function(){
+  // -------- referencias básicas --------
+  const openBtn = document.getElementById('openNotes');
+  const modal   = document.getElementById('notesModal');
+  const page    = document.getElementById('page');
+
+  // 4) Si por alguna razón NO existe el textarea, lo creamos y lo insertamos debajo de .tools
+  function ensureTextarea(){
+    let ta = document.getElementById('ta');
+    if (!ta) {
+      const tools = page.querySelector('.tools') || page.firstElementChild;
+      // etiqueta y textarea
+      const label = document.createElement('label');
+      label.className = 'label';
+      label.setAttribute('for','ta');
+      label.textContent = 'Escribe tus pistas:';
+
+      ta = document.createElement('textarea');
+      ta.id = 'ta';
+      ta.className = 'ta';
+      ta.placeholder = 'Escribe aquí...';
+
+      tools.insertAdjacentElement('afterend', ta);
+      ta.insertAdjacentElement('beforebegin', label);
+    }
+    return ta;
+  }
+
+  // 5) Al abrir la libreta: subimos al inicio, garantizamos textarea y enfocamos
+  function focusTextarea(){
+    const ta = ensureTextarea();
+    // pequeño timeout para que el modal termine de abrirse y calcule alturas
+    setTimeout(() => {
+      page.scrollTop = 0;
+      ta.focus();
+      // por si quedó fuera de vista en pantallas pequeñas
+      ta.scrollIntoView({block:'start', behavior:'smooth'});
+    }, 120);
+  }
+
+  // 6) Adjuntar el enfoque al abrir
+  if (openBtn && modal && page) {
+    openBtn.addEventListener('click', focusTextarea);
+  }
+
+  // 7) Autoguardado suave del texto (por si aún no lo tenías enganchado)
+  const storageKey = 'notes_' + (document.querySelector('.notes')?.dataset?.key || 'pista');
+  function saveText(){
+    try{
+      const ta = document.getElementById('ta');
+      if(!ta) return;
+      const prev = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      prev.text = ta.value || '';
+      localStorage.setItem(storageKey, JSON.stringify(prev));
+    }catch(e){}
+  }
+  document.addEventListener('input', (e)=>{
+    if (e.target && e.target.id === 'ta') {
+      clearTimeout(saveText._t);
+      saveText._t = setTimeout(saveText, 500);
+    }
+  });
+})();
+</script>
+<!-- ===== FIN PARCHE ===== -->
+<!-- ===== PARCHE: vista previa de la libreta que refleja lo escrito ===== -->
+<style>
+  /* Área de vista previa (se ve como la hoja de la libreta) */
+  #notePreview{
+    width:100%; height:260px; display:block;
+    background:var(--paper, #111);
+    border:1px solid var(--line, #fff);
+    border-radius:12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.08);
+    margin: 8px 0 10px;
+  }
+  /* En tema blanco */
+  .page.light #notePreview{
+    background:#fff; border-color:#000;
+  }
+</style>
+
+<script>
+(function(){
+  const page   = document.getElementById('page');
+  const ta     = document.getElementById('ta');          // tu textarea existente
+  const board  = document.getElementById('board');       // tu canvas de dibujo existente
+  const themeBtn = document.getElementById('themeBtn');  // botón de tema
+
+  if (!page) return;
+
+  // 1) Crear el canvas de vista previa si no existe
+  let preview = document.getElementById('notePreview');
+  if (!preview){
+    // Lo colocamos ANTES del canvas de dibujo para que la “hoja escrita” quede sobre la libreta
+    preview = document.createElement('canvas');
+    preview.id = 'notePreview';
+    const label = document.createElement('label');
+    label.className = 'label';
+    label.textContent = 'Así queda en tu libreta:';
+    if (board){
+      board.insertAdjacentElement('beforebegin', preview);
+      preview.insertAdjacentElement('beforebegin', label);
+    }else if (ta){
+      ta.insertAdjacentElement('beforebegin', preview);
+      preview.insertAdjacentElement('beforebegin', label);
+    }else{
+      page.appendChild(preview);
+    }
+  }
+
+  // 2) Dibujar líneas + texto envuelto en el canvas
+  function penColor(){ return page.classList.contains('light') ? '#000' : '#fff'; }
+  function lineColor(){ return page.classList.contains('light') ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.10)'; }
+  function bgColor(){ return page.classList.contains('light') ? '#fff' : '#111'; }
+  function borderColor(){ return page.classList.contains('light') ? '#000' : '#fff'; }
+
+  function resizePreview(){
+    const r = preview.getBoundingClientRect();
+    preview.width  = r.width;
+    preview.height = r.height;
+    drawPreview();
+  }
+
+  function drawPreview(){
+    const ctx = preview.getContext('2d');
+    const w = preview.width, h = preview.height;
+    const padX = 18, padY = 18, lineH = 28;
+    // Fondo
+    ctx.fillStyle = bgColor();
+    ctx.fillRect(0,0,w,h);
+    // Líneas horizontales
+    ctx.strokeStyle = lineColor();
+    ctx.lineWidth = 1;
+    for (let y = padY + lineH; y < h - 6; y += lineH){
+      ctx.beginPath();
+      ctx.moveTo(padX, y);
+      ctx.lineTo(w - padX, y);
+      ctx.stroke();
+    }
+    // Texto (envuelto a línea)
+    const text = (ta && ta.value) ? ta.value : '';
+    ctx.fillStyle = penColor();
+    ctx.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif';
+    ctx.textBaseline = 'top';
+
+    const maxWidth = w - padX*2;
+    const words = text.split(/\s+/);
+    let line = '', y = padY;
+
+    function writeLine(str){
+      ctx.fillText(str, padX, y);
+      y += lineH;
+      if (y > h - padY) return false; // nos salimos; no crecer para mantener altura fija
+      return true;
+    }
+
+    for (let i=0;i<words.length;i++){
+      const test = line ? line + ' ' + words[i] : words[i];
+      const m = ctx.measureText(test).width;
+      if (m <= maxWidth){
+        line = test;
+      } else {
+        if (!writeLine(line)) break;
+        line = words[i];
+      }
+    }
+    if (line) writeLine(line);
+  }
+
+  // 3) Eventos: escribir, cambiar tema y redimensionar
+  if (ta){
+    ta.addEventListener('input', drawPreview);
+  }
+  if (themeBtn){
+    themeBtn.addEventListener('click', () => {
+      // reestilamos borde/fondo vía CSS variables implícitas
+      preview.style.background = bgColor();
+      preview.style.borderColor = borderColor();
+      setTimeout(drawPreview, 50);
+    });
+  }
+  window.addEventListener('resize', ()=>{ resizePreview(); });
+
+  // 4) Primera medida y pintado (esperamos a que el modal mida tamaños)
+  setTimeout(resizePreview, 150);
+
+  // 5) Si se abre la libreta con un botón “openNotes”, repintamos al abrir
+  const openBtn = document.getElementById('openNotes');
+  if (openBtn){
+    openBtn.addEventListener('click', () => setTimeout(resizePreview, 150));
+  }
+})();
+</script>
+<!-- ===== FIN DEL PARCHE ===== -->
+<!-- ===== PARCHE: botón "Mostrar en libreta" + vista real en la libreta ===== -->
+<style>
+  /* Hoja visible de la libreta (vista previa) */
+  #notePreview2{
+    width:100%; height:380px; display:block;
+    background:var(--paper, #111);
+    border:1px solid var(--line,#fff);
+    border-radius:12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.08);
+    margin: 10px 0 14px;
+  }
+  .page.light #notePreview2{ background:#fff; border-color:#000; }
+
+  /* Efecto de “flash” al actualizar */
+  #notePreview2.flash{ box-shadow:0 0 0 3px rgba(255,255,255,.6), inset 0 2px 8px rgba(0,0,0,.08); }
+</style>
+
+<script>
+(function(){
+  const page   = document.getElementById('page');
+  if(!page) return;
+
+  const ta     = document.getElementById('ta');
+  const toolsR = page.querySelector('.tools .right');
+
+  /* 1) Crear botón "Mostrar en libreta" sin tocar tu HTML */
+  const showBtn = document.createElement('button');
+  showBtn.className = 'ctl';
+  showBtn.type = 'button';
+  showBtn.id   = 'showOnNotebook';
+  showBtn.textContent = 'Mostrar en libreta';
+  // Lo ponemos al principio de la zona de botones de la derecha
+  toolsR?.insertAdjacentElement('afterbegin', showBtn);
+
+  /* 2) Asegurar hoja (canvas) donde se dibuja el texto */
+  function ensurePreview(){
+    let pv = document.getElementById('notePreview2');
+    if(!pv){
+      pv = document.createElement('canvas');
+      pv.id = 'notePreview2';
+      // Colocamos la hoja justo DESPUÉS del encabezado, al inicio de la libreta
+      const head = page.querySelector('.head');
+      if(head){
+        head.insertAdjacentElement('afterend', pv);
+      }else{
+        page.insertAdjacentElement('afterbegin', pv);
+      }
+    }
+    return pv;
+  }
+
+  /* 3) Colores según tema */
+  const isLight  = ()=> page.classList.contains('light');
+  const penColor = ()=> isLight() ? '#000' : '#fff';
+  const lineCol  = ()=> isLight() ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.10)';
+  const bgCol    = ()=> isLight() ? '#fff' : '#111';
+  const borderCol= ()=> isLight() ? '#000' : '#fff';
+
+  /* 4) Redibujar la hoja con el contenido del textarea */
+  function drawNotebook(){
+    const pv = ensurePreview();
+    // Ajustar tamaño al ancho visible
+    const r = pv.getBoundingClientRect();
+    pv.width  = Math.max(300, r.width);
+    pv.height = r.height || 380;
+
+    const ctx = pv.getContext('2d');
+    const w = pv.width, h = pv.height;
+    const padX = 18, padY = 18, lineH = 28;
+
+    // Fondo
+    ctx.fillStyle = bgCol(); ctx.fillRect(0,0,w,h);
+    // Líneas
+    ctx.strokeStyle = lineCol(); ctx.lineWidth = 1;
+    for(let y = padY + lineH; y < h - 6; y += lineH){
+      ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(w - padX, y); ctx.stroke();
+    }
+    // Texto envuelto
+    const txt = (ta && ta.value) ? ta.value : '';
+    ctx.fillStyle = penColor();
+    ctx.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif';
+    ctx.textBaseline = 'top';
+
+    const maxW = w - padX*2;
+    const words = txt.split(/\s+/);
+    let line = '', y = padY;
+
+    function writeLine(s){
+      ctx.fillText(s, padX, y);
+      y += lineH;
+      return y <= h - padY; // seguimos mientras quepa
+    }
+
+    for(let i=0;i<words.length;i++){
+      const test = line ? line + ' ' + words[i] : words[i];
+      if(ctx.measureText(test).width <= maxW){
+        line = test;
+      }else{
+        if(!writeLine(line)) break;
+        line = words[i];
+      }
+    }
+    if(line) writeLine(line);
+
+    // Flash visual de actualización
+    pv.classList.add('flash');
+    setTimeout(()=>pv.classList.remove('flash'), 350);
+
+    // Asegurar contraste del borde
+    pv.style.borderColor = borderCol();
+  }
+
+  /* 5) Acción del botón: dibujar y subir al inicio de la libreta */
+  showBtn.addEventListener('click', ()=>{
+    drawNotebook();
+    const pv = document.getElementById('notePreview2');
+    pv?.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  /* 6) Si existe textarea, también actualizamos en vivo cuando ya se creó la hoja */
+  ta?.addEventListener('input', ()=>{
+    if(document.getElementById('notePreview2')) drawNotebook();
+  });
+
+  /* 7) Al cambiar tema, repintamos */
+  const themeBtn = document.getElementById('themeBtn');
+  themeBtn?.addEventListener('click', ()=> setTimeout(drawNotebook, 80));
+
+  /* 8) Al abrir la libreta, primera medida */
+  const openBtn = document.getElementById('openNotes');
+  openBtn?.addEventListener('click', ()=> setTimeout(drawNotebook, 150));
+  window.addEventListener('resize', ()=> {
+    if(document.getElementById('notePreview2')) drawNotebook();
+  });
+})();
+</script>
+<!-- ===== FIN PARCHE ===== -->
+<!-- ===== MODO MÁQUINA: mostrar lo escrito en el panel negro grande ===== -->
+<style>
+  /* Botón adicional en la barra de la libreta */
+  .ctl.outline {
+    background: transparent !important;
+    color: var(--ink, #fff) !important;
+    border: 1px solid var(--ink, #fff) !important;
+  }
+  .page.light .ctl.outline{
+    color: #000 !important; border-color:#000 !important;
+  }
+
+  /* Overlay de texto a pantalla: por debajo de la libreta, por encima del fondo */
+  #typeOverlay{
+    position: fixed; inset: 0; z-index: 10000; /* backdrop=10000, libreta=10001 */
+    pointer-events: none;
+    padding: 8vh 10vw 12vh;
+    color: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+    font-size: clamp(18px, 1.4vw, 28px);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    opacity: 0; transition: opacity .18s ease;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  }
+  #typeOverlay.is-on{ opacity: .95; }
+  /* cuando la libreta esté en tema claro, el overlay se ve oscuro */
+  .page.light ~ #typeOverlay { color:#000; text-shadow:none; }
 </style>
 
 <script>
@@ -1281,10 +2437,8 @@ label.label:has(+ #notePreview) {
   @media (max-width:680px){ .xp-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 </style>
 
-<!-- ===== CAJA DE PISTAS ===== -->
-<div class="xp-nav" id="xpNav">
-  <button type="button" class="xp-close" id="xpClose" aria-label="Ocultar selector">×</button>
-  <div class="xp-box">
+<div class="xp-nav-wrap">
+  <div class="xp-nav">
     <h2 class="xp-title">Elige tu siguiente pista…</h2>
     <p class="xp-phrase">Cada pista abre una puerta distinta en el tiempo.</p>
     <div class="xp-grid">
@@ -1294,14 +2448,6 @@ label.label:has(+ #notePreview) {
       <a class="xp-btn" href="p04.html">Pista 4</a>
       <a class="xp-btn" href="p05.html">Pista 5</a>
       <a class="xp-btn" href="index.html">Portada</a>
-    </div>
-  </div>
-</div>
-
-<!-- Botón flotante para abrir la caja cuando esté oculta -->
-<button class="xp-open" id="xpOpen" type="button" aria-controls="xpNav" aria-expanded="false" style="display:none">Pistas</button>
-<!-- ===== FIN CAJA DE PISTAS ===== -->
-
     </div>
   </div>
 </div>
@@ -1344,192 +2490,14 @@ label.label:has(+ #notePreview) {
 
 </body>
 </html>
-/* === NAV PISTAS: ajuste final === */
-.xp-nav{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 9999;
-}
-
-.xp-nav.is-hidden{
-  /* Fuerza que desaparezca aunque otros estilos digan lo contrario */
-  display: none !important;
-}
-
-/* Botón flotante "Pistas" */
-#xpOpen{
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 10000;
-  display: none;            /* se muestra cuando cierras la caja */
-}
-
-<style>
-  /* ——— Ocultar cabecera “Próximamente…” y el contador ——— */
-  /* Metemos varios selectores “prudentes” para no romper nada si cambian clases */
-  .hero .countdown,
-  .hero .timer,
-  .hero .xp-count,
-  .hero .announce .title,
-  .hero .announce h2,
-  .hero .announce .cta-timer,
-  .hero .announce .progress {
-    display: none !important;
-  }
-
-  /* ——— Estilo del nuevo botón (mismo look & feel de tus botones) ——— */
-  .cta-pistas {
-    display:inline-block;
-    background:#fff;
-    color:#000;
-    font-weight:800;
-    padding:12px 18px;
-    border-radius:12px;
-    text-decoration:none;
-    box-shadow:0 8px 26px rgba(0,0,0,.45);
-    border:1px solid #fff;
-  }
-  .cta-pistas:active { transform: translateY(1px) scale(.99); }
-</style>
-
-<script>
-  // Al cargar la portada: cambia el link azul por un botón a p01.html
-  document.addEventListener('DOMContentLoaded', () => {
-    // 1) Localizamos el enlace azul actual (texto “Ver portal de prueba” u otro)
-    const linkCandidatos = [
-      // si existe un enlace que contenga ese texto
-      Array.from(document.querySelectorAll('a')).find(a => /portal de prueba/i.test(a.textContent || '')),
-      // fallback: primer enlace dentro del panel anunciador
-      document.querySelector('.hero .announce a'),
-      // último recurso: cualquier enlace visible en el panel
-      document.querySelector('.hero a')
-    ];
-    const enlace = linkCandidatos.find(Boolean);
-
-    if (enlace) {
-      // 2) Texto del botón (elige uno de los dos)
-      const textoBoton = 'El cuaderno de Nora Torres';
-      // const textoBoton = 'Entra y sé parte de la investigación';
-
-      // 3) Convertimos el enlace en botón y lo apuntamos a p01.html
-      enlace.textContent = textoBoton;
-      enlace.href = 'p01.html';
-      enlace.classList.add('cta-pistas');   // aspecto de botón
-      enlace.setAttribute('role','button');
-
-      // 4) Ocultamos título “Próximamente…” y contador (por si el CSS no los cazó)
-      ['.announce h2','.countdown','.timer','.xp-count','.announce .title','.announce .cta-timer','.announce .progress']
-        .forEach(sel => document.querySelectorAll(sel).forEach(el => el.style.display = 'none'));
-    }
-  });
-</script>
-<!-- ===== PARCHE PORTADA: limpiar “Próximamente…”, contador y CTA ===== -->
-<style>
-  /* 1) Forzar a ocultar TÍTULO “Próximamente…”, contador y su progreso */
-  .announce .title,
-  .announce h2,
-  .announce .countdown,
-  .announce .timer,
-  .announce .xp-count,
-  .announce .cta-timer,
-  .announce .progress { display: none !important; }
-
-  /* 2) Estilo del nuevo botón (reemplaza el enlace azul) */
-  .cta-pistas{
-    display:inline-block; padding:.8rem 1.1rem; border-radius:.8rem;
-    background:#fff; color:#000; font-weight:800; text-decoration:none;
-    border:1px solid #fff; box-shadow:0 8px 26px rgba(0,0,0,.45);
-  }
-  .cta-pistas:active{ transform:translateY(1px) scale(.99); }
-</style>
-
-<script>
-(() => {
-  // 1) Reescribir el titular de la tarjeta de presentación
-  const caja = document.querySelector('.announce');
-  if (caja){
-    const h2 = caja.querySelector('h2, .title');
-    if (h2){
-      h2.style.display = ''; // por si el CSS anterior ocultó un h2 genérico
-      h2.textContent = 'EXOMAW presenta a Nora Torres en su primer diario como investigadora aficionada.';
-    }
-  }
-
-  // 2) Convertir el enlace azul en botón que lleva a p01.html
-  //    (buscamos dentro de la caja de presentación)
-  const enlaceCandidatos = Array.from(
-    document.querySelectorAll('.announce a, .announce .link a, .announce a[href]')
-  );
-  // priorizamos el que pone "Ver portal de prueba" o cualquiera que haya en la announce
-  const enlace = enlaceCandidatos.find(a => /portal|ver/i.test(a.textContent)) || enlaceCandidatos[0];
-  if (enlace){
-    enlace.textContent = 'El cuaderno de Nora Torres';
-    enlace.href = 'p01.html';
-    enlace.classList.add('cta-pistas');
-    enlace.setAttribute('role','button');
-  }
-
-  // 3) Ocultar, por si persistiera, las partes del contador que algunos navegadores inlinean
-  ['.announce .countdown','.announce .timer','.announce .xp-count','.announce .cta-timer','.announce .progress']
-    .forEach(sel => document.querySelectorAll(sel).forEach(el => el.style.display='none'));
-
-  // 4) Actualizar créditos/footers de la portada (sin tocar la libreta)
-  //    Buscamos un footer visible que contenga “EXOMAW” y “Demo”
-  const posiblesFooters = Array.from(document.querySelectorAll('footer, .site-footer, .credits, .xp-footer, .page-footer'));
-  const footerDemo = posiblesFooters.find(f => /exomaw/i.test(f.textContent) && /demo/i.test(f.textContent));
-  if (footerDemo){
-    footerDemo.textContent = 'EXOMAW — Literatura inmersiva. Todos los derechos reservados, 2025.';
-  }
-})();
-</script>
-<!-- ===== FIN PARCHE PORTADA ===== -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const box = document.getElementById('xpNav');
-  if (!box) return;
-
-  // Busca la X dentro de la caja (por clase o data-atributo)
-  const btnClose = box.querySelector('.xp-close,[data-xp="close"]');
-
-  // Crea (o usa) el botón flotante "Pistas"
-  let btnOpen = document.getElementById('xpOpen');
-  if (!btnOpen) {
-    btnOpen = document.createElement('button');
-    btnOpen.id = 'xpOpen';
-    btnOpen.className = 'xp-open';
-    btnOpen.type = 'button';
-    btnOpen.textContent = 'Pistas';
-    document.body.appendChild(btnOpen);
-  }
-
-  function hideBox() {
-    box.classList.add('is-hidden');
-    btnOpen.style.display = 'inline-flex';
-  }
-
-  function showBox() {
-    box.classList.remove('is-hidden');
-    btnOpen.style.display = 'none';
-    // opcional: scroll hasta la caja al abrirla
-    try { window.scrollTo({ top: box.offsetTop - 24, behavior: 'smooth' }); } catch(e) {}
-  }
-
-  // Enlaza la X
-  if (btnClose) btnClose.addEventListener('click', hideBox);
-
-  // Enlaza el botón flotante
-  btnOpen.addEventListener('click', showBox);
-
-  // Cerrar con ESC
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !box.classList.contains('is-hidden')) hideBox();
-  });
-});
-</script>
 
 </body>
 </html>
+
+
+
+
+
 
 
 
