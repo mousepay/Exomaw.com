@@ -179,6 +179,20 @@
       <div class="panel scrim">
         <h2>Fórmulas guardadas</h2>
         <div class="list" id="lista"></div>
+        <!-- ===== CAJÓN DE PIEZAS (taller) ===== -->
+<div class="piecesTray" id="piecesTray" hidden>
+  <div class="piecesBar">
+    <strong>Piezas del taller</strong>
+    <div class="spacer"></div>
+    <button type="button" class="pz-btn" id="pzAdd">Añadir al lienzo</button>
+    <button type="button" class="pz-btn" id="pzSave">Guardar posiciones</button>
+    <button type="button" class="pz-btn danger" id="pzClear">Borrar todas</button>
+  </div>
+  <div class="piecesGrid" id="piecesGrid"></div>
+  <small class="hint">Arrastra las piezas desde esta bandeja a la hoja. Cada pieza puesta tiene un botón “×” para borrarla.</small>
+</div>
+<!-- ===== FIN CAJÓN DE PIEZAS ===== -->
+
         <hr style="border:none;border-top:1px solid rgba(255,255,255,.15);margin:14px 0">
         <h2>Inventario</h2>
         <p class="muted">Guarda objetos que “recoges” del banco de trabajo.</p>
@@ -362,5 +376,6 @@
 </script>
 </body>
 </html>
+
 
 
