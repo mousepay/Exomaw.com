@@ -105,6 +105,72 @@
 
   /* helper visual si no hay p03.png */
   .taller.noimg{background:#0b0b0b}
+
+  /* ====== PUZLE P3 (namespaced) ====== */
+  #puzzle { margin-top: 16px; }
+  #puzzle .muted { opacity:.85; }
+
+  #puzzle .pz-board{
+    position:relative;
+    width:min(900px, 95vw);
+    aspect-ratio: 3 / 2;                 /* 3 columnas x 2 filas */
+    margin:12px auto;
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap:8px;
+    border-radius:14px;
+    overflow:hidden;
+    background:
+      radial-gradient(80% 140% at 20% 0%, rgba(0,0,0,.35), transparent 65%),
+      url("p03.png") center/cover no-repeat; /* imagen base difuminada por debajo */
+    box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  #puzzle .pz-slot{
+    position:relative;
+    border:1px dashed rgba(255,255,255,.35);
+    background:rgba(0,0,0,.25);
+    border-radius:10px;
+    cursor:pointer;
+    overflow:hidden;
+  }
+  #puzzle .pz-slot:focus{ outline:2px solid rgba(255,255,255,.55); }
+
+  #puzzle .pz-piece{
+    position:absolute; inset:0;
+    background-image: url("p03.png");
+    background-repeat:no-repeat;
+    background-size: 300% 200%;          /* 3 x 2 cuadrantes */
+    transition: transform .08s ease;
+  }
+  #puzzle .pz-piece.is-free{             /* pieza en bandeja */
+    position:relative; width:140px; height:94px; /* mismo aspecto 3x2 reducido */
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:10px; overflow:hidden;
+    background-color:#000;
+    box-shadow:0 8px 18px rgba(0,0,0,.45);
+  }
+  #puzzle .pz-piece.is-selected{ outline:3px solid #fff; }
+
+  #puzzle .pz-tray{
+    display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+    margin:12px auto 6px;
+    max-width:min(900px, 95vw);
+  }
+
+  /* Resplandor sutil al completar */
+  #puzzle .pz-glow{
+    position:absolute; inset:0; pointer-events:none;
+    opacity:0;
+    background:
+      radial-gradient(30% 20% at 52% 45%, rgba(0,255,180,.22), transparent 60%),
+      radial-gradient(20% 16% at 58% 46%, rgba(0,255,120,.18), transparent 55%),
+      radial-gradient(10% 8%  at 56% 50%, rgba(0,255,200,.35), transparent 60%);
+    mix-blend-mode:screen;
+    transition: opacity .25s ease;
+  }
+  #puzzle .pz-glow.on{ opacity:.9; }
 </style>
 </head>
 <body>
@@ -154,12 +220,11 @@
           <button class="chip" data-name="Aceite de linaza" data-color="#f3d27a">Aceite de linaza</button>
           <button class="chip" data-name="Betún de judea"   data-color="#2b1c12">Betún de judea</button>
           <button class="chip" data-name="Barniz copal"     data-color="#eecb8b">Barniz copal</button>
-            <!-- NUEVOS COMPONENTES FOSFORESCENTES -->
-  <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
-  <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
-  <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
-  <button class="chip" data-name="Radio-226" data-color="#d4ff00">Radio-226</button>
-
+          <!-- NUEVOS COMPONENTES -->
+          <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
+          <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
+          <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
+          <button class="chip" data-name="Radio-226" data-color="#d4ff00">Radio-226</button>
         </div>
 
         <div class="mezcla" style="margin-top:12px">
@@ -179,19 +244,20 @@
       <div class="panel scrim">
         <h2>Fórmulas guardadas</h2>
         <div class="list" id="lista"></div>
+
         <!-- ===== CAJÓN DE PIEZAS (taller) ===== -->
-<div class="piecesTray" id="piecesTray" hidden>
-  <div class="piecesBar">
-    <strong>Piezas del taller</strong>
-    <div class="spacer"></div>
-    <button type="button" class="pz-btn" id="pzAdd">Añadir al lienzo</button>
-    <button type="button" class="pz-btn" id="pzSave">Guardar posiciones</button>
-    <button type="button" class="pz-btn danger" id="pzClear">Borrar todas</button>
-  </div>
-  <div class="piecesGrid" id="piecesGrid"></div>
-  <small class="hint">Arrastra las piezas desde esta bandeja a la hoja. Cada pieza puesta tiene un botón “×” para borrarla.</small>
-</div>
-<!-- ===== FIN CAJÓN DE PIEZAS ===== -->
+        <div class="piecesTray" id="piecesTray" hidden>
+          <div class="piecesBar">
+            <strong>Piezas del taller</strong>
+            <div class="spacer"></div>
+            <button type="button" class="pz-btn" id="pzAdd">Añadir al lienzo</button>
+            <button type="button" class="pz-btn" id="pzSave">Guardar posiciones</button>
+            <button type="button" class="pz-btn danger" id="pzClear">Borrar todas</button>
+          </div>
+          <div class="piecesGrid" id="piecesGrid"></div>
+          <small class="hint">Arrastra las piezas desde esta bandeja a la hoja. Cada pieza puesta tiene un botón “×” para borrarla.</small>
+        </div>
+        <!-- ===== FIN CAJÓN DE PIEZAS ===== -->
 
         <hr style="border:none;border-top:1px solid rgba(255,255,255,.15);margin:14px 0">
         <h2>Inventario</h2>
@@ -200,6 +266,33 @@
           <button class="chip" id="addPieza">Añadir pieza de reloj</button>
         </div>
         <div class="inv-list" id="inv"></div>
+
+        <!-- ===== PUZLE (debajo del Inventario) ===== -->
+        <section id="puzzle" class="panel scrim">
+          <h2>Puzle del banco de relojero</h2>
+          <p class="muted">Descubre las 6 piezas y colócalas en su sitio. Cuando encajen todas, verás un destello en las agujas.</p>
+
+          <div class="pz-board" id="pzBoard" aria-label="Tablero del puzle" role="application">
+            <button class="pz-slot" data-slot="0" aria-label="Casilla 1"></button>
+            <button class="pz-slot" data-slot="1" aria-label="Casilla 2"></button>
+            <button class="pz-slot" data-slot="2" aria-label="Casilla 3"></button>
+            <button class="pz-slot" data-slot="3" aria-label="Casilla 4"></button>
+            <button class="pz-slot" data-slot="4" aria-label="Casilla 5"></button>
+            <button class="pz-slot" data-slot="5" aria-label="Casilla 6"></button>
+            <div class="pz-glow" id="pzGlow" aria-hidden="true"></div>
+          </div>
+
+          <div class="pz-tray" id="pzTray" aria-label="Bandeja de piezas"></div>
+
+          <div class="tools" style="margin-top:12px">
+            <button class="chip" id="btnDescubrirPieza" type="button">Descubrir pieza</button>
+            <button class="chip ghost" id="btnGuardarPuzzle" type="button">Guardar puzzle</button>
+            <button class="chip ghost" id="btnDesarmarPuzzle" type="button">Desarmar puzzle</button>
+            <a class="chip ghost" id="btnVolverPistasPuzzle" href="p01.html">Volver a pistas</a>
+          </div>
+          <small class="muted">Imagen base: <code>p03.png</code>. Piezas: clic en una pieza para seleccionarla y luego clic en una casilla para colocarla. Vuelve a clicar la casilla para recuperar la pieza a la bandeja.</small>
+        </section>
+        <!-- ===== FIN PUZLE ===== -->
       </div>
     </div>
   </div>
@@ -221,7 +314,6 @@
   // Muestra el botón para ir al taller a los 2s o al terminar
   vid.addEventListener('play', () => {
     showQuote();
-    // si no hay controles usados, mostramos el botón tras 2s
     setTimeout(()=> goBtn.classList.add('show'), 2000);
   });
   vid.addEventListener('ended', () => goBtn.classList.add('show'));
@@ -230,7 +322,6 @@
   function openTaller(){
     scene.style.display = 'none';
     taller.style.display = 'block';
-    // si no existe imagen de fondo, evita “rota”
     const url = getComputedStyle(taller).backgroundImage;
     if (!url || url === 'none') taller.classList.add('noimg');
   }
@@ -278,7 +369,6 @@
   });
 
   function mark(btn, only){
-    // Marcar activo visualmente
     if(only){
       document.querySelectorAll('.chip[data-active="1"]').forEach(b=>b.dataset.active='0');
     }
@@ -297,6 +387,7 @@
     slotB.innerHTML = '<small>Slot B</small>';
     slotA.style = slotB.style = '';
     res.style.background = '#111';
+    delete res.dataset.color;
   }
 
   // Mezcla simple: promedio de colores
@@ -371,11 +462,132 @@
 
   // arranque
   paintList(); paintInv();
+})();
+</script>
 
+<!-- ===== JS DEL PUZLE (independiente) ===== -->
+<script>
+(function(){
+  const KEY = 'p3_puzzle_v1';
+  const TOTAL = 6; // 3x2
+  const coords = [
+    {cx:0, cy:0}, {cx:1, cy:0}, {cx:2, cy:0},
+    {cx:0, cy:1}, {cx:1, cy:1}, {cx:2, cy:1}
+  ];
+
+  const board = document.getElementById('pzBoard');
+  const tray  = document.getElementById('pzTray');
+  const glow  = document.getElementById('pzGlow');
+
+  const bAdd   = document.getElementById('btnDescubrirPieza');
+  const bSave  = document.getElementById('btnGuardarPuzzle');
+  const bReset = document.getElementById('btnDesarmarPuzzle');
+
+  if(!board || !tray) return;
+
+  let state = load() || { placements: Array(TOTAL).fill(null), owned: 0 };
+  let selectedId = null;
+
+  function save(){
+    localStorage.setItem(KEY, JSON.stringify(state));
+  }
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY)||''); }catch(_){ return null; }
+  }
+  function pieceBGStyle(ix){
+    const {cx, cy} = coords[ix];
+    const px = (cx===0? '0%' : cx===1? '50%' : '100%');
+    const py = (cy===0? '0%' : '100%');
+    return `background-position:${px} ${py}`;
+  }
+
+  function render(){
+    // slots
+    board.querySelectorAll('.pz-slot').forEach((slot, idx)=>{
+      slot.innerHTML = '';
+      const p = state.placements[idx];
+      if (p !== null){
+        const el = document.createElement('div');
+        el.className = 'pz-piece';
+        el.style = pieceBGStyle(p);
+        el.dataset.piece = String(p);
+        slot.appendChild(el);
+      }
+    });
+    // bandeja
+    tray.innerHTML = '';
+    for (let p=0;p<state.owned;p++){
+      const placed = state.placements.includes(p);
+      if (!placed){
+        const el = document.createElement('button');
+        el.type='button';
+        el.className = 'pz-piece is-free';
+        el.style = pieceBGStyle(p);
+        el.dataset.piece = String(p);
+        if (Number(selectedId) === p) el.classList.add('is-selected');
+        el.addEventListener('click', ()=> selectPiece(p));
+        tray.appendChild(el);
+      }
+    }
+    // check completo
+    const ok = state.placements.every((p,i)=> p===i);
+    glow.classList.toggle('on', ok);
+  }
+
+  function selectPiece(p){
+    selectedId = (selectedId===p ? null : p);
+    render();
+  }
+
+  board.querySelectorAll('.pz-slot').forEach(slot=>{
+    slot.addEventListener('click', ()=>{
+      const i = Number(slot.dataset.slot);
+      const cur = state.placements[i];
+
+      if (selectedId !== null){
+        if (cur === null){
+          state.placements[i] = selectedId;
+          selectedId = null;
+        } else {
+          const tmp = cur;
+          state.placements[i] = selectedId;
+          selectedId = tmp;
+        }
+      } else {
+        if (cur !== null){
+          state.placements[i] = null;
+          selectedId = cur;
+        }
+      }
+      render();
+    });
+  });
+
+  bAdd?.addEventListener('click', ()=>{
+    if (state.owned >= TOTAL) return;
+    state.owned++;
+    render();
+  });
+
+  bSave?.addEventListener('click', ()=>{
+    save();
+    bSave.textContent = 'Guardado ✓';
+    setTimeout(()=> bSave.textContent='Guardar puzzle', 900);
+  });
+
+  bReset?.addEventListener('click', ()=>{
+    state.placements = Array(TOTAL).fill(null);
+    selectedId = null;
+    render();
+  });
+
+  render();
 })();
 </script>
 </body>
 </html>
+
+
 
 
 
