@@ -11,166 +11,68 @@
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 
-  /* ===== CONTENEDOR VÍDEO ===== */
+  /* ===== ESCENA VÍDEO ===== */
   .stage{position:relative;min-height:100vh;display:grid;place-items:center;background:#000}
   .videoWrap{position:relative;width:min(100vw,1200px);aspect-ratio:16/9;background:#000;overflow:hidden;border-radius:14px}
   video{width:100%;height:100%;display:block;object-fit:cover}
-
-  /* Frase superpuesta en el vídeo */
-  .overlay-quote{
-    position:absolute;inset:0;display:grid;place-items:end center;
-    padding:7vh 6vw 9vh; text-align:center; pointer-events:none;
-  }
-  .overlay-quote p{
-    margin:0; font-weight:800; letter-spacing:.2px;
-    font-size:clamp(18px,1.6vw,30px); line-height:1.5;
-    text-shadow:0 3px 14px rgba(0,0,0,.85);
-    opacity:0; transform:translateY(12px); transition:opacity .8s ease, transform .8s ease;
-  }
-  .overlay-quote.show p{opacity:1; transform:none}
-
-  /* Botón para ir al taller */
-  .goTaller{
-    position:absolute; right:16px; bottom:16px; z-index:5;
-    background:var(--panel); border:1px solid rgba(255,255,255,.55);
-    color:#fff; font-weight:800; border-radius:12px; padding:10px 14px; cursor:pointer; display:none;
-    backdrop-filter:blur(3px);
-  }
+  .overlay-quote{position:absolute;inset:0;display:grid;place-items:end center;padding:7vh 6vw 9vh;text-align:center;pointer-events:none}
+  .overlay-quote p{margin:0;font-weight:800;letter-spacing:.2px;font-size:clamp(18px,1.6vw,30px);line-height:1.5;
+    text-shadow:0 3px 14px rgba(0,0,0,.85);opacity:0;transform:translateY(12px);transition:opacity .8s ease,transform .8s ease}
+  .overlay-quote.show p{opacity:1;transform:none}
+  .goTaller{position:absolute;right:16px;bottom:16px;z-index:5;background:var(--panel);
+    border:1px solid rgba(255,255,255,.55);color:#fff;font-weight:800;border-radius:12px;padding:10px 14px;cursor:pointer;display:none;backdrop-filter:blur(3px)}
   .goTaller.show{display:inline-flex}
 
   /* ===== TALLER ===== */
-  .taller{display:none; min-height:100vh; padding:24px 20px 40px; background:#0a0a0a;
-    background-image: url('p03.png');
-    background-size:cover; background-position:center; background-repeat:no-repeat;
-  }
-  .scrim{backdrop-filter:blur(3px); background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.75)); padding:18px; border-radius:16px}
+  .taller{display:none;min-height:100vh;padding:24px 20px 40px;background:#0a0a0a;
+    background-image:url('p03.png');background-size:cover;background-position:center;background-repeat:no-repeat}
+  .taller.noimg{background:#0b0b0b}
   .wrap{max-width:1200px;margin:0 auto;display:grid;gap:18px}
-  .grid{
-    display:grid; gap:16px;
-    grid-template-columns: 1.1fr .9fr;
-  }
-  @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+  .scrim{backdrop-filter:blur(3px);background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.75));padding:18px;border-radius:16px}
+  .grid{display:grid;gap:16px;grid-template-columns:1.1fr .9fr}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  .panel{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:16px 16px 18px;
+    box-shadow:0 20px 50px rgba(0,0,0,.55)}
+  .panel h2{margin:.2rem 0 6px;font-size:1.2rem}
+  .muted{color:var(--muted);margin:0 0 10px;font-style:italic}
+  .ttl{margin:0 0 4px;font-size:clamp(1.2rem,1rem + 1vw,1.6rem)}
+  .sub{margin:0 0 10px;color:#e0e0e0;opacity:.9}
 
-  .panel{
-    background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.18);
-    border-radius:16px; padding:16px 16px 18px; box-shadow:0 20px 50px rgba(0,0,0,.55);
-  }
-  .panel h2{margin:.2rem 0 6px; font-size:1.2rem}
-  .muted{color:var(--muted); margin:0 0 10px; font-style:italic}
-
-  .chips{display:flex; flex-wrap:wrap; gap:10px}
-  .chip{
-    appearance:none; border:1px solid #fff; background:var(--chip); color:var(--chipText);
-    border-radius:999px; padding:8px 12px; font-weight:800; cursor:pointer;
-  }
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{appearance:none;border:1px solid #fff;background:var(--chip);color:var(--chipText);
+    border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer}
   .chip.ghost{background:transparent;color:#fff;border-color:#fff}
   .chip:active{transform:translateY(1px)}
   .chip[data-active="1"]{box-shadow:0 0 0 3px var(--accent) inset}
 
-  .mezcla{
-    display:grid; gap:10px;
-    grid-template-columns:1fr 1fr; align-items:center;
-  }
-  .slot{
-    background:#111; border:1px dashed #666; border-radius:12px; min-height:70px;
-    display:grid; place-items:center; padding:8px; text-align:center;
-  }
+  .mezcla{display:grid;gap:10px;grid-template-columns:1fr 1fr;align-items:center}
+  .slot{background:#111;border:1px dashed #666;border-radius:12px;min-height:70px;display:grid;place-items:center;padding:8px;text-align:center}
   .slot small{color:#aaa}
-  .resultado{
-    height:90px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:#111; box-shadow:inset 0 2px 8px rgba(0,0,0,.12);
-  }
-
-  .tools{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px}
-
-  /* Lista de fórmulas guardadas */
-  .list{display:grid; gap:10px}
-  .formula{
-    display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.18); padding:10px; border-radius:12px;
-  }
+  .resultado{height:90px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:#111;box-shadow:inset 0 2px 8px rgba(0,0,0,.12)}
+  .tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .list{display:grid;gap:10px}
+  .formula{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:10px;border-radius:12px}
   .swatch{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.6);flex:0 0 auto}
 
-  /* Inventario */
-  .inv-list{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
-  .badge{
-    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25);
-    padding:6px 10px; border-radius:999px; font-weight:700
-  }
+  /* ===== PUZLE ===== */
+  .pz{display:flex;flex-direction:column;gap:14px}
+  .board{position:relative;border-radius:14px;background:#000; /* ← tablero NEGRO */
+    border:1px dashed rgba(255,255,255,.25);padding:14px}
+  .grid6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:10px;height:56vh;min-height:420px}
+  .cell{position:relative;background:#0f0f0f;border:1px dashed rgba(255,255,255,.22);border-radius:12px;overflow:hidden}
+  .cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .cell.drop-ok{outline:2px solid #53ffa1aa}
+  .tray{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+  .piece{width:180px;height:120px;border-radius:14px;border:2px solid rgba(255,255,255,.6);overflow:hidden;cursor:grab;background:#111}
+  .piece img{width:100%;height:100%;object-fit:cover;display:block}
+  .hint{color:#bbb;font-style:italic}
 
-  /* Cabecera del taller */
-  .ttl{margin:0 0 4px; font-size:clamp(1.2rem,1rem + 1vw,1.6rem)}
-  .sub{margin:0 0 10px; color:#e0e0e0; opacity:.9}
-
-  /* helper visual si no hay p03.png */
-  .taller.noimg{background:#0b0b0b}
-
-  /* ====== PUZLE P3 (namespaced) ====== */
-  #puzzle { margin-top: 16px; }
-  #puzzle .muted { opacity:.85; }
-
-  #puzzle .pz-board{
-    position:relative;
-    width:min(900px, 95vw);
-    aspect-ratio: 3 / 2;                 /* 3 columnas x 2 filas */
-    margin:12px auto;
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap:8px;
-    border-radius:14px;
-    overflow:hidden;
-    background:
-      radial-gradient(80% 140% at 20% 0%, rgba(0,0,0,.35), transparent 65%),
-      url("p03.png") center/cover no-repeat; /* imagen base difuminada por debajo */
-    box-shadow: 0 18px 50px rgba(0,0,0,.45);
-  }
-
-  #puzzle .pz-slot{
-    position:relative;
-    border:1px dashed rgba(255,255,255,.35);
-    background:rgba(0,0,0,.25);
-    border-radius:10px;
-    cursor:pointer;
-    overflow:hidden;
-  }
-  #puzzle .pz-slot:focus{ outline:2px solid rgba(255,255,255,.55); }
-
-  #puzzle .pz-piece{
-    position:absolute; inset:0;
-    background-image: url("p03.png");
-    background-repeat:no-repeat;
-    background-size: 300% 200%;          /* 3 x 2 cuadrantes */
-    transition: transform .08s ease;
-  }
-  #puzzle .pz-piece.is-free{             /* pieza en bandeja */
-    position:relative; width:140px; height:94px; /* mismo aspecto 3x2 reducido */
-    border:1px solid rgba(255,255,255,.35);
-    border-radius:10px; overflow:hidden;
-    background-color:#000;
-    box-shadow:0 8px 18px rgba(0,0,0,.45);
-  }
-  #puzzle .pz-piece.is-selected{ outline:3px solid #fff; }
-
-  #puzzle .pz-tray{
-    display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-    margin:12px auto 6px;
-    max-width:min(900px, 95vw);
-  }
-
-  /* Resplandor sutil al completar */
-  #puzzle .pz-glow{
-    position:absolute; inset:0; pointer-events:none;
-    opacity:0;
-    background:
-      radial-gradient(30% 20% at 52% 45%, rgba(0,255,180,.22), transparent 60%),
-      radial-gradient(20% 16% at 58% 46%, rgba(0,255,120,.18), transparent 55%),
-      radial-gradient(10% 8%  at 56% 50%, rgba(0,255,200,.35), transparent 60%);
-    mix-blend-mode:screen;
-    transition: opacity .25s ease;
-  }
-  #puzzle .pz-glow.on{ opacity:.9; }
+  /* Destello al completar */
+  .flash{animation:flash 600ms ease}
+  @keyframes flash{0%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 10px rgba(255,255,255,.35)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
 </style>
 </head>
 <body>
@@ -178,18 +80,13 @@
 <!-- ====== ESCENA VÍDEO ====== -->
 <section class="stage" id="scene">
   <div class="videoWrap">
-    <!-- tu vídeo; asegúrate de que p03.mp4 existe en el mismo nivel -->
     <video id="vid" playsinline preload="auto" controls>
       <source src="p03.mp4" type="video/mp4"/>
       Tu navegador no puede reproducir este vídeo.
     </video>
-
-    <!-- Frase superpuesta -->
     <div class="overlay-quote" id="quote">
       <p>“El silencio perdura entre las agujas.<br>Escucha bien: no todo lo que se mueve, avanza.”</p>
     </div>
-
-    <!-- Botón para saltar al taller -->
     <button class="goTaller" id="goTaller">Ir al taller ⟶</button>
   </div>
 </section>
@@ -207,12 +104,12 @@
     </header>
 
     <div class="grid">
-      <!-- Ingredientes -->
+      <!-- ========= IZQUIERDA: Frascos y mezcla ========= -->
       <div class="panel scrim">
         <h2>Frascos y compuestos</h2>
         <p class="muted">Pulsa dos frascos para enviarlos a los slots A y B. Luego “Mezclar”.</p>
+
         <div class="chips" id="frascos">
-          <!-- etiqueta="nombre", data-color= color de referencia para mezcla -->
           <button class="chip" data-name="Goma laca"        data-color="#d9a76c">Goma laca</button>
           <button class="chip" data-name="Alcohol etílico"  data-color="#d7e9ff">Alcohol etílico</button>
           <button class="chip" data-name="Dióxido de zinc"  data-color="#f4f4f4">Dióxido de zinc</button>
@@ -220,11 +117,11 @@
           <button class="chip" data-name="Aceite de linaza" data-color="#f3d27a">Aceite de linaza</button>
           <button class="chip" data-name="Betún de judea"   data-color="#2b1c12">Betún de judea</button>
           <button class="chip" data-name="Barniz copal"     data-color="#eecb8b">Barniz copal</button>
-          <!-- NUEVOS COMPONENTES -->
+          <!-- Extra “fosforescentes” (solo decorativos de mezcla) -->
           <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
-          <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
-          <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
-          <button class="chip" data-name="Radio-226" data-color="#d4ff00">Radio-226</button>
+          <button class="chip" data-name="Sales de cobre"       data-color="#00ff99">Sales de cobre</button>
+          <button class="chip" data-name="Sales de plata"       data-color="#00ccff">Sales de plata</button>
+          <button class="chip" data-name="Radio-226"            data-color="#d4ff00">Radio-226</button>
         </div>
 
         <div class="mezcla" style="margin-top:12px">
@@ -240,352 +137,272 @@
         </div>
       </div>
 
-      <!-- Fórmulas guardadas + Inventario -->
+      <!-- ========= DERECHA: Fórmulas + PUZLE ========= -->
       <div class="panel scrim">
         <h2>Fórmulas guardadas</h2>
         <div class="list" id="lista"></div>
 
-        <!-- ===== CAJÓN DE PIEZAS (taller) ===== -->
-        <div class="piecesTray" id="piecesTray" hidden>
-          <div class="piecesBar">
-            <strong>Piezas del taller</strong>
-            <div class="spacer"></div>
-            <button type="button" class="pz-btn" id="pzAdd">Añadir al lienzo</button>
-            <button type="button" class="pz-btn" id="pzSave">Guardar posiciones</button>
-            <button type="button" class="pz-btn danger" id="pzClear">Borrar todas</button>
-          </div>
-          <div class="piecesGrid" id="piecesGrid"></div>
-          <small class="hint">Arrastra las piezas desde esta bandeja a la hoja. Cada pieza puesta tiene un botón “×” para borrarla.</small>
-        </div>
-        <!-- ===== FIN CAJÓN DE PIEZAS ===== -->
-
         <hr style="border:none;border-top:1px solid rgba(255,255,255,.15);margin:14px 0">
-        <h2>Inventario</h2>
-        <p class="muted">Guarda objetos que “recoges” del banco de trabajo.</p>
-        <div class="tools">
-          <button class="chip" id="addPieza">Añadir pieza de reloj</button>
-        </div>
-        <div class="inv-list" id="inv"></div>
 
-        <!-- ===== PUZLE (debajo del Inventario) ===== -->
-        <section id="puzzle" class="panel scrim">
+        <div class="pz">
           <h2>Puzle del banco de relojero</h2>
-          <p class="muted">Descubre las 6 piezas y colócalas en su sitio. Cuando encajen todas, verás un destello en las agujas.</p>
+          <p class="muted">Descubre las 6 piezas y colócalas sobre el tablero negro. Cuando encajen todas, verás un destello en las agujas.</p>
 
-          <div class="pz-board" id="pzBoard" aria-label="Tablero del puzle" role="application">
-            <button class="pz-slot" data-slot="0" aria-label="Casilla 1"></button>
-            <button class="pz-slot" data-slot="1" aria-label="Casilla 2"></button>
-            <button class="pz-slot" data-slot="2" aria-label="Casilla 3"></button>
-            <button class="pz-slot" data-slot="3" aria-label="Casilla 4"></button>
-            <button class="pz-slot" data-slot="4" aria-label="Casilla 5"></button>
-            <button class="pz-slot" data-slot="5" aria-label="Casilla 6"></button>
-            <div class="pz-glow" id="pzGlow" aria-hidden="true"></div>
+          <!-- Tablero (3x2) sin imagen de fondo -->
+          <div class="board" id="board">
+            <div class="grid6" id="grid">
+              <div class="cell" data-idx="0"></div>
+              <div class="cell" data-idx="1"></div>
+              <div class="cell" data-idx="2"></div>
+              <div class="cell" data-idx="3"></div>
+              <div class="cell" data-idx="4"></div>
+              <div class="cell" data-idx="5"></div>
+            </div>
           </div>
 
-          <div class="pz-tray" id="pzTray" aria-label="Bandeja de piezas"></div>
+          <!-- Bandeja de piezas -->
+          <div class="tray" id="tray"></div>
 
-          <div class="tools" style="margin-top:12px">
-            <button class="chip" id="btnDescubrirPieza" type="button">Descubrir pieza</button>
-            <button class="chip ghost" id="btnGuardarPuzzle" type="button">Guardar puzzle</button>
-            <button class="chip ghost" id="btnDesarmarPuzzle" type="button">Desarmar puzzle</button>
-            <a class="chip ghost" id="btnVolverPistasPuzzle" href="p01.html">Volver a pistas</a>
+          <div class="tools">
+            <button class="chip" id="btnDiscover">Descubrir pieza</button>
+            <button class="chip" id="btnSave">Guardar puzzle</button>
+            <button class="chip ghost" id="btnReset">Desarmar puzzle</button>
+            <button class="chip ghost" id="volverPistas2">Volver a pistas</button>
           </div>
-          <small class="muted">Imagen base: <code>p03.png</code>. Piezas: clic en una pieza para seleccionarla y luego clic en una casilla para colocarla. Vuelve a clicar la casilla para recuperar la pieza a la bandeja.</small>
-        </section>
-        <!-- ===== FIN PUZLE ===== -->
+
+          <p class="hint">Imagen base: <em>p03.png</em>. Piezas: clic para seleccionar y arrastra a una casilla. Vuelve a clicar la casilla para recuperar la pieza.</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <script>
-(function(){
-  /* ====== FRASE EN EL VÍDEO ====== */
+(() => {
+  /* ===== Escena vídeo ===== */
   const vid   = document.getElementById('vid');
   const quote = document.getElementById('quote');
   const goBtn = document.getElementById('goTaller');
   const scene = document.getElementById('scene');
   const taller= document.getElementById('taller');
 
-  // Mostrar frase al reproducir
-  function showQuote(){ quote.classList.add('show'); }
-  function hideQuote(){ quote.classList.remove('show'); }
-
-  // Muestra el botón para ir al taller a los 2s o al terminar
-  vid.addEventListener('play', () => {
-    showQuote();
-    setTimeout(()=> goBtn.classList.add('show'), 2000);
-  });
+  vid.addEventListener('play', () => { quote.classList.add('show'); setTimeout(()=>goBtn.classList.add('show'), 2000); });
   vid.addEventListener('ended', () => goBtn.classList.add('show'));
+  goBtn.addEventListener('click', openTaller);
+  document.getElementById('backVideo').addEventListener('click', () => { taller.style.display='none'; scene.style.display='grid'; vid.focus(); });
+  document.getElementById('volverPistas').addEventListener('click', ()=> location.href='index.html');
+  document.getElementById('volverPistas2').addEventListener('click', ()=> location.href='index.html');
 
-  // Ir al taller
   function openTaller(){
-    scene.style.display = 'none';
-    taller.style.display = 'block';
+    scene.style.display='none'; taller.style.display='block';
     const url = getComputedStyle(taller).backgroundImage;
     if (!url || url === 'none') taller.classList.add('noimg');
   }
-  goBtn.addEventListener('click', openTaller);
 
-  // Volver al vídeo
-  document.getElementById('backVideo').addEventListener('click', ()=>{
-    taller.style.display = 'none';
-    scene.style.display  = 'grid';
-    vid.focus();
-  });
-
-  // Volver a las pistas (ajusta el destino si tus pistas están en otra página)
-  document.getElementById('volverPistas').addEventListener('click', ()=>{
-    window.location.href = 'index.html';
-  });
-
-  /* ====== LÓGICA DEL TALLER ====== */
+  /* ===== Mezcla (se mantiene igual) ===== */
   const slotA = document.getElementById('slotA');
   const slotB = document.getElementById('slotB');
   const res   = document.getElementById('resultado');
   const lista = document.getElementById('lista');
+  const SKEY_FORM='p03_formulas', SKEY_PZ='p03_puzzle';
 
-  const SKEY_FORM = 'p03_formulas';
-  const SKEY_INV  = 'p03_inventario';
-
-  let selA = null, selB = null;
-
-  // Selección de frascos
+  let selA=null, selB=null;
   document.getElementById('frascos').addEventListener('click', (e)=>{
-    const btn = e.target.closest('.chip'); if(!btn) return;
-    const item = { name: btn.dataset.name, color: btn.dataset.color };
-
-    if(!selA){
-      selA = item; renderSlot(slotA, selA); mark(btn);
-      return;
-    }
-    if(!selB && item.name !== selA.name){
-      selB = item; renderSlot(slotB, selB); mark(btn);
-      return;
-    }
-
-    // si ambas llenas, reemplazamos A -> B -> nuevo en A
-    clearSlots(); selA = item; renderSlot(slotA, selA); mark(btn,true);
+    const btn=e.target.closest('.chip'); if(!btn) return;
+    const item={name:btn.dataset.name,color:btn.dataset.color};
+    if(!selA){ selA=item; renderSlot(slotA,selA); mark(btn); return;}
+    if(!selB && item.name!==selA.name){ selB=item; renderSlot(slotB,selB); mark(btn); return;}
+    clearSlots(); selA=item; renderSlot(slotA,selA); mark(btn,true);
   });
+  function mark(btn,only){ if(only) document.querySelectorAll('.chip[data-active="1"]').forEach(b=>b.dataset.active='0'); btn.dataset.active = btn.dataset.active==='1'?'0':'1';}
+  function renderSlot(slot,data){ slot.innerHTML='<strong>'+data.name+'</strong>'; slot.style.borderColor=data.color; slot.style.boxShadow='0 0 0 3px '+data.color+'20 inset';}
+  function clearSlots(){ selA=selB=null; slotA.innerHTML='<small>Slot A</small>'; slotB.innerHTML='<small>Slot B</small>'; slotA.style=slotB.style=''; res.style.background='#111'; res.dataset.color='';}
+  function hex2rgb(h){const c=h.replace('#','');return{r:parseInt(c.slice(0,2),16),g:parseInt(c.slice(2,4),16),b:parseInt(c.slice(4,6),16)}}
+  function rgb2hex(r,g,b){const t=v=>('0'+v.toString(16)).slice(-2);return '#'+t(r)+t(g)+t(b)}
+  function mix(a,b){const A=hex2rgb(a),B=hex2rgb(b);return rgb2hex(Math.round((A.r+B.r)/2),Math.round((A.g+B.g)/2),Math.round((A.b+B.b)/2))}
+  document.getElementById('resolver').addEventListener('click', ()=>{ if(!selA||!selB) return alert('Elige dos frascos (A y B).'); const color=mix(selA.color,selB.color); res.style.background=color; res.dataset.color=color;});
+  document.getElementById('limpiar').addEventListener('click', ()=>{ clearSlots(); document.querySelectorAll('.chip[data-active="1"]').forEach(b=>b.dataset.active='0');});
+  document.getElementById('guardar').addEventListener('click', ()=>{ const color=res.dataset.color; if(!selA||!selB||!color) return alert('Mezcla primero dos frascos.'); const arr=load(SKEY_FORM); arr.push({a:selA.name,b:selB.name,color,ts:Date.now()}); save(SKEY_FORM,arr); paintList();});
+  function paintList(){ const arr=load(SKEY_FORM); if(!arr.length){lista.innerHTML='<em class="muted">(Vacío)</em>';return;} lista.innerHTML=arr.map(it=>`<div class="formula"><span class="swatch" style="background:${it.color}"></span><div style="flex:1 1 auto"><strong>${it.a}</strong> + <strong>${it.b}</strong><br><small style="color:#ccc">${new Date(it.ts).toLocaleString()}</small></div><button class="chip ghost" data-del="${it.ts}">Eliminar</button></div>`).join('');}
+  lista.addEventListener('click',(e)=>{const del=e.target.closest('[data-del]'); if(!del) return; const ts=+del.dataset.del; const arr=load(SKEY_FORM).filter(x=>x.ts!==ts); save(SKEY_FORM,arr); paintList();});
+  paintList();
 
-  function mark(btn, only){
-    if(only){
-      document.querySelectorAll('.chip[data-active="1"]').forEach(b=>b.dataset.active='0');
-    }
-    btn.dataset.active = btn.dataset.active === '1' ? '0' : '1';
-  }
+  /* ===== PUZLE (6 piezas rectangulares) ===== */
+  const tray = document.getElementById('tray');
+  const grid = document.getElementById('grid');
+  const btnDiscover = document.getElementById('btnDiscover');
+  const btnSave = document.getElementById('btnSave');
+  const btnReset = document.getElementById('btnReset');
 
-  function renderSlot(slot, data){
-    slot.innerHTML = '<strong>'+data.name+'</strong>';
-    slot.style.borderColor = data.color;
-    slot.style.boxShadow   = '0 0 0 3px '+data.color+'20 inset';
-  }
+  // Estado del puzzle
+  const state = {
+    order: [0,1,2,3,4,5],   // orden de descubrimiento pendiente
+    placed: {0:null,1:null,2:null,3:null,4:null,5:null}, // cellIdx -> pieceIdx
+    piecesReady: false
+  };
 
-  function clearSlots(){
-    selA = selB = null;
-    slotA.innerHTML = '<small>Slot A</small>';
-    slotB.innerHTML = '<small>Slot B</small>';
-    slotA.style = slotB.style = '';
-    res.style.background = '#111';
-    delete res.dataset.color;
-  }
+  // Crea las 6 piezas cortando p03.png en un canvas
+  const img = new Image(); img.src='p03.png'; img.onload = makePieces;
+  function makePieces(){
+    const w = img.width, h = img.height;
+    const cols = 3, rows = 2;
+    const pw = Math.floor(w/cols), ph = Math.floor(h/rows);
+    // bandeja limpia
+    tray.innerHTML='';
+    // precrear piezas (pero NO mostrarlas hasta pulsar “Descubrir”)
+    state._pieces = [];
+    let id = 0;
+    for (let r=0;r<rows;r++){
+      for (let c=0;c<cols;c++){
+        const cv = document.createElement('canvas'); cv.width = pw; cv.height = ph;
+        cv.getContext('2d').drawImage(img, c*pw, r*ph, pw, ph, 0, 0, pw, ph);
+        const url = cv.toDataURL('image/png');
 
-  // Mezcla simple: promedio de colores
-  function hex2rgb(h){
-    const c = h.replace('#','');
-    return { r:parseInt(c.substring(0,2),16), g:parseInt(c.substring(2,4),16), b:parseInt(c.substring(4,6),16) };
-  }
-  function rgb2hex(r,g,b){
-    const to = v => ('0'+v.toString(16)).slice(-2);
-    return '#'+to(r)+to(g)+to(b);
-  }
-  function mix(a,b){
-    const A = hex2rgb(a), B = hex2rgb(b);
-    return rgb2hex( Math.round((A.r+B.r)/2), Math.round((A.g+B.g)/2), Math.round((A.b+B.b)/2) );
-  }
-
-  document.getElementById('resolver').addEventListener('click', ()=>{
-    if(!selA || !selB) return alert('Elige dos frascos (A y B).');
-    const color = mix(selA.color, selB.color);
-    res.style.background = color;
-    res.dataset.color = color;
-  });
-
-  document.getElementById('limpiar').addEventListener('click', ()=>{
-    clearSlots();
-    document.querySelectorAll('.chip[data-active="1"]').forEach(b=>b.dataset.active='0');
-  });
-
-  // Guardar fórmula
-  document.getElementById('guardar').addEventListener('click', ()=>{
-    const color = res.dataset.color;
-    if(!selA || !selB || !color) return alert('Mezcla primero dos frascos.');
-    const entry = { a: selA.name, b: selB.name, color, ts: Date.now() };
-    const arr = load(SKEY_FORM); arr.push(entry); save(SKEY_FORM, arr); paintList();
-  });
-
-  function paintList(){
-    const arr = load(SKEY_FORM);
-    if(!arr.length){ lista.innerHTML = '<em class="muted">(Vacío)</em>'; return; }
-    lista.innerHTML = arr.map(it => `
-      <div class="formula">
-        <span class="swatch" style="background:${it.color}"></span>
-        <div style="flex:1 1 auto">
-          <strong>${it.a}</strong> + <strong>${it.b}</strong><br>
-          <small style="color:#ccc">${new Date(it.ts).toLocaleString()}</small>
-        </div>
-        <button class="chip ghost" data-del="${it.ts}">Eliminar</button>
-      </div>
-    `).join('');
-  }
-  lista.addEventListener('click', (e)=>{
-    const del = e.target.closest('[data-del]'); if(!del) return;
-    const ts = Number(del.dataset.del);
-    const arr = load(SKEY_FORM).filter(x => x.ts !== ts);
-    save(SKEY_FORM, arr); paintList();
-  });
-
-  // Inventario
-  const invWrap = document.getElementById('inv');
-  document.getElementById('addPieza').addEventListener('click', ()=>{
-    const arr = load(SKEY_INV); arr.push({name:'Pieza de reloj', ts:Date.now()});
-    save(SKEY_INV, arr); paintInv();
-  });
-  function paintInv(){
-    const arr = load(SKEY_INV);
-    invWrap.innerHTML = arr.length ? arr.map(i=>`<span class="badge">🧩 ${i.name}</span>`).join('') : '<em class="muted">(Inventario vacío)</em>';
-  }
-
-  // storage helpers
-  function load(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(_){ return []; } }
-  function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
-
-  // arranque
-  paintList(); paintInv();
-})();
-</script>
-
-<!-- ===== JS DEL PUZLE (independiente) ===== -->
-<script>
-(function(){
-  const KEY = 'p3_puzzle_v1';
-  const TOTAL = 6; // 3x2
-  const coords = [
-    {cx:0, cy:0}, {cx:1, cy:0}, {cx:2, cy:0},
-    {cx:0, cy:1}, {cx:1, cy:1}, {cx:2, cy:1}
-  ];
-
-  const board = document.getElementById('pzBoard');
-  const tray  = document.getElementById('pzTray');
-  const glow  = document.getElementById('pzGlow');
-
-  const bAdd   = document.getElementById('btnDescubrirPieza');
-  const bSave  = document.getElementById('btnGuardarPuzzle');
-  const bReset = document.getElementById('btnDesarmarPuzzle');
-
-  if(!board || !tray) return;
-
-  let state = load() || { placements: Array(TOTAL).fill(null), owned: 0 };
-  let selectedId = null;
-
-  function save(){
-    localStorage.setItem(KEY, JSON.stringify(state));
-  }
-  function load(){
-    try{ return JSON.parse(localStorage.getItem(KEY)||''); }catch(_){ return null; }
-  }
-  function pieceBGStyle(ix){
-    const {cx, cy} = coords[ix];
-    const px = (cx===0? '0%' : cx===1? '50%' : '100%');
-    const py = (cy===0? '0%' : '100%');
-    return `background-position:${px} ${py}`;
-  }
-
-  function render(){
-    // slots
-    board.querySelectorAll('.pz-slot').forEach((slot, idx)=>{
-      slot.innerHTML = '';
-      const p = state.placements[idx];
-      if (p !== null){
-        const el = document.createElement('div');
-        el.className = 'pz-piece';
-        el.style = pieceBGStyle(p);
-        el.dataset.piece = String(p);
-        slot.appendChild(el);
+        const piece = document.createElement('div');
+        piece.className = 'piece'; piece.draggable = true; piece.dataset.piece = id;
+        piece.innerHTML = `<img src="${url}" alt="pieza ${id+1}">`;
+        piece.addEventListener('dragstart', onDragStart);
+        // no se añade aún a la bandeja; se revelará con “Descubrir”
+        state._pieces.push(piece);
+        id++;
       }
+    }
+    // orden aleatorio de revelado si no había guardado
+    if (!load(SKEY_PZ)?.order) state.order = shuffle([0,1,2,3,4,5]);
+    state.piecesReady = true;
+
+    // Si hay guardado, restaurar
+    const saved = load(SKEY_PZ);
+    if (saved && saved.placed){
+      state.placed = saved.placed;
+      state.order  = saved.order || state.order;
+      // reconstruir tablero y bandeja según placed
+      for (let cellIdx=0; cellIdx<6; cellIdx++){
+        const cell = grid.querySelector(`.cell[data-idx="${cellIdx}"]`);
+        clearCell(cell);
+        const pieceIdx = state.placed[cellIdx];
+        if (pieceIdx!==null && pieceIdx!==undefined){
+          mountInCell(cell, pieceIdx);
+        }
+      }
+      // las que falten, a la bandeja visibles
+      const used = new Set(Object.values(state.placed).filter(v=>v!==null));
+      state._pieces.forEach(p=>{
+        if(!used.has(+p.dataset.piece)) tray.appendChild(p);
+      });
+    }
+  }
+
+  // descubrir una pieza (siguiente del orden)
+  btnDiscover.addEventListener('click', ()=>{
+    if (!state.piecesReady) return;
+    // si hay menos de 6 en bandeja+tablero, descubrimos próxima
+    const allShown = tray.querySelectorAll('.piece').length +
+                     Object.values(state.placed).filter(v=>v!==null).length;
+    if (allShown >= 6) return; // ya están todas
+
+    const nextIdx = state.order[allShown]; // siguiente del orden
+    const piece = state._pieces[nextIdx];
+    if (piece && !tray.contains(piece) && !isPlaced(nextIdx)){
+      tray.appendChild(piece);
+      tray.classList.add('flash'); setTimeout(()=>tray.classList.remove('flash'), 420);
+    }
+  });
+
+  function isPlaced(pieceIdx){
+    return Object.values(state.placed).includes(pieceIdx);
+  }
+
+  // Drag & drop a celdas
+  grid.querySelectorAll('.cell').forEach(cell=>{
+    cell.addEventListener('dragover', (e)=>{e.preventDefault(); cell.classList.add('drop-ok');});
+    cell.addEventListener('dragleave', ()=> cell.classList.remove('drop-ok'));
+    cell.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      cell.classList.remove('drop-ok');
+      const pieceIdx = +e.dataTransfer.getData('text/plain');
+      placePiece(cell, pieceIdx);
     });
-    // bandeja
-    tray.innerHTML = '';
-    for (let p=0;p<state.owned;p++){
-      const placed = state.placements.includes(p);
-      if (!placed){
-        const el = document.createElement('button');
-        el.type='button';
-        el.className = 'pz-piece is-free';
-        el.style = pieceBGStyle(p);
-        el.dataset.piece = String(p);
-        if (Number(selectedId) === p) el.classList.add('is-selected');
-        el.addEventListener('click', ()=> selectPiece(p));
-        tray.appendChild(el);
+    // clic sobre celda con pieza -> devolver a bandeja
+    cell.addEventListener('click', ()=>{
+      const idx = +cell.dataset.idx;
+      const pieceIdx = state.placed[idx];
+      if (pieceIdx!==null && pieceIdx!==undefined){
+        // quitar de celda y devolver pieza
+        clearCell(cell);
+        state.placed[idx]=null;
+        tray.appendChild(state._pieces[pieceIdx]);
       }
-    }
-    // check completo
-    const ok = state.placements.every((p,i)=> p===i);
-    glow.classList.toggle('on', ok);
-  }
-
-  function selectPiece(p){
-    selectedId = (selectedId===p ? null : p);
-    render();
-  }
-
-  board.querySelectorAll('.pz-slot').forEach(slot=>{
-    slot.addEventListener('click', ()=>{
-      const i = Number(slot.dataset.slot);
-      const cur = state.placements[i];
-
-      if (selectedId !== null){
-        if (cur === null){
-          state.placements[i] = selectedId;
-          selectedId = null;
-        } else {
-          const tmp = cur;
-          state.placements[i] = selectedId;
-          selectedId = tmp;
-        }
-      } else {
-        if (cur !== null){
-          state.placements[i] = null;
-          selectedId = cur;
-        }
-      }
-      render();
     });
   });
 
-  bAdd?.addEventListener('click', ()=>{
-    if (state.owned >= TOTAL) return;
-    state.owned++;
-    render();
+  function onDragStart(e){
+    const idx = e.currentTarget.dataset.piece;
+    e.dataTransfer.setData('text/plain', idx);
+  }
+
+  function placePiece(cell, pieceIdx){
+    const idx = +cell.dataset.idx;
+    // si esa pieza ya estaba en otra celda, la liberamos
+    for (const k in state.placed){
+      if (state.placed[k]===pieceIdx){
+        const prevCell = grid.querySelector(`.cell[data-idx="${k}"]`);
+        clearCell(prevCell); state.placed[k]=null;
+      }
+    }
+    // si la celda ya tenía pieza, devuélvela a la bandeja
+    if (state.placed[idx]!==null && state.placed[idx]!==undefined){
+      const prevPieceIdx = state.placed[idx];
+      tray.appendChild(state._pieces[prevPieceIdx]);
+    }
+    // monta
+    mountInCell(cell, pieceIdx);
+    state.placed[idx]=pieceIdx;
+
+    // ¿completado?
+    if (Object.values(state.placed).every(v=>v!==null)){
+      grid.classList.add('flash');
+      setTimeout(()=>grid.classList.remove('flash'), 650);
+    }
+  }
+
+  function mountInCell(cell, pieceIdx){
+    clearCell(cell);
+    const imgEl = state._pieces[pieceIdx].querySelector('img').cloneNode(true);
+    const holder = document.createElement('img');
+    holder.src = imgEl.src; holder.alt = 'pieza';
+    cell.appendChild(holder);
+  }
+
+  function clearCell(cell){ while(cell.firstChild) cell.removeChild(cell.firstChild); }
+
+  // Guardar / Reset
+  btnSave.addEventListener('click', ()=>{
+    save(SKEY_PZ, { placed: state.placed, order: state.order });
+    btnSave.textContent='Guardado ✓'; setTimeout(()=>btnSave.textContent='Guardar puzzle', 800);
+  });
+  btnReset.addEventListener('click', ()=>{
+    // devolver todas las piezas a la bandeja
+    for (let i=0;i<6;i++){
+      const cell = grid.querySelector(`.cell[data-idx="${i}"]`);
+      clearCell(cell); state.placed[i]=null;
+    }
+    // vaciar bandeja y reinsertar las 6
+    tray.innerHTML='';
+    state._pieces.forEach(p=> tray.appendChild(p));
+    save(SKEY_PZ, { placed: state.placed, order: state.order });
   });
 
-  bSave?.addEventListener('click', ()=>{
-    save();
-    bSave.textContent = 'Guardado ✓';
-    setTimeout(()=> bSave.textContent='Guardar puzzle', 900);
-  });
-
-  bReset?.addEventListener('click', ()=>{
-    state.placements = Array(TOTAL).fill(null);
-    selectedId = null;
-    render();
-  });
-
-  render();
+  /* ===== util ===== */
+  function shuffle(arr){const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
+  function load(k){try{return JSON.parse(localStorage.getItem(k)||'');}catch(_){return null}}
+  function save(k,v){localStorage.setItem(k, JSON.stringify(v))}
 })();
 </script>
 </body>
 </html>
+
+
 
 
 
