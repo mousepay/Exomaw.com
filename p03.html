@@ -1,1 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pista 3 — El Taller del Reloj</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background-color: #000;
+  color: white;
+  text-align: center;
+}
+
+/* ==== SECCIÓN VIDEO ==== */
+#video-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#video-section video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#frase {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.6em;
+  color: white;
+  text-shadow: 0 0 10px black;
+  animation: mover 6s ease-in-out infinite alternate;
+}
+
+@keyframes mover {
+  0% { transform: translate(-50%, 0); }
+  100% { transform: translate(-50%, -15px); }
+}
+
+#entrarBtn {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: #e6a857;
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: none;
+}
+
+/* ==== SECCIÓN TALLER ==== */
+#taller {
+  display: none;
+  background-image: url('reloj_taller.jpg'); /* tu imagen sepia */
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  padding: 20px;
+}
+
+#taller h1 {
+  text-shadow: 0 0 10px black;
+}
+
+.frascos {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.frasco {
+  background: rgba(255,255,255,0.1);
+  border: 2px solid #e6a857;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.frasco:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+#resultado {
+  margin-top: 30px;
+  font-size: 1.2em;
+}
+
+#colorMezcla {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 15px auto;
+  border: 2px solid white;
+  background: #333;
+}
+
+.botones {
+  margin-top: 20px;
+}
+
+button {
+  margin: 5px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+#guardarBtn { background: #4CAF50; color: white; }
+#piezaBtn { background: #2196F3; color: white; }
+#borrarBtn { background: #f44336; color: white; }
+
+/* ==== INVENTARIO ==== */
+#inventario {
+  background: rgba(0,0,0,0.7);
+  margin-top: 25px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #e6a857;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SECCIÓN VIDEO ===== -->
+<section id="video-section">
+  <video id="introVideo" src="video_taller.mp4" autoplay muted></video>
+  <div id="frase">"El silencio del museo guardaba más secretos que el tiempo mismo."</div>
+  <button id="entrarBtn">Entrar al Taller</button>
+</section>
+
+<!-- ===== SECCIÓN TALLER ===== -->
+<section id="taller">
+  <h1>El Taller del Reloj</h1>
+  <p>Mezcla los líquidos y guarda tus fórmulas favoritas.</p>
+
+  <div class="frascos">
+    <div class="frasco" data-color="#c68b59">Barniz</div>
+    <div class="frasco" data-color="#a0d6b4">Alcohol</div>
+    <div class="frasco" data-color="#b4b4b4">Zinc</div>
+    <div class="frasco" data-color="#7b4f2e">Hierro</div>
+  </div>
+
+  <div id="resultado">
+    <div id="colorMezcla"></div>
+    <p id="textoMezcla">Elige dos líquidos para mezclar.</p>
+  </div>
+
+  <div class="botones">
+    <button id="guardarBtn">Guardar fórmula</button>
+    <button id="piezaBtn">Guardar pieza</button>
+    <button id="borrarBtn">Borrar todo</button>
+  </div>
+
+  <div id="inventario">
+    <h3>Inventario</h3>
+    <div id="lista"></div>
+  </div>
+</section>
+
+<script>
+const video = document.getElementById('introVideo');
+const entrarBtn = document.getElementById('entrarBtn');
+const videoSection = document.getElementById('video-section');
+const taller = document.getElementById('taller');
+
+video.addEventListener('ended', () => {
+  entrarBtn.style.display = 'block';
+});
+
+entrarBtn.addEventListener('click', () => {
+  videoSection.style.display = 'none';
+  taller.style.display = 'block';
+});
+
+/* ==== LÓGICA DE MEZCLA ==== */
+let seleccion = [];
+const frascos = document.querySelectorAll('.frasco');
+const colorMezcla = document.getElementById('colorMezcla');
+const textoMezcla = document.getElementById('textoMezcla');
+
+frascos.forEach(f => {
+  f.addEventListener('click', () => {
+    seleccion.push(f.dataset.color);
+    if (seleccion.length === 2) {
+      const color1 = seleccion[0];
+      const color2 = seleccion[1];
+      const mix = mezclarColores(color1, color2);
+      colorMezcla.style.background = mix;
+      textoMezcla.textContent = `Color resultante: ${mix}`;
+      seleccion = [];
+    }
+  });
+});
+
+function mezclarColores(c1, c2) {
+  const hexToRgb = hex => hex.match(/\w\w/g).map(x => parseInt(x, 16));
+  const rgbToHex = rgb => '#' + rgb.map(x => x.toString(16).padStart(2, '0')).join('');
+  const [r1,g1,b1] = hexToRgb(c1);
+  const [r2,g2,b2] = hexToRgb(c2);
+  const mix = [Math.floor((r1+r2)/2), Math.floor((g1+g2)/2), Math.floor((b1+b2)/2)];
+  return rgbToHex(mix);
+}
+
+/* ==== GUARDAR EN INVENTARIO ==== */
+const guardarBtn = document.getElementById('guardarBtn');
+const piezaBtn = document.getElementById('piezaBtn');
+const borrarBtn = document.getElementById('borrarBtn');
+const lista = document.getElementById('lista');
+
+guardarBtn.addEventListener('click', () => {
+  const color = colorMezcla.style.background || '#000';
+  const item = document.createElement('div');
+  item.textContent = `🧪 Fórmula guardada: ${color}`;
+  lista.appendChild(item);
+});
+
+piezaBtn.addEventListener('click', () => {
+  const pieza = document.createElement('div');
+  pieza.textContent = '⚙️ Pieza de reloj guardada';
+  lista.appendChild(pieza);
+});
+
+borrarBtn.addEventListener('click', () => {
+  lista.innerHTML = '';
+  colorMezcla.style.background = '#333';
+  textoMezcla.textContent = 'Elige dos líquidos para mezclar.';
+});
+</script>
+
+</body>
+</html>
+
 
