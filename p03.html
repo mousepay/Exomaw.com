@@ -90,7 +90,7 @@
   .pz-board{
     background:#0a0a0a; border:1px solid rgba(255,255,255,.18);
     border-radius:16px; padding:14px; box-shadow: inset 0 2px 10px rgba(0,0,0,.35);
-    position:relative; /* banner */
+    position:relative;
   }
   .pz-grid{
     display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 1fr);
@@ -112,13 +112,16 @@
 
   .pz-piece{
     width:140px; height:100px;
-    background-image:url('p03.png');       /* sprite */
+    background-image:url('p03.png');
     background-size:300% 200%;
     background-repeat:no-repeat;
     border-radius:10px; border:1px solid rgba(255,255,255,.25);
-    cursor:grab; user-select:none; -webkit-user-drag:none; touch-action:none;
+    cursor:grab; user-select:none; -webkit-user-drag:none;
+    touch-action:none;
+    outline:0;
   }
   .pz-piece:active{ cursor:grabbing; }
+  .pz-piece.sel{ box-shadow:0 0 0 3px var(--accent) inset; }
 
   .pz-flash{ animation: flash 700ms ease-out 1; }
   @keyframes flash{
@@ -140,10 +143,7 @@
     100%{ box-shadow:0 0 0 2px rgba(255,255,200,.65), 0 0 40px rgba(255,255,160,.35), inset 0 0 35px rgba(255,255,180,.18) }
   }
 
-  .pz-banner{
-    position:absolute; inset:0; display:grid; place-items:center;
-    pointer-events:none; opacity:0; transition:opacity .6s ease .2s;
-  }
+  .pz-banner{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; opacity:0; transition:opacity .6s ease .2s; }
   .pz-banner.show{ opacity:1; }
   .pz-banner .pill{
     background:rgba(0,0,0,.62);
@@ -207,7 +207,7 @@
           <button class="chip" data-name="Aceite de linaza" data-color="#f3d27a">Aceite de linaza</button>
           <button class="chip" data-name="Betún de judea"   data-color="#2b1c12">Betún de judea</button>
           <button class="chip" data-name="Barniz copal"     data-color="#eecb8b">Barniz copal</button>
-          <!-- opcionales “pista luminiscente” -->
+          <!-- opcionales -->
           <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
           <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
           <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
@@ -263,7 +263,7 @@
           <button class="pz-btn ghost" id="pzBack">Volver a pistas</button>
         </div>
 
-        <p class="muted" style="margin-top:8px">Imagen base: <em>p03.png</em>. Piezas: arrástralas a una casilla. Haz clic sobre una pieza colocada para devolverla a la bandeja.</p>
+        <p class="muted" style="margin-top:8px">Imagen base: <em>p03.png</em>. Piezas: arrástralas o toca una pieza y luego una casilla.</p>
         <!-- ===== FIN PUZLE ===== -->
       </div>
     </div>
@@ -309,10 +309,8 @@
   document.getElementById('frascos').addEventListener('click', (e)=>{
     const btn = e.target.closest('.chip'); if(!btn) return;
     const item = { name: btn.dataset.name, color: btn.dataset.color };
-
     if(!selA){ selA = item; renderSlot(slotA, selA); mark(btn); return; }
     if(!selB && item.name !== selA.name){ selB = item; renderSlot(slotB, selB); mark(btn); return; }
-
     clearSlots(); selA = item; renderSlot(slotA, selA); mark(btn,true);
   });
 
@@ -342,12 +340,10 @@
     const color = mix(selA.color, selB.color);
     res.style.background = color; res.dataset.color = color;
   });
-
   document.getElementById('limpiar').addEventListener('click', ()=>{
     clearSlots();
     document.querySelectorAll('.chip[data-active="1"]').forEach(b=>b.dataset.active='0');
   });
-
   document.getElementById('guardar').addEventListener('click', ()=>{
     const color = res.dataset.color;
     if(!selA || !selB || !color) return alert('Mezcla primero dos frascos.');
@@ -382,7 +378,7 @@
 
   /* ===== PUZLE ===== */
   const IMG = 'p03.png';
-  const CELLS = 6;                       // 3 x 2
+  const CELLS = 6;                  // 3x2
   const SKEY_PZ = 'p03_puzzle_v1';
 
   const board = document.getElementById('pzBoard');
@@ -405,8 +401,10 @@
     emptyMsg.style.display = hasPieces ? 'none' : 'inline';
   }
 
-  /* respaldo para móvil: guardamos el índice al empezar a arrastrar */
-  let draggingIdx = null;
+  /* DRAG & DROP + TAP-TO-PLACE */
+  let draggingIdx = null;      // para móviles donde dataTransfer falla
+  let selectedIdx = null;      // tap para seleccionar pieza
+  let selectedEl  = null;
 
   function mkPiece(idx){
     const el = document.createElement('div');
@@ -416,17 +414,24 @@
     el.style.backgroundImage = `url('${IMG}')`;
     el.style.backgroundPosition = positions[idx];
 
+    // Drag (PC y algunos móviles)
     el.addEventListener('dragstart', (e)=>{
       draggingIdx = idx;
-      try{
-        e.dataTransfer.setData('text/plain', String(idx));
-        e.dataTransfer.effectAllowed = 'move';
-      }catch(_){}
+      try{ e.dataTransfer.setData('text/plain', String(idx)); e.dataTransfer.effectAllowed='move'; }catch(_){}
     });
     el.addEventListener('dragend', ()=>{ draggingIdx = null; });
 
+    // Tap-to-select (móvil)
+    el.addEventListener('click', ()=>{
+      if(selectedEl) selectedEl.classList.remove('sel');
+      selectedEl = el;
+      selectedIdx = idx;
+      el.classList.add('sel');
+    });
+
     return el;
   }
+
   function addToTray(idx){
     if (tray.querySelector(`.pz-piece[data-idx="${idx}"]`)) return;
     const piece = mkPiece(idx);
@@ -446,28 +451,46 @@
     tray.classList.add('pz-flash'); setTimeout(()=> tray.classList.remove('pz-flash'), 450);
   });
 
+  // Drop en celdas (PC + fallback)
   grid.querySelectorAll('.pz-cell').forEach(cell=>{
+    const put = (idx)=>{
+      const cIndex = Number(cell.dataset.idx);
+      if(state[cIndex] !== null){ addToTray(state[cIndex]); }
+      const inTray = tray.querySelector(`.pz-piece[data-idx="${idx}"]`);
+      if(inTray){
+        if(selectedEl === inTray){ selectedEl.classList.remove('sel'); selectedEl=null; selectedIdx=null; }
+        inTray.remove();
+      }
+      paintCell(cell, idx); state[cIndex] = idx;
+      checkComplete(); renderEmptyMsg();
+    };
+
+    // Drag & drop
     cell.addEventListener('dragover', e=>{ e.preventDefault(); cell.classList.add('dragover'); });
     cell.addEventListener('dragleave', ()=> cell.classList.remove('dragover'));
     cell.addEventListener('drop', e=>{
       e.preventDefault(); cell.classList.remove('dragover');
-
-      /* lectura robusta del índice (móvil/escritorio) */
       let data = '';
       try{ data = e.dataTransfer.getData('text/plain'); }catch(_){}
       const idx = Number(data || draggingIdx);
       draggingIdx = null;
       if (Number.isNaN(idx)) return;
-
-      const cIndex = Number(cell.dataset.idx);
-      if(state[cIndex] !== null){ addToTray(state[cIndex]); }
-      const inTray = tray.querySelector(`.pz-piece[data-idx="${idx}"]`); if(inTray) inTray.remove();
-      paintCell(cell, idx); state[cIndex] = idx;
-      checkComplete(); renderEmptyMsg();
+      put(idx);
     });
 
-    /* click en celda: devuelve pieza a la bandeja */
+    // Tap-to-place
     cell.addEventListener('click', ()=>{
+      if(selectedIdx === null) return;   // no hay pieza seleccionada
+      put(selectedIdx);
+      selectedIdx = null;
+      selectedEl = null;
+    });
+  });
+
+  // Click en celda para devolver pieza a la bandeja
+  grid.querySelectorAll('.pz-cell').forEach(cell=>{
+    cell.addEventListener('contextmenu', (e)=> e.preventDefault()); // evita menú en móvil
+    cell.addEventListener('dblclick', ()=>{ // doble click opcional para devolver
       const cIndex = Number(cell.dataset.idx);
       if(state[cIndex] === null) return;
       addToTray(state[cIndex]); clearCell(cell); state[cIndex] = null; renderEmptyMsg();
@@ -508,12 +531,15 @@
     grid.querySelectorAll('.pz-cell').forEach(clearCell);
     state = new Array(CELLS).fill(null);
     tray.innerHTML = '';
+    if(selectedEl){ selectedEl.classList.remove('sel'); }
+    selectedEl = null; selectedIdx = null; draggingIdx = null;
     board.classList.remove('pz-complete'); banner.classList.remove('show');
     renderEmptyMsg();
   });
 
   btnBack.addEventListener('click', ()=> window.location.href = 'index.html');
 
+  // Restaurar
   (function restore(){
     try{
       const saved = JSON.parse(localStorage.getItem(SKEY_PZ)||'null');
@@ -532,6 +558,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
