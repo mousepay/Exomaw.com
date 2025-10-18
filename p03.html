@@ -90,11 +90,12 @@
   .pz-board{
     background:#0a0a0a; border:1px solid rgba(255,255,255,.18);
     border-radius:16px; padding:14px; box-shadow: inset 0 2px 10px rgba(0,0,0,.35);
-    position:relative; /* para el banner */
+    position:relative;
   }
   .pz-grid{
     display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 1fr);
     gap:14px; height:min(48vw, 520px);
+    touch-action:none; /* mejor gesto en móvil */
   }
   .pz-cell{
     background:#111; border:2px dashed rgba(255,255,255,.25);
@@ -112,11 +113,11 @@
 
   .pz-piece{
     width:140px; height:100px;
-    background-image:url('p03.png');
+    background-image:url('p03.png'); /* ref de sprite */
     background-size:300% 200%;
     background-repeat:no-repeat;
     border-radius:10px; border:1px solid rgba(255,255,255,.25);
-    cursor:grab; user-select:none;
+    cursor:grab; user-select:none; touch-action:none;
   }
   .pz-piece:active{ cursor:grabbing; }
 
@@ -127,7 +128,6 @@
     100%{ box-shadow:0 0 0 rgba(255,255,255,0) }
   }
 
-  /* Brillo del marco al completar */
   .pz-board.pz-complete{
     animation: glow 1500ms ease-out 1;
     box-shadow:
@@ -141,7 +141,6 @@
     100%{ box-shadow:0 0 0 2px rgba(255,255,200,.65), 0 0 40px rgba(255,255,160,.35), inset 0 0 35px rgba(255,255,180,.18) }
   }
 
-  /* Banner con la frase final */
   .pz-banner{
     position:absolute; inset:0; display:grid; place-items:center;
     pointer-events:none; opacity:0; transition:opacity .6s ease .2s;
@@ -209,7 +208,6 @@
           <button class="chip" data-name="Aceite de linaza" data-color="#f3d27a">Aceite de linaza</button>
           <button class="chip" data-name="Betún de judea"   data-color="#2b1c12">Betún de judea</button>
           <button class="chip" data-name="Barniz copal"     data-color="#eecb8b">Barniz copal</button>
-          <!-- pista luminiscente opcional -->
           <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
           <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
           <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
@@ -249,7 +247,6 @@
             <div class="pz-cell" data-idx="4" aria-filled="false"></div>
             <div class="pz-cell" data-idx="5" aria-filled="false"></div>
           </div>
-          <!-- Banner con la frase final -->
           <div class="pz-banner" id="pzBanner">
             <div class="pill">“A veces, el tiempo se reconoce en su engranaje.”</div>
           </div>
@@ -408,12 +405,16 @@
     emptyMsg.style.display = hasPieces ? 'none' : 'inline';
   }
 
+  // ---- FIX clave para móvil: forzar estilos por pieza ----
   function mkPiece(idx){
     const el = document.createElement('div');
     el.className = 'pz-piece';
     el.draggable = true;
     el.dataset.idx = String(idx);
+    // Fuerza sprite y recorte por JS (algunos móviles ignoraban la regla de clase)
     el.style.backgroundImage = `url('${IMG}')`;
+    el.style.backgroundSize = '300% 200%';
+    el.style.backgroundRepeat = 'no-repeat';
     el.style.backgroundPosition = positions[idx];
     el.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/piece', idx); });
     return el;
@@ -453,7 +454,6 @@
       const cIndex = Number(cell.dataset.idx);
       if(state[cIndex] === null) return;
       addToTray(state[cIndex]); clearCell(cell); state[cIndex] = null; renderEmptyMsg();
-      // si descolocan algo, quitamos celebración
       board.classList.remove('pz-complete'); banner.classList.remove('show');
     });
   });
@@ -462,6 +462,7 @@
     cell.setAttribute('aria-filled','true');
     cell.style.backgroundImage = `url('${IMG}')`;
     cell.style.backgroundSize = '300% 200%';
+    cell.style.backgroundRepeat = 'no-repeat';
     cell.style.backgroundPosition = positions[idx];
   }
   function clearCell(cell){
@@ -473,7 +474,6 @@
   function checkComplete(){
     const ok = state.every((v,i)=> v === i);
     if(!ok) return;
-    // Destello en el tablero + frase
     grid.classList.add('pz-flash'); setTimeout(()=> grid.classList.remove('pz-flash'), 700);
     board.classList.add('pz-complete');
     banner.classList.add('show');
@@ -508,7 +508,6 @@
       });
       (saved.tray||[]).forEach(addToTray);
       renderEmptyMsg();
-      // si ya estaba completo, vuelves a ver la celebración
       if(state.every((v,i)=>v===i)){ board.classList.add('pz-complete'); banner.classList.add('show'); }
     }catch(_){ renderEmptyMsg(); }
   })();
@@ -516,6 +515,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
