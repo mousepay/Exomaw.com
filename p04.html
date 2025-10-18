@@ -1,42 +1,393 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal #P-01 — EXOMAW</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0a0c10;
-      color: #eaf1fb;
-      font: 16px/1.6 system-ui, Segoe UI, Roboto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .wrap {
-      max-width: 720px;
-      padding: 2rem;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      text-align: center;
-    }
-    a {
-      color: #8be9fd;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pista 4 — Muro de sospechosos</title>
+<style>
+  :root{
+    --bg:#0b0b0b; --ink:#f2f2f2; --muted:#bdbdbd; --accent:#ffd166; --panel:rgba(0,0,0,.6);
+    --chip:#fff; --chipText:#000; --ok:#34d399; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:22px 16px}
+  .panel{
+    background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.18);
+    border-radius:16px; padding:16px 16px 18px; box-shadow:0 20px 50px rgba(0,0,0,.55);
+    backdrop-filter: blur(3px);
+  }
+  header h1{margin:.2rem 0 6px; font-size: clamp(20px, 2vw, 28px)}
+  header .sub{margin:0 0 10px; color:#e0e0e0; opacity:.9}
+
+  /* Fondo del muro */
+  .board{
+    border-radius:16px; overflow:hidden; position:relative;
+    background:#141414 url('p04.jpg') center/cover no-repeat;
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .board::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.35));
+    pointer-events:none;
+  }
+
+  /* Rejilla 4x2 responsive */
+  .grid{
+    position:relative; z-index:1;
+    display:grid; gap:14px; padding:16px;
+    grid-template-columns:repeat(4, 1fr);
+    grid-auto-rows: clamp(90px, 16vw, 150px);
+  }
+  @media (max-width:900px){ .grid{ grid-template-columns: repeat(3,1fr); } }
+  @media (max-width:640px){ .grid{ grid-template-columns: repeat(2,1fr); } }
+
+  /* Tarjeta foto/silueta */
+  .card{
+    position:relative; border-radius:14px; overflow:hidden; cursor:pointer;
+    transform-style: preserve-3d; transition: transform .6s ease;
+  }
+  .card.is-flipped{ transform: rotateY(180deg); }
+
+  .face{
+    position:absolute; inset:0; display:grid; place-items:center;
+    backface-visibility:hidden;
+    border:1px solid rgba(255,255,255,.2);
+    background:#0e0e0e;
+  }
+  .front{
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.45)),
+      #0e0e0e;
+  }
+  .front .clip{
+    width:72%; height:72%; border-radius:8px;
+    background:#111; border:1px dashed rgba(255,255,255,.3);
+  }
+
+  .back{
+    transform: rotateY(180deg);
+    background:#111 center/cover no-repeat;
+  }
+  .back .q{
+    position:absolute; right:8px; top:8px;
+    font-weight:900; font-size: clamp(18px, 2.6vw, 28px);
+    text-shadow: 0 2px 10px rgba(0,0,0,.7);
+  }
+  .nameTag{
+    position:absolute; left:8px; bottom:6px; right:8px;
+    background:rgba(0,0,0,.52); border:1px solid rgba(255,255,255,.25);
+    border-radius:10px; padding:6px 8px; font-weight:800; font-size:.9rem;
+    text-align:center;
+  }
+
+  /* Caja de selección */
+  .selBar{
+    margin-top:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18);
+    border-radius:12px; padding:10px;
+  }
+  .counter{ font-weight:900; color:var(--accent) }
+
+  .pill{
+    display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px;
+    background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.25);
+    font-weight:800;
+  }
+  .pill button{ all:unset; cursor:pointer; padding:0 6px; font-weight:900 }
+  .pill[aria-selected="true"]{ box-shadow:0 0 0 2px var(--accent) inset }
+
+  .tools{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px }
+  .btn{
+    background:#fff; color:#000; border:1px solid #fff; border-radius:999px;
+    padding:10px 14px; font-weight:900; cursor:pointer;
+  }
+  .btn.ghost{ background:transparent; color:#fff; border-color:#fff }
+  .btn.ok{ background:var(--ok); border-color:var(--ok); color:#082c18 }
+  .btn:disabled{ opacity:.5; cursor:not-allowed }
+  .muted{ color:var(--muted) }
+
+  /* Modal simple */
+  .modal{
+    position:fixed; inset:0; display:none; place-items:center; z-index:50;
+    background:rgba(0,0,0,.55);
+  }
+  .modal.show{ display:grid; }
+  .cardModal{
+    width:min(92vw,560px); background:#0f0f0f; border:1px solid rgba(255,255,255,.2);
+    border-radius:16px; padding:16px; box-shadow:0 30px 120px rgba(0,0,0,.7);
+  }
+  .cardModal h3{ margin:.2rem 0 8px }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:10px }
+</style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Portal #P-01</h1>
-    <p>Este es un portal de prueba. Cuando el libro esté publicado, aquí aparecerá la primera pista.</p>
-    <p><a href="/">← Volver al inicio</a></p>
+    <header class="panel">
+      <h1>Pista 4 — Muro de sospechosos</h1>
+      <p class="sub">Toca una foto para revelar una <strong>silueta</strong>. Elige <strong>máximo dos</strong> sospechosos y guarda tu elección. Puedes interrogar a uno con una pregunta de <em>Sí/No</em>.</p>
+      <div class="tools">
+        <button class="btn ghost" id="volver">⟵ Volver a pistas</button>
+      </div>
+    </header>
+
+    <section class="panel" style="margin-top:14px">
+      <div class="board">
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="selBar" id="selBar">
+        <span class="counter" id="counter">0/2</span>
+        <span class="muted" id="emptySel">(Sin sospechosos)</span>
+        <div id="chips" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+      </div>
+
+      <div class="tools">
+        <button class="btn" id="guardar">Guardar sospechosos</button>
+        <button class="btn ok" id="interrogar" disabled>Interrogar</button>
+        <button class="btn ghost" id="limpiar">Limpiar</button>
+      </div>
+      <p class="muted" style="margin-top:6px">Consejo: el orden de las fotos cambia al cargar, pero se recuerda mientras sigas en la misma sesión.</p>
+    </section>
   </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="cardModal">
+      <h3 id="qTitle">¿Crees que es ...?</h3>
+      <p class="muted" id="qHelper">Responde con sinceridad.</p>
+      <div class="row">
+        <button class="btn" id="btnNo">No</button>
+        <button class="btn ok" id="btnSi">Sí</button>
+      </div>
+      <div id="resp" style="margin-top:10px; font-weight:800"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  /* ====== Datos base ====== */
+  const SUSPECTS = [
+    { id:'arturo',  name:'Arturo'  },
+    { id:'nora',    name:'Nora'    },
+    { id:'amelia',  name:'Amelia'  },
+    { id:'azquiel', name:'Azquiel' },
+    { id:'ocaña',   name:'Ocaña'   },
+    { id:'lise',    name:'Lise'    },
+    { id:'tomas',   name:'Tomás'   },
+    { id:'daniel',  name:'Daniel'  },
+  ];
+  const RESP = {
+    'Arturo':  'Lo siento, sigue intentando averiguarlo.',
+    'Nora':    'Sigue intentando, estás muy cerca.',
+    'Amelia':  'Ella te puede guiar.',
+    'Azquiel': 'El observador puede llevarte hasta él.',
+    'Ocaña':   'Él intuye lo mismo que tú.',
+    'Lise':    'Ella se enteró de todo.',
+    'Tomás':   'El dolor perdura en su mente.',
+    'Daniel':  'El que se esconde, no se salvará.'
+  };
+
+  /* ====== Elementos ====== */
+  const grid = document.getElementById('grid');
+  const chips = document.getElementById('chips');
+  const counter = document.getElementById('counter');
+  const emptySel = document.getElementById('emptySel');
+  const btnGuardar = document.getElementById('guardar');
+  const btnInterrogar = document.getElementById('interrogar');
+  const btnLimpiar = document.getElementById('limpiar');
+  const volver = document.getElementById('volver');
+
+  const modal = document.getElementById('modal');
+  const qTitle = document.getElementById('qTitle');
+  const qHelper = document.getElementById('qHelper');
+  const btnNo = document.getElementById('btnNo');
+  const btnSi = document.getElementById('btnSi');
+  const resp = document.getElementById('resp');
+
+  /* ====== Storage keys ====== */
+  const K_ORDER = 'p04_order';
+  const K_OPEN  = 'p04_opened';      // ids que ya están volteados
+  const K_SEL   = 'p04_selected';    // dos sospechosos guardados
+
+  /* ====== Estado ====== */
+  let order = restoreOrder();
+  let opened = new Set( JSON.parse(localStorage.getItem(K_OPEN)||'[]') );
+  let selected = new Set( JSON.parse(localStorage.getItem(K_SEL)||'[]') );
+  let lastTargetForQA = null; // último chip clicado (para interrogar)
+
+  renderGrid();
+  paintSelection();
+
+  /* ====== Render rejilla ====== */
+  function renderGrid(){
+    grid.innerHTML = '';
+    order.forEach(sus => {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.dataset.id = sus.id;
+      // Caras
+      const front = document.createElement('div');
+      front.className = 'face front';
+      front.innerHTML = '<div class="clip"></div>';
+
+      const back  = document.createElement('div');
+      back.className = 'face back';
+      back.innerHTML = `<span class="q">?</span><div class="nameTag">${sus.name}</div>`;
+
+      // Imagen de silueta
+      const url = `siluetas/${sus.id}.png`;
+      // Cargamos para saber si existe; si falla, se queda el fondo de respaldo
+      const img = new Image();
+      img.onload = () => { back.style.backgroundImage = `url('${url}')`; };
+      img.onerror = () => {
+        // degradado de respaldo
+        back.style.backgroundImage =
+          'linear-gradient(135deg, #2b2b2b, #0f0f0f)';
+      };
+      img.src = url;
+
+      el.appendChild(front); el.appendChild(back);
+
+      // Si ya estaba abierto, marcamos flip
+      if (opened.has(sus.id)) el.classList.add('is-flipped');
+
+      // Interacción: click/tap para voltear
+      el.addEventListener('click', ()=>{
+        const id = sus.id;
+        if (el.classList.contains('is-flipped')){
+          // si ya está volteada, permite seleccionar/deseleccionar
+          toggleSelect(id, sus.name);
+        } else {
+          el.classList.add('is-flipped');
+          opened.add(id);
+          persistOpened();
+        }
+      }, {passive:true});
+
+      grid.appendChild(el);
+    });
+  }
+
+  /* ====== Selección (máx. 2) ====== */
+  function toggleSelect(id, name){
+    if (selected.has(id)){
+      selected.delete(id);
+    } else {
+      if (selected.size >= 2) {
+        alert('Sólo puedes elegir dos sospechosos.');
+        return;
+      }
+      selected.add(id);
+    }
+    paintSelection();
+    persistSelection();
+  }
+
+  function paintSelection(){
+    // contador y chips
+    counter.textContent = `${selected.size}/2`;
+    emptySel.style.display = selected.size ? 'none' : 'inline';
+
+    chips.innerHTML = '';
+    [...selected].forEach(id=>{
+      const sus = SUSPECTS.find(s => s.id === id);
+      const chip = document.createElement('div');
+      chip.className = 'pill';
+      chip.dataset.id = id;
+      chip.innerHTML = `
+        <span>${sus.name}</span>
+        <button title="Quitar">×</button>
+      `;
+      chip.addEventListener('click', (e)=>{
+        // si clican en la X, quitamos; si clican en el chip, lo marcamos para interrogar
+        if (e.target.tagName === 'BUTTON'){
+          selected.delete(id); paintSelection(); persistSelection();
+        } else {
+          // marcar este chip como objetivo para interrogar
+          [...chips.children].forEach(c=>c.setAttribute('aria-selected','false'));
+          chip.setAttribute('aria-selected','true');
+          lastTargetForQA = id;
+          btnInterrogar.disabled = false;
+        }
+      });
+      chips.appendChild(chip);
+    });
+
+    // habilitar interrogar si hay al menos 1 seleccionado
+    if (!selected.size){ btnInterrogar.disabled = true; lastTargetForQA = null; }
+  }
+
+  function persistSelection(){
+    localStorage.setItem(K_SEL, JSON.stringify([...selected]));
+  }
+  function persistOpened(){
+    localStorage.setItem(K_OPEN, JSON.stringify([...opened]));
+  }
+
+  /* ====== Aleatorización con persistencia ====== */
+  function restoreOrder(){
+    const saved = localStorage.getItem(K_ORDER);
+    if (saved){
+      try{
+        const arr = JSON.parse(saved);
+        // validar que están los 8
+        if (Array.isArray(arr) && arr.length === SUSPECTS.length){
+          return arr;
+        }
+      }catch(_){}
+    }
+    // generar nueva mezcla
+    const shuffled = [...SUSPECTS].sort(()=>Math.random()-0.5);
+    localStorage.setItem(K_ORDER, JSON.stringify(shuffled));
+    return shuffled;
+  }
+
+  /* ====== Botones ====== */
+  btnGuardar.addEventListener('click', ()=>{
+    persistSelection();
+    btnGuardar.textContent = 'Guardado ✓';
+    setTimeout(()=> btnGuardar.textContent = 'Guardar sospechosos', 900);
+  });
+
+  btnLimpiar.addEventListener('click', ()=>{
+    if(!confirm('¿Vaciar selección y reclutar desde cero?')) return;
+    selected.clear(); opened.clear();
+    localStorage.removeItem(K_SEL);
+    localStorage.removeItem(K_OPEN);
+    paintSelection(); renderGrid();
+  });
+
+  volver.addEventListener('click', ()=>{ window.location.href = 'index.html'; });
+
+  /* ====== Interrogatorio (modal Sí/No) ====== */
+  btnInterrogar.addEventListener('click', ()=>{
+    // si hay 2 elegidos y no marcaron uno, tomamos el último de la lista
+    const targetId = lastTargetForQA || [...selected][selected.size-1];
+    if (!targetId){ return; }
+    const sus = SUSPECTS.find(s => s.id === targetId);
+    qTitle.textContent = `¿Crees que es ${sus.name}?`;
+    qHelper.textContent = 'Piensa bien tu corazonada.';
+    resp.textContent = '';
+    modal.classList.add('show');
+
+    // limpiar selección visual (re-marcar el activo)
+    [...chips.children].forEach(c => c.setAttribute('aria-selected', c.dataset.id===targetId ? 'true':'false'));
+
+    btnSi.onclick = ()=> {
+      resp.textContent = RESP[sus.name] || 'Sigue investigando…';
+    };
+    btnNo.onclick = ()=> { modal.classList.remove('show'); };
+  });
+
+  modal.addEventListener('click', (e)=>{
+    if (e.target === modal) modal.classList.remove('show');
+  }, {passive:true});
+})();
+</script>
 </body>
 </html>
+
+
