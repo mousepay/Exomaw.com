@@ -13,7 +13,7 @@
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 
-  /* ===== ESCENA VÍDEO ===== */
+  /* ===== CONTENEDOR VÍDEO ===== */
   .stage{position:relative;min-height:100vh;display:grid;place-items:center;background:#000}
   .videoWrap{position:relative;width:min(100vw,1200px);aspect-ratio:16/9;background:#000;overflow:hidden;border-radius:14px}
   video{width:100%;height:100%;display:block;object-fit:cover}
@@ -90,12 +90,11 @@
   .pz-board{
     background:#0a0a0a; border:1px solid rgba(255,255,255,.18);
     border-radius:16px; padding:14px; box-shadow: inset 0 2px 10px rgba(0,0,0,.35);
-    position:relative;
+    position:relative; /* banner */
   }
   .pz-grid{
     display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 1fr);
     gap:14px; height:min(48vw, 520px);
-    touch-action:none; /* mejor gesto en móvil */
   }
   .pz-cell{
     background:#111; border:2px dashed rgba(255,255,255,.25);
@@ -113,11 +112,11 @@
 
   .pz-piece{
     width:140px; height:100px;
-    background-image:url('p03.png'); /* ref de sprite */
+    background-image:url('p03.png');       /* sprite */
     background-size:300% 200%;
     background-repeat:no-repeat;
     border-radius:10px; border:1px solid rgba(255,255,255,.25);
-    cursor:grab; user-select:none; touch-action:none;
+    cursor:grab; user-select:none; -webkit-user-drag:none; touch-action:none;
   }
   .pz-piece:active{ cursor:grabbing; }
 
@@ -208,6 +207,7 @@
           <button class="chip" data-name="Aceite de linaza" data-color="#f3d27a">Aceite de linaza</button>
           <button class="chip" data-name="Betún de judea"   data-color="#2b1c12">Betún de judea</button>
           <button class="chip" data-name="Barniz copal"     data-color="#eecb8b">Barniz copal</button>
+          <!-- opcionales “pista luminiscente” -->
           <button class="chip" data-name="Sulfuro de zinc (ZnS)" data-color="#c9ffe6">Sulfuro de zinc (ZnS)</button>
           <button class="chip" data-name="Sales de cobre" data-color="#00ff99">Sales de cobre</button>
           <button class="chip" data-name="Sales de plata" data-color="#00ccff">Sales de plata</button>
@@ -382,7 +382,7 @@
 
   /* ===== PUZLE ===== */
   const IMG = 'p03.png';
-  const CELLS = 6;                 // 3 x 2
+  const CELLS = 6;                       // 3 x 2
   const SKEY_PZ = 'p03_puzzle_v1';
 
   const board = document.getElementById('pzBoard');
@@ -405,18 +405,26 @@
     emptyMsg.style.display = hasPieces ? 'none' : 'inline';
   }
 
-  // ---- FIX clave para móvil: forzar estilos por pieza ----
+  /* respaldo para móvil: guardamos el índice al empezar a arrastrar */
+  let draggingIdx = null;
+
   function mkPiece(idx){
     const el = document.createElement('div');
     el.className = 'pz-piece';
     el.draggable = true;
     el.dataset.idx = String(idx);
-    // Fuerza sprite y recorte por JS (algunos móviles ignoraban la regla de clase)
     el.style.backgroundImage = `url('${IMG}')`;
-    el.style.backgroundSize = '300% 200%';
-    el.style.backgroundRepeat = 'no-repeat';
     el.style.backgroundPosition = positions[idx];
-    el.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/piece', idx); });
+
+    el.addEventListener('dragstart', (e)=>{
+      draggingIdx = idx;
+      try{
+        e.dataTransfer.setData('text/plain', String(idx));
+        e.dataTransfer.effectAllowed = 'move';
+      }catch(_){}
+    });
+    el.addEventListener('dragend', ()=>{ draggingIdx = null; });
+
     return el;
   }
   function addToTray(idx){
@@ -443,13 +451,22 @@
     cell.addEventListener('dragleave', ()=> cell.classList.remove('dragover'));
     cell.addEventListener('drop', e=>{
       e.preventDefault(); cell.classList.remove('dragover');
-      const idx = Number(e.dataTransfer.getData('text/piece')); if (Number.isNaN(idx)) return;
+
+      /* lectura robusta del índice (móvil/escritorio) */
+      let data = '';
+      try{ data = e.dataTransfer.getData('text/plain'); }catch(_){}
+      const idx = Number(data || draggingIdx);
+      draggingIdx = null;
+      if (Number.isNaN(idx)) return;
+
       const cIndex = Number(cell.dataset.idx);
       if(state[cIndex] !== null){ addToTray(state[cIndex]); }
       const inTray = tray.querySelector(`.pz-piece[data-idx="${idx}"]`); if(inTray) inTray.remove();
       paintCell(cell, idx); state[cIndex] = idx;
       checkComplete(); renderEmptyMsg();
     });
+
+    /* click en celda: devuelve pieza a la bandeja */
     cell.addEventListener('click', ()=>{
       const cIndex = Number(cell.dataset.idx);
       if(state[cIndex] === null) return;
@@ -515,9 +532,6 @@
 </script>
 </body>
 </html>
-
-
-
 
 
 
