@@ -1,156 +1,108 @@
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Pista 4 — El mural de sospechosos</title>
+<title>Pista 4 — Mural de sospechosos</title>
 <style>
   :root{
-    --bg:#0b0b0b; --ink:#eee; --muted:#bdbdbd; --accent:#ffd166; --panel:rgba(255,255,255,.06);
-    --chip:#fff; --chipText:#000; --ok:#2ecc71;
+    --bg:#0b0b0b; --ink:#eee; --muted:#bdbdbd; --accent:#ffd166;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:#0a0a0a;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+  body{margin:0;background:#0a0a0a;color:var(--ink);
+       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 
   .wrap{max-width:1100px;margin:0 auto;padding:22px}
   h1{margin:.2rem 0}
   .muted{color:var(--muted)}
-  .btn{appearance:none;border:1px solid #fff;border-radius:999px;padding:10px 14px;font-weight:800;
-       background:#fff;color:#000;cursor:pointer}
+  .btn{appearance:none;border:1px solid #fff;border-radius:999px;padding:10px 14px;
+       font-weight:800;background:#fff;color:#000;cursor:pointer}
   .btn.ghost{background:transparent;color:#fff}
   .btn.primary{background:#59d685;border-color:#59d685;color:#000}
   .btn:active{transform:translateY(1px)}
-  .actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 6px}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
 
-  /* ====== Escena vídeo ====== */
-  .stage{min-height:100vh;display:grid;place-items:center;padding:22px}
-  .videoWrap{position:relative;width:min(100%,1100px);aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden}
-  video{width:100%;height:100%;object-fit:cover;display:block}
-  .overlay-actions{position:absolute;inset:auto 16px 16px auto;display:flex;gap:10px}
-  .hint{position:absolute;left:16px;bottom:16px;color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.35);
-        border-radius:10px;padding:8px 10px;font-weight:700;backdrop-filter:blur(3px)}
-  .hidden{display:none}
-
-  /* ====== Mural ====== */
-  .board{
-    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:16px;
-    box-shadow:0 20px 50px rgba(0,0,0,.35)
-  }
+  /* Mural */
+  .board{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);
+         border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
   .grid{display:grid;gap:18px;grid-template-columns:repeat(4,1fr)}
   @media (max-width:900px){ .grid{grid-template-columns:repeat(2,1fr)} }
   @media (max-width:520px){ .grid{grid-template-columns:1fr} }
 
   .card{position:relative;aspect-ratio:16/10;perspective:900px;border-radius:14px;overflow:hidden;
-        background:#0c0c0c;border:1px solid rgba(255,255,255,.18)}
+        background:#0c0c0c;border:1px solid rgba(255,255,255,.18);cursor:pointer}
   .card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .6s ease}
   .card.flipped .card-inner{transform:rotateY(180deg)}
   .face{position:absolute;inset:0;backface-visibility:hidden;display:grid;place-items:center;border-radius:14px;overflow:hidden}
   .front{background:#111;border:1px dashed rgba(255,255,255,.2)}
   .front::after{content:"Toca para revelar";font-weight:800;color:#bbb;opacity:.75;font-size:.9rem}
-  .back{transform:rotateY(180deg);background:#000;position:relative}
+  .back{transform:rotateY(180deg);background:#000}
   .sil{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:cover;
        filter:drop-shadow(0 8px 18px rgba(0,0,0,.55))}
 
   .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.35);
-        background:rgba(255,255,255,.08);font-weight:800}
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;
+        border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);font-weight:800}
   .chip .x{cursor:pointer;opacity:.75}
   .limit{font-weight:900;color:#000;background:var(--accent);border-radius:999px;padding:2px 8px;margin-right:6px}
 
-  .toast{position:fixed;inset:auto 16px 16px;max-width:640px;margin-left:auto;background:rgba(0,0,0,.8);
-    border:1px solid rgba(255,255,255,.35);border-radius:14px;padding:14px;color:#fff;backdrop-filter:blur(4px);
-    box-shadow:0 20px 60px rgba(0,0,0,.5);display:none}
+  .toast{position:fixed;inset:auto 16px 16px;max-width:640px;background:rgba(0,0,0,.85);
+         border:1px solid rgba(255,255,255,.35);border-radius:14px;padding:14px;color:#fff;
+         box-shadow:0 20px 60px rgba(0,0,0,.5);display:none;z-index:50}
   .toast.show{display:block}
-  .toast h3{margin:.2rem 0 .4rem 0}
-  .msg{margin:.25rem 0;padding:.5rem .7rem;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15)}
+  .toast h3{margin:.2rem 0 .6rem 0}
+  .msg{margin:.25rem 0;padding:.55rem .7rem;border-radius:10px;background:rgba(255,255,255,.06);
+       border:1px solid rgba(255,255,255,.15)}
   .note{color:#bbb;font-style:italic;margin-top:10px}
 </style>
 </head>
 <body>
 
-<!-- ====== ESCENA VÍDEO ====== -->
-<section class="stage" id="scene">
-  <div class="wrap" style="padding:0">
-    <div class="videoWrap">
-      <video id="vid" preload="auto" controls playsinline>
-        <source src="p04.mp4" type="video/mp4">
-        Tu navegador no puede reproducir este vídeo.
-      </video>
-      <div class="overlay-actions">
-        <button class="btn ghost" onclick="location.href='index.html'">⟵ Volver a pistas</button>
-        <button id="goMural" class="btn primary hidden">Ir al mural de sospechosos ⟶</button>
-      </div>
-      <div class="hint" id="hint">Mira el vídeo y luego entra al mural…</div>
-    </div>
+<div class="wrap">
+  <div class="actions">
+    <!-- Intento primero índice.html; si no, caemos a index.html -->
+    <button class="btn ghost" id="backPistas">⟵ Volver a pistas</button>
   </div>
-</section>
 
-<!-- ====== MURAL SOSPECHOSOS ====== -->
-<section id="mural" class="hidden">
-  <div class="wrap">
+  <h1>Mural de sospechosos</h1>
+  <p class="muted">Toca una foto para revelar una silueta. Elige <strong>máximo dos sospechosos</strong> y guárdalos. Después pulsa
+    «Interrogar» para leer la pista de cada uno.</p>
+
+  <div class="board">
+    <div class="grid" id="grid"></div>
+
     <div class="actions">
-      <button class="btn ghost" id="backVideo">⟵ Volver al vídeo</button>
-      <button class="btn ghost" onclick="location.href='index.html'">Volver a pistas</button>
+      <span class="limit" id="count">0/2</span>
+      <div class="chips" id="chips"></div>
     </div>
-    <h1>Mural de fotos</h1>
-    <p class="muted">Toca una foto para revelar una silueta. Elige <strong>máximo dos sospechosos</strong> y guárdalos. Luego pulsa
-      “Interrogar” para ver la pista correspondiente.</p>
 
-    <div class="board">
-      <div class="grid" id="grid"></div>
-
-      <div class="actions">
-        <span class="limit" id="count">0/2</span>
-        <div class="chips" id="chips"></div>
-      </div>
-
-      <div class="actions">
-        <button class="btn" id="save">Guardar sospechosos</button>
-        <button class="btn primary" id="ask">Interrogar</button>
-        <button class="btn ghost" id="clear">Limpiar</button>
-      </div>
-
-      <p class="note">Consejo: el orden de las fotos cambia al cargar, pero se recuerda en esta sesión.</p>
+    <div class="actions">
+      <button class="btn" id="save">Guardar sospechosos</button>
+      <button class="btn primary" id="ask">Interrogar</button>
+      <button class="btn ghost" id="clear">Limpiar</button>
     </div>
+
+    <p class="note">Las fotos se barajan al cargar, pero se recuerdan mientras sigas en esta sesión.</p>
   </div>
-</section>
+</div>
 
-<!-- Toast interrogatorio -->
 <div class="toast" id="toast">
   <h3>Interrogatorio</h3>
   <div id="toastBody"></div>
 </div>
 
 <script>
-/* ====== Navegación vídeo → mural ====== */
-const scene = document.getElementById('scene');
-const mural = document.getElementById('mural');
-const vid   = document.getElementById('vid');
-const goBtn = document.getElementById('goMural');
-const hint  = document.getElementById('hint');
-
-let unlockShown = false;
-function showGo(){ if(!unlockShown){ unlockShown = true; goBtn.classList.remove('hidden'); hint.textContent='Puedes ir al mural cuando quieras.'; } }
-vid.addEventListener('timeupdate', ()=>{ if(vid.currentTime>4) showGo(); });
-vid.addEventListener('ended', showGo);
-goBtn.addEventListener('click', ()=>{
-  scene.classList.add('hidden');
-  mural.classList.remove('hidden');
-});
-document.getElementById('backVideo').addEventListener('click', ()=>{
-  mural.classList.add('hidden');
-  scene.classList.remove('hidden');
+/* Volver a pistas: intenta índice.html, si no existe cae a index.html */
+document.getElementById('backPistas').addEventListener('click', () => {
+  // truco simple: navegamos a índice.html y, tras un tick, redirigimos a index.html por si el primero no existe
+  location.href='índice.html';
+  setTimeout(()=>{ try{ if(!document.hidden){ location.href='index.html'; } }catch(_){ location.href='index.html'; } }, 60);
 });
 
-/* ====== LÓGICA DEL MURAL ====== */
+/* ===== Mural ===== */
 (function(){
-  // Nombres de sospechosos
   const suspects = ['amelia','arturo','azquiel','daniel','lise','nora','ocana','tomas'];
-
-  // Mensajes por sospechoso
   const messages = {
     amelia: 'Ella te puede guiar.',
     arturo: 'Lo siento, sigue intentando averiguarlo.',
@@ -161,11 +113,7 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
     ocana:  'Él intuye lo mismo que tú.',
     tomas:  'El dolor perdura en su mente.'
   };
-
-  // Fallbacks de archivos (por si falta alguno)
-  const fileMap = { daniel: ['daniel.png','daniel1.png'] };
-
-  const SKEY = 'p04_suspects_v1';
+  const fileMap = { daniel: ['daniel.png','daniel1.png'] }; // fallback
 
   const grid = document.getElementById('grid');
   const chips= document.getElementById('chips');
@@ -175,6 +123,8 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
   const btnClear= document.getElementById('clear');
   const toast   = document.getElementById('toast');
   const toastBody= document.getElementById('toastBody');
+
+  const SKEY = 'p04_suspects_v2';
 
   let selected = [];
   const revealed = new Set();
@@ -189,7 +139,9 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
     const back =document.createElement('div'); back.className='face back';
     const sil  =document.createElement('div'); sil.className='sil';
 
-    back.appendChild(sil); inner.appendChild(front); inner.appendChild(back); card.appendChild(inner); grid.appendChild(card);
+    back.appendChild(sil);
+    inner.appendChild(front); inner.appendChild(back);
+    card.appendChild(inner); grid.appendChild(card);
 
     card.addEventListener('click', async ()=>{
       if(!revealed.has(card)){
@@ -207,13 +159,15 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
     for(const f of files){
       if(await probeImage(f)){ el.style.backgroundImage=`url('${f}')`; return; }
     }
+    // si no hay imagen, deja un fondo neutro (no rompe)
     el.style.background='linear-gradient(135deg,#111,#222)';
   }
   function probeImage(src){
     return new Promise(res=>{
       const img=new Image();
-      img.onload=()=>res(true); img.onerror=()=>res(false);
-      img.src=src+'?v='+Date.now();
+      img.onload=()=>res(true);
+      img.onerror=()=>res(false);
+      img.src=src + '?v=' + Date.now(); // evitar caché vieja
     });
   }
 
@@ -226,15 +180,14 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
       card.style.outline='3px solid var(--accent)'; card.style.outlineOffset='-3px';
     }
   }
-  function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-
+  function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
   function updateUI(){
     count.textContent=`${selected.length}/2`;
-    chips.innerHTML=selected.map(n=>`<span class="chip" data-chip="${n}">${capitalize(n)} <span class="x">✕</span></span>`).join('');
+    chips.innerHTML=selected.map(n=>`<span class="chip" data-chip="${n}">${cap(n)} <span class="x">✕</span></span>`).join('');
     chips.querySelectorAll('.chip .x').forEach(x=>{
       x.addEventListener('click', ()=>{
         const n=x.parentElement.parentElement.dataset.chip;
-        const card=grid.querySelector(\`.card[data-name="\${n}"]\`);
+        const card=grid.querySelector(`.card[data-name="${n}"]`);
         if(card) card.style.outline='';
         selected=selected.filter(s=>s!==n);
         updateUI();
@@ -245,14 +198,14 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
   btnSave.addEventListener('click', ()=>{
     if(!selected.length){ alert('Elige al menos un sospechoso.'); return; }
     localStorage.setItem(SKEY, JSON.stringify(selected));
-    btnSave.textContent='Guardado ✓'; setTimeout(()=>btnSave.textContent='Guardar sospechosos', 900);
+    btnSave.textContent = 'Guardado ✓'; setTimeout(()=>btnSave.textContent='Guardar sospechosos', 900);
   });
 
   btnAsk.addEventListener('click', ()=>{
     if(!selected.length){ alert('Elige al menos un sospechoso.'); return; }
     toastBody.innerHTML=selected.map(n=>{
       const msg=messages[n]||'Sin datos por ahora.';
-      return \`<div class="msg"><strong>\${capitalize(n)}:</strong> \${msg}</div>\`;
+      return `<div class="msg"><strong>${cap(n)}:</strong> ${msg}</div>`;
     }).join('');
     toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 6000);
   });
@@ -261,13 +214,13 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
     selected=[]; grid.querySelectorAll('.card').forEach(c=>c.style.outline=''); updateUI();
   });
 
-  // Restaurar guardados
+  // Restaurar selección guardada (opcional)
   (function restore(){
     try{
       const saved=JSON.parse(localStorage.getItem(SKEY)||'null');
       if(!Array.isArray(saved)) return;
       saved.forEach(n=>{
-        const card=grid.querySelector(\`.card[data-name="\${n}"]\`);
+        const card=grid.querySelector(`.card[data-name="${n}"]`);
         if(card){
           const sil=card.querySelector('.sil');
           setSilhouetteImage(sil,n).then(()=>{
@@ -282,3 +235,6 @@ document.getElementById('backVideo').addEventListener('click', ()=>{
 </script>
 </body>
 </html>
+
+
+
