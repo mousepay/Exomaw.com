@@ -3,439 +3,662 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pista 5 — El enigma de las agujas</title>
+<title>Pista 5 — Enigma de las agujas + Tablero de damas (demo)</title>
 <style>
   :root{
-    --fg:#f2f2f2;
-    --fg-dim:#cfd3d7;
-    --bg:#0c0c0f;
-    --panel:#15171c;
-    --panel-2:#111217;
-    --brand:#89f6ff;
-    --ok:#63ffb2;
-    --err:#ff6b6b;
-    --accent:#8ddcff;
-    --slot-glow: rgba(137, 246, 255, .55);
+    --bg-overlay: rgba(0,0,0,.65);
+    --card: rgba(20,20,20,.75);
+    --text: #e8f1ed;
+    --muted: #b9c7bf;
+    --accent: #59c1ff;
+    --ok: #69e781;
+    --bad: #ff7a7a;
+    --warning: #ffda6b;
+    --green-dark: #0e3a28;
+    --green-light: #dff5e8;
   }
-  *{ box-sizing: border-box; }
-  html,body{ height:100%; background:#000; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Ubuntu, Cantarell, Arial, "Noto Sans"; color:var(--fg); }
+  /* ====== LAYOUT Y FONDO ====== */
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    color:var(--text);
+    background: var(--bg-overlay);
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background: url("fondo.png") center/cover no-repeat #111;
+    z-index:-2;
+    filter: saturate(1.05);
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    background: radial-gradient(60% 60% at 50% 10%, rgba(0,0,0,.25), rgba(0,0,0,.75));
+    z-index:-1;
+  }
   .wrap{
-    min-height:100dvh;
-    background:#000 url('./fondo.png') center top / cover no-repeat fixed;
+    max-width: 1100px;
+    margin: 24px auto 80px;
+    padding: 0 16px;
   }
-  .overlay{
-    background: linear-gradient( to bottom, rgba(18,20,25,.50), rgba(18,20,25,.62) 18%, rgba(18,20,25,.7) 28%, rgba(18,20,25,.88) 100%);
-    backdrop-filter: saturate(120%) blur(1px);
+  .header{
+    display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    margin-bottom: 16px;
   }
-  .container{ max-width: 1200px; margin: 0 auto; padding: 24px; }
-
-  h1{ margin:0 0 14px 0; font-size: clamp(26px, 2.6vw, 36px); line-height:1.2; }
-  .lead{ color:var(--fg-dim); font-size: clamp(16px, 1.7vw, 18px); }
-  .toolbar{ display:flex; gap:12px; flex-wrap:wrap; margin: 18px 0 6px; }
-
+  h1{ margin:0; font-size: clamp(26px, 3.8vw, 42px); letter-spacing:.2px;}
+  .pill{
+    background: rgba(255,255,255,.08);
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: var(--muted);
+    border: 1px solid rgba(255,255,255,.1);
+  }
   .btn{
-    appearance:none; border:0; cursor:pointer; user-select:none;
-    padding: 12px 18px; border-radius: 14px;
-    background:#1b1f27; color:var(--fg); font-weight:700; letter-spacing:.2px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.05) inset, 0 10px 30px rgba(0,0,0,.25);
-    transition: transform .1s ease, background .2s ease, box-shadow .2s ease;
+    appearance:none; border:0; cursor:pointer;
+    background: #39a1ff; color:#071521; font-weight:600;
+    padding:10px 14px; border-radius:12px;
+    transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
+    box-shadow: 0 6px 24px rgba(57,161,255,.25);
   }
-  .btn:hover{ transform: translateY(-1px); background:#202634; }
-  .btn:active{ transform: translateY(0); }
-  .btn--ghost{ background:transparent; box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset; }
-  .btn--brand{ background: linear-gradient(90deg, #4cc9f0, #4895ef); }
-  .btn--brand:hover{ background: linear-gradient(90deg, #56e0ff, #5aa4ff); }
+  .btn.secondary{ background:#283341; color:#d9e6f5; box-shadow:none; }
+  .btn:active{ transform: translateY(1px); }
 
-  .grid{ display:grid; gap:18px; grid-template-columns: 1.25fr 1fr; margin: 22px 0 40px; }
-  .panel{ background: rgba(20,22,27,.72); border-radius: 18px; padding: 18px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 40px rgba(0,0,0,.35); }
-  .panel h2{ margin:0 0 10px; font-size: clamp(18px,1.9vw,21px); color:var(--fg); }
+  .card{
+    background: var(--card);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    padding:18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    margin-top:14px;
+  }
+  .row{ display:grid; gap:18px; grid-template-columns:1fr; }
+  @media(min-width: 920px){ .row{ grid-template-columns: 1.2fr .8fr; } }
 
-  /* ZONA RANURAS (izquierda) */
-  .slots{ display:grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
-  .slot{
-    position:relative; border-radius: 16px; padding: 10px; aspect-ratio: 1 / 1.35;
-    background:
-      radial-gradient(100px 40px at 50% 15%, rgba(255,255,255,.10), transparent 50%),
-      rgba(18,22,27,.58); /* más clara */
-    box-shadow: 0 0 0 1px rgba(255,255,255,.07) inset, 0 10px 30px rgba(0,0,0,.35);
-    overflow:hidden;
+  /* ====== ENIGMA DE LAS AGUJAS ====== */
+  .areas{
+    display:grid; gap:18px;
+    grid-template-columns: 1fr 1fr;
   }
-  .slot::after{ content:''; position:absolute; inset:-1px; border-radius:16px;
-    box-shadow: 0 0 0 2px rgba(255,255,255,.06) inset, 0 0 0 8px rgba(255,255,255,.02) inset; pointer-events:none; }
-  .slot.is-target{ outline: 2px solid var(--slot-glow); box-shadow: 0 0 0 6px rgba(137,246,255,.10) inset; }
-  .slot.locked{ background: rgba(20,90,60,.18); }
-  .ghost{
-    width: 100%; height: 100%;
-    background-position: center; background-repeat: no-repeat; background-size: contain;
-    filter: grayscale(100%) brightness(1.05) contrast(110%) opacity(.42); /* más visible */
-    mix-blend-mode: screen;
+  @media(max-width: 800px){ .areas{ grid-template-columns: 1fr; } }
+
+  .panel-title{ font-size:22px; margin:4px 0 14px; }
+  .slots, .library{
+    background: rgba(255,255,255,.03);
+    border:1px dashed rgba(255,255,255,.12);
+    border-radius:16px; padding:16px;
+    min-height: 260px;
+    display:grid; grid-template-columns: repeat(3,minmax(90px,1fr));
+    gap:14px;
   }
-  .placed{
-    position:absolute; inset:10px; background-position:center; background-repeat:no-repeat; background-size:contain;
-    filter: drop-shadow(0 12px 12px rgba(0,0,0,.45)); pointer-events:none;
+  .slot, .needle{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:14px; overflow:hidden;
+    background: rgba(255,255,255,.02);
+    border:1px solid rgba(255,255,255,.08);
+    min-height: 120px;
+  }
+  /* SOMBRA (silhueta) MUCHO MÁS CLARA */
+  .slot::before{
+    content:"";
+    position:absolute; inset:10px;
+    background: radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.15), rgba(0,0,0,.10) 45%, rgba(0,0,0,0) 70%);
+    filter: blur(2px);
+    opacity:.55;    /* <<<<< sombra clara (antes no se veía) */
+    pointer-events:none;
+  }
+  .slot.is-target{
+    outline: 2px solid var(--accent);
+    box-shadow: 0 0 0 6px rgba(57,161,255,.15) inset;
+  }
+  .slot.correct{
+    outline: 2px solid var(--ok);
+    box-shadow: 0 0 0 6px rgba(105,231,129,.18) inset;
+  }
+  .slot.fail{
+    outline: 2px solid var(--bad);
+    box-shadow: 0 0 0 6px rgba(255,122,122,.18) inset;
+  }
+  .needle{
+    background: rgba(255,255,255,.04);
+    cursor:grab;
+    transition: transform .08s ease;
+  }
+  .needle:active{ cursor:grabbing; transform: scale(.98); }
+  .needle img{
+    max-width: 70px; max-height: 90px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.5));
+  }
+  .hint{ color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+
+  .flash{
+    position: fixed; inset:0; pointer-events:none;
+    background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.85), rgba(255,255,255,0) 55%);
+    opacity:0; transition: opacity .35s ease;
+  }
+  .flash.on{ opacity:1; animation: fadeFlash .9s ease forwards; }
+  @keyframes fadeFlash{ 0%{opacity:1} 60%{opacity:.4} 100%{opacity:0} }
+
+  .final-msg{
+    display:none;
+    margin-top:12px; padding:14px;
+    background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
   }
 
-  /* ZONA PIEZAS (derecha) */
-  .library{ display:grid; gap:12px; grid-template-columns: repeat(2, 1fr); }
+  /* ====== TABLERO DE DAMAS (DEMO) ====== */
+  .board-wrap{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+  @media(max-width: 980px){ .board-wrap{ grid-template-columns: 1fr; } }
+
+  .board{
+    width:100%; aspect-ratio: 1/1; max-width: 640px;
+    margin:auto; border-radius:18px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  }
+  .grid{
+    display:grid; grid-template-columns: repeat(8,1fr);
+    width:100%; height:100%;
+  }
+  .sq{
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px;
+    user-select:none;
+  }
+  .sq.dark{ background:#0c3a28; }
+  .sq.light{ background:#e2f6ea; }
   .piece{
-    border-radius: 14px; background: rgba(14,16,20,.78);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
-    padding: 12px; aspect-ratio: 1 / 1.35; cursor: pointer; position:relative;
-    transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+    width:min(68px, 9.6vmin); height:min(68px, 9.6vmin);
+    border-radius:50%;
+    display:grid; place-items:center;
+    font-weight:700; text-align:center;
+    cursor:pointer; user-select:none;
+    border: 3px solid rgba(0,0,0,.35);
+    box-shadow: 0 10px 24px rgba(0,0,0,.35);
   }
-  .piece:hover{ transform: translateY(-1px); background: rgba(18,21,27,.9); }
-  .piece.is-selected{ outline: 2px solid var(--accent); box-shadow: 0 0 0 8px rgba(137,246,255,.10) inset; }
-  .piece .img{ position:absolute; inset:12px; background-position: center; background-repeat: no-repeat; background-size: contain; }
+  .piece.player{
+    background: #1e7f58; color:#cfeee1;  /* VERDE */
+  }
+  .piece.ai{
+    background: #b84239; color:#ffe9e7;  /* ROJO */
+  }
+  .piece .label{
+    font-size: clamp(10px, 1.6vw, 14px);
+    line-height:1.1;
+    opacity:.95;
+    text-shadow: 0 1px 0 rgba(0,0,0,.4);
+  }
+  .sq.target{ outline: 3px solid var(--warning); box-shadow: inset 0 0 0 6px rgba(255,218,107,.25); }
+  .status{
+    font-size:15px; color:var(--muted);
+    background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;
+    padding:12px; margin-top:10px;
+  }
+  .banner{
+    position:fixed; left:50%; bottom:24px; transform: translateX(-50%);
+    background: rgba(20,20,20,.9);
+    border:1px solid rgba(255,255,255,.12);
+    color:var(--text);
+    padding:12px 16px; border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+    display:none;
+  }
+  .banner.show{ display:block; }
 
-  /* MENSAJES */
-  .messages{ margin: -6px 0 30px; padding: 14px 16px; border-radius: 12px; background: rgba(8,10,12,.6);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; min-height: 52px; display:flex; align-items:center;
-    color: var(--fg); font-size: clamp(14px, 1.6vw, 16px); }
-  .msg-ok{ color: var(--ok); }
-  .msg-err{ color: var(--err); }
-  .msg-info{ color: var(--fg-dim); }
-
-  /* DESTELLO */
-  .flash{ position: fixed; inset: 0; pointer-events: none;
-    background: radial-gradient(600px 300px at 50% 40%, rgba(140,220,255,.85), transparent 70%);
-    opacity: 0; transition: opacity .4s ease; }
-  .flash.show{ opacity: 1; animation: fadeFlash .9s ease forwards; }
-  @keyframes fadeFlash{ 0%{opacity:0} 20%{opacity:1} 100%{opacity:0} }
-
-  @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } .library{ grid-template-columns: repeat(3, 1fr); } .slots{ grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 560px){ .library{ grid-template-columns: repeat(2, 1fr); } .slots{ grid-template-columns: repeat(2, 1fr); } }
+  .overlay{
+    position:fixed; inset:0; display:none; place-items:center;
+    background: rgba(0,0,0,.7);
+    z-index:50;
+  }
+  .overlay .modal{
+    width:min(600px, 92vw);
+    background: #0f1a16;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:16px; padding:16px 18px 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  }
+  .overlay.show{ display:grid; }
 </style>
 </head>
 <body>
-<div class="wrap overlay">
-  <div class="container">
-    <header>
-      <h1>PISTA 5 — El enigma de las agujas</h1>
-      <p class="lead">
-        Arrastra o toca una <strong>aguja</strong> de la biblioteca y colócala en su <strong>ranura</strong> (verás su silueta). Tienes
-        <strong>3 intentos por ranura</strong>. Si fallas demasiadas veces en cualquiera, el juego se reinicia. Cuando coloques la
-        <em>aguja de luz</em> verás un destello y aparecerá la pista final.
-      </p>
-      <div class="toolbar">
-        <button class="btn btn--ghost" id="btnBack">← Volver a las pistas</button>
-        <button class="btn btn--brand" id="btnDamas">Jugar al tablero de damas</button>
-      </div>
-    </header>
-
-    <div id="messages" class="messages msg-info">Empieza cuando quieras. Selecciona una aguja y toca la ranura donde crees que encaja.</div>
-
-    <section class="grid">
-      <div class="panel">
-        <h2>Ranuras (sombras)</h2>
-        <div id="slots" class="slots"></div>
-      </div>
-
-      <div class="panel">
-        <h2>Biblioteca de agujas</h2>
-        <div id="library" class="library"></div>
-      </div>
-    </section>
-  </div>
-</div>
-
-<div id="flash" class="flash" aria-hidden="true"></div>
-
-<script>
-(() => {
-  /* ========= CONFIG ========= */
-  const NEEDLES = [
-    "aguja01.png","aguja02.png","aguja03.png","aguja04.png","aguja05.png","aguja06.png",
-    "aguja07.png","aguja08.png","aguja09.png","aguja10.png","aguja11.png","aguja_luz.png" // especial
-  ];
-  const SPECIAL_NAME = "aguja_luz.png";  // hará destello + mensaje
-  const MAX_TRIES_PER_SLOT = 3;
-
-  /* ========= STATE ========= */
-  let selectedPiece = null;
-  let solvedCount = 0;
-  let triesBySlot = {};
-  let isLocked = false;
-
-  /* ========= DOM ========= */
-  const $library = document.getElementById('library');
-  const $slots   = document.getElementById('slots');
-  const $msg     = document.getElementById('messages');
-  const $flash   = document.getElementById('flash');
-
-  /* ========= HELPERS ========= */
-  const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]);
-  const say = (txt, cls='msg-info') => { $msg.className = 'messages ' + cls; $msg.textContent = txt; }
-
-  const ENCOURAGE = [
-    "Sigue probando, la forma es la clave.",
-    "Pista: fíjate en la punta y la base.",
-    "Cerca… compara el contorno del marco.",
-    "¡Ánimo! Cada error te acerca a la solución.",
-    "Recuerda: algunas son muy finas y otras más barrocas."
-  ];
-  const finalHint = "“Soy Nora y estoy segura de que la pista es la misma que la mía”.";
-  const failAll   = "Demasiados fallos en una ranura. El enigma se reinicia desde el principio.";
-
-  /* ========= BUILD SLOTS ========= */
-  const buildSlots = () => {
-    $slots.innerHTML = '';
-    triesBySlot = {};
-    solvedCount = 0;
-    const order = NEEDLES.slice(); // cada sombra “pide” su aguja
-    order.forEach((file, idx) => {
-      const slot = document.createElement('div');
-      slot.className = 'slot';
-      slot.dataset.answer = file;
-      slot.dataset.slotId = 's'+idx;
-      triesBySlot[slot.dataset.slotId] = 0;
-
-      const ghost = document.createElement('div');
-      ghost.className = 'ghost';
-      ghost.style.backgroundImage = `url('./${file}')`;
-      slot.appendChild(ghost);
-
-      slot.addEventListener('click', () => tryPlace(slot));
-
-      $slots.appendChild(slot);
-    });
-  };
-
-  /* ========= BUILD LIBRARY ========= */
-  const buildLibrary = () => {
-    $library.innerHTML = '';
-    const mix = shuffle(NEEDLES.slice());
-    mix.forEach(file => {
-      const box = document.createElement('div');
-      box.className = 'piece';
-      box.setAttribute('tabindex', '0');
-      box.dataset.file = file;
-
-      const img = document.createElement('div');
-      img.className = 'img';
-      img.style.backgroundImage = `url('./${file}')`;
-      box.appendChild(img);
-
-      const select = () => {
-        if (isLocked) return;
-        [...$library.querySelectorAll('.piece')].forEach(p=>p.classList.remove('is-selected'));
-        if (selectedPiece === file) {
-          selectedPiece = null;
-          say("Sin selección. Toca una aguja y después una ranura.");
-        } else {
-          selectedPiece = file;
-          box.classList.add('is-selected');
-          say("Aguja seleccionada. Ahora toca la ranura correcta.");
-        }
-      };
-      box.addEventListener('click', select);
-      box.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') select(); });
-
-      $library.appendChild(box);
-    });
-  };
-
-  /* ========= PLACE LOGIC ========= */
-  const tryPlace = (slot) => {
-    if (isLocked) return;
-    if (slot.classList.contains('locked')) return;
-    if (!selectedPiece) { say("Primero selecciona una aguja de la biblioteca.", 'msg-info'); return; }
-
-    const answer = slot.dataset.answer;
-    const slotId = slot.dataset.slotId;
-
-    if (selectedPiece === answer) {
-      placeInSlot(slot, selectedPiece);
-    } else {
-      triesBySlot[slotId] += 1;
-      const left = MAX_TRIES_PER_SLOT - triesBySlot[slotId];
-      if (left <= 0) {
-        say(failAll, 'msg-err');
-        resetPuzzle();
-      } else {
-        const msg = ENCOURAGE[Math.floor(Math.random()*ENCOURAGE.length)];
-        say(`${msg} (${left} intento${left===1?'':'s'} restantes en esta ranura)`, 'msg-err');
-        slot.classList.add('is-target');
-        setTimeout(()=> slot.classList.remove('is-target'), 350);
-      }
-    }
-  };
-
-  const placeInSlot = (slot, file) => {
-    isLocked = true;
-
-    const done = document.createElement('div');
-    done.className = 'placed';
-    done.style.backgroundImage = `url('./${file}')`;
-    slot.appendChild(done);
-    slot.classList.add('locked');
-
-    const node = $library.querySelector(`.piece[data-file="${file}"]`);
-    if (node) node.remove();
-    selectedPiece = null;
-
-    if (file === SPECIAL_NAME) {
-      flash();
-      setTimeout(()=> say(finalHint, 'msg-ok'), 260);
-    } else {
-      say("¡Bien! Sigue encajando las agujas.", 'msg-ok');
-    }
-
-    solvedCount += 1;
-    isLocked = false;
-
-    if (solvedCount === NEEDLES.length) {
-      setTimeout(()=> say("¡Puzzle completado! La aguja especial ya te dio la pista final.", 'msg-ok'), 80);
-    }
-  };
-
-  const resetPuzzle = () => {
-    isLocked = true;
-    setTimeout(()=>{
-      isLocked = false;
-      buildSlots();
-      buildLibrary();
-      say("Juego reiniciado. Vuelve a intentarlo con calma.", 'msg-info');
-    }, 650);
-  };
-
-  const flash = () => {
-    const $f = document.getElementById('flash');
-    $f.classList.add('show');
-    setTimeout(()=> $f.classList.remove('show'), 900);
-  };
-
-  /* ========= DAMAS en ventana nueva (ESCAPADO <\/script>) ========= */
-  const openDamas = () => {
-    const html = `
-<!DOCTYPE html>
-<html lang="es">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tablero de damas</title>
-<style>
-  body{margin:0;background:#0b1015;color:#e8eef4;font-family:system-ui,Segoe UI,Roboto,Arial}
-  .wrap{max-width:1100px;margin:0 auto;padding:24px}
-  .toolbar{display:flex;gap:12px;margin-bottom:16px}
-  .btn{border:0;border-radius:12px;padding:10px 16px;background:#1a2230;color:#e8eef4;cursor:pointer}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  .panel{background:#121821;border-radius:16px;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset;padding:18px}
-  h1{margin:0 0 10px}
-  .board{--s:72px;display:grid;grid-template-columns:repeat(8,var(--s));grid-auto-rows:var(--s);box-shadow:0 10px 30px rgba(0,0,0,.35);border-radius:10px;overflow:hidden}
-  .sq{display:flex;align-items:center;justify-content:center;font-weight:700}
-  .dark{background:#134a2f} .light{background:#d2edd7;color:#0b1015}
-  .piece{width:64%;height:64%;border-radius:50%;box-shadow:0 8px 14px rgba(0,0,0,.35) inset}
-  .P{background:#28324a} .M{background:#b44a3f}
-  .msg{margin-top:12px;padding:10px 12px;border-radius:10px;background:#0d131a}
-  @media (max-width:680px){ .board{--s:38px} .grid{grid-template-columns:1fr} }
-</style>
 <div class="wrap">
-  <div class="toolbar">
-    <button class="btn" onclick="window.close()">← Cerrar</button>
+  <div class="header">
+    <h1>PISTA 5 — El enigma de las agujas</h1>
+    <span class="pill">Arrastra una aguja a su ranura. 3 intentos por ranura.</span>
+    <button id="openCheckers" class="btn">Jugar al tablero de damas</button>
   </div>
-  <div class="grid">
-    <div class="panel">
-      <h1>Tablero de damas</h1>
-      <div id="board" class="board"></div>
-      <div id="msg" class="msg">Las pistas pueden estar en todos ellos, pero solo uno sabe la verdad.</div>
+
+  <div class="card">
+    <p>Empieza cuando quieras. Selecciona una aguja y luego una ranura. Cuando coloques la <em>aguja de luz</em> verás un destello y aparecerá la pista final.</p>
+
+    <div class="areas">
+      <section>
+        <div class="panel-title">Ranuras (sombras)</div>
+        <div id="slots" class="slots" aria-label="ranuras">
+          <!-- Slots se crean por JS -->
+        </div>
+        <p class="hint">Sombra clara para que las veas bien 😉</p>
+      </section>
+
+      <section>
+        <div class="panel-title">Biblioteca de agujas</div>
+        <div id="library" class="library" aria-label="biblioteca">
+          <!-- Agujas se crean por JS -->
+        </div>
+        <p class="hint">Consejo: hay una “aguja de luz”. Si aciertas su ranura, aparece el destello.</p>
+      </section>
     </div>
-    <div class="panel">
-      <h2>Instrucciones (demo)</h2>
-      <p>Este es un tablero ilustrativo. La “máquina” hace dos jugadas y te deja ganar en la tercera, para que el lector termine en alto.</p>
-      <ol>
-        <li>Haz clic en una ficha azul (jugador) y luego en una casilla clara adyacente.</li>
-        <li>La máquina (rojas) moverá automáticamente tras tu jugada.</li>
-        <li>En la tercera ronda, te deja ganar y muestra el texto final.</li>
-      </ol>
+
+    <div id="finalClue" class="final-msg"></div>
+  </div>
+
+  <!-- ====== TABLERO DE DAMAS (overlay) ====== -->
+  <div id="checkersOverlay" class="overlay" role="dialog" aria-modal="true" aria-label="Tablero de damas">
+    <div class="modal">
+      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap">
+        <h2 style="margin:0">Tablero de damas</h2>
+        <button id="closeCheckers" class="btn secondary">Cerrar</button>
+      </div>
+
+      <div class="board-wrap" style="margin-top:10px">
+        <div>
+          <div id="board" class="board">
+            <div id="grid" class="grid"></div>
+          </div>
+          <div id="status" class="status">Haz clic en una ficha <strong>verde</strong> (jugador) y luego en una casilla clara adyacente. La máquina moverá automáticamente. En las dos primeras partidas gana la máquina; en la tercera te dejará ganar y verás el mensaje de Nora.</div>
+        </div>
+        <div class="card" style="margin:0">
+          <h3 style="margin:6px 0 8px">Instrucciones (demo)</h3>
+          <ol style="margin:0 0 8px 18px">
+            <li>Selecciona una ficha verde con nombre (Tomás, Nora, Arturo, Daniel…)</li>
+            <li>Mueve a una casilla clara adyacente.</li>
+            <li>La máquina (rojas) responderá.</li>
+            <li>Partida 1 y 2: gana la máquina.</li>
+            <li>Partida 3: ¡te deja ganar! Aparece el mensaje final de Nora.</li>
+          </ol>
+          <button id="resetDemo" class="btn">Reiniciar demo</button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div id="toast" class="banner"></div>
 </div>
+
+<div class="flash" id="flash"></div>
+
 <script>
-(() => {
-  const $b = document.getElementById('board');
-  const $m = document.getElementById('msg');
+/* =========================
+   UTILIDADES
+========================= */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-  const squares=[];
-  for(let r=0;r<8;r++){
-    for(let c=0;c<8;c++){
-      const s=document.createElement('div');
-      s.className='sq '+(((r+c)%2)?'light':'dark');
-      s.dataset.r=r; s.dataset.c=c;
-      $b.appendChild(s);
-      squares.push(s);
-    }
-  }
+function toast(msg, ms=1600){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(()=> el.classList.remove("show"), ms);
+}
 
-  const P = []; const M=[];
-  const get=(r,c)=>squares[r*8+c];
-  const place=(r,c,cls)=>{ const p=document.createElement('div'); p.className='piece '+cls; get(r,c).appendChild(p); return p; };
+/* =========================
+   ENIGMA DE LAS AGUJAS
+========================= */
+(function needlesGame(){
+  // Configura aquí los nombres/ids y cuál es la "aguja de luz"
+  const NEEDLES = [
+    { id:"aguja01", img:"aguja01.png", name:"Aguja fina" },
+    { id:"aguja02", img:"aguja02.png", name:"Aguja curva" },
+    { id:"aguja03", img:"aguja03.png", name:"Aguja de luz" } // << especial
+  ];
+  const LIGHT_ID = "aguja03";
 
-  [[5,1],[5,3],[5,5],[6,0],[6,2],[6,4]].forEach(([r,c])=>P.push(place(r,c,'P')));
-  [[1,2],[1,4],[1,6],[2,1],[2,3],[2,5]].forEach(([r,c])=>M.push(place(r,c,'M')));
+  const slotsEl = $("#slots");
+  const libEl = $("#library");
+  const finalBox = $("#finalClue");
+  const flash = $("#flash");
 
-  let selected=null, moves=0, locked=false;
-
-  $b.addEventListener('click',(e)=>{
-    if(locked) return;
-    const cell = e.target.closest('.sq');
-    if(!cell) return;
-    const hasP = cell.querySelector('.P');
-
-    if(hasP){ selected = cell; $m.textContent="Has seleccionado una ficha azul. Toca una casilla clara adyacente para mover."; return; }
-    if(selected){
-      if(!cell.classList.contains('light') || cell.childElementCount) { $m.textContent="Movimiento no válido."; selected=null; return; }
-      const r0 = +selected.dataset.r, c0=+selected.dataset.c;
-      const r1 = +cell.dataset.r,     c1=+cell.dataset.c;
-      if(Math.abs(r1-r0)===1 && Math.abs(c1-c0)===1){
-        cell.appendChild(selected.querySelector('.P'));
-        selected=null; moves++;
-        setTimeout(()=>aiMove(),420);
-      }else{ $m.textContent="Solo un paso en diagonal."; selected=null; }
-    }
+  // Crear 3 ranuras
+  const slotState = {};
+  NEEDLES.forEach(n=>{
+    const s = document.createElement("div");
+    s.className = "slot";
+    s.dataset.accept = n.id;           // ranura correcta
+    s.dataset.tries = "0";
+    s.setAttribute("aria-label", "ranura para " + n.name);
+    s.addEventListener("dragover", e=>{ e.preventDefault(); s.classList.add("is-target"); });
+    s.addEventListener("dragleave", ()=> s.classList.remove("is-target"));
+    s.addEventListener("drop", e=>{
+      e.preventDefault();
+      s.classList.remove("is-target");
+      const draggedId = e.dataTransfer.getData("text/needle");
+      handleDrop(s, draggedId);
+    });
+    slotsEl.appendChild(s);
+    slotState[n.id] = { placed:false, tries:0 };
   });
 
-  function aiMove(){
-    if(moves<2){
-      for(const m of M){
-        const cell = m.parentElement, r=+cell.dataset.r, c=+cell.dataset.c;
-        const d = [[1,-1],[1,1]];
-        for(const [dr,dc] of d){
-          const rr=r+dr, cc=c+dc;
-          if(rr<0||rr>7||cc<0||cc>7) continue;
-          const dst = get(rr,cc);
-          if(dst.classList.contains('light') && !dst.childElementCount){
-            dst.appendChild(m); $m.textContent="La máquina piensa…"; return;
-          }
-        }
+  // Crear biblioteca
+  NEEDLES.forEach(n=>{
+    const d = document.createElement("div");
+    d.className = "needle";
+    d.draggable = true;
+    d.dataset.id = n.id;
+    d.title = n.name;
+    d.addEventListener("dragstart", e=>{
+      e.dataTransfer.setData("text/needle", n.id);
+    });
+    // Imagen (si no existe, igual se verá vacío pero se podrá arrastrar)
+    const img = document.createElement("img");
+    img.src = n.img;
+    img.alt = n.name;
+    d.appendChild(img);
+    libEl.appendChild(d);
+  });
+
+  function handleDrop(slot, draggedId){
+    const accept = slot.dataset.accept;
+    const st = slotState[accept];
+    if(st.placed) { toast("Esa ranura ya está resuelta"); return; }
+
+    st.tries++;
+    slot.dataset.tries = String(st.tries);
+
+    if(draggedId === accept){
+      st.placed = true;
+      slot.classList.remove("fail");
+      slot.classList.add("correct");
+      toast("¡Correcto!");
+      if(draggedId === LIGHT_ID){
+        flash.classList.add("on");
+        setTimeout(()=> flash.classList.remove("on"), 900);
+        showFinalClue();
       }
-      $m.textContent="Las pistas pueden estar en todos ellos, pero solo uno sabe la verdad.";
-    }else{
-      if(M[0] && M[0].parentElement) M[0].parentElement.removeChild(M[0]);
-      $m.textContent="Al final has descubierto quién es el asesino. Ahora te espero en el próximo caso…";
+      // mover la aguja visualmente dentro
+      const img = document.createElement("img");
+      img.src = NEEDLES.find(n=>n.id===draggedId)?.img || "";
+      img.style.maxWidth = "70px";
+      img.style.maxHeight = "90px";
+      slot.innerHTML = "";
+      slot.appendChild(img);
+    } else {
+      slot.classList.add("fail");
+      setTimeout(()=> slot.classList.remove("fail"), 700);
+      toast("No encaja. Intento " + st.tries + " de 3");
+      if(st.tries >= 3){
+        toast("Demasiados intentos en esta ranura. El juego se reinicia.", 2000);
+        setTimeout(resetNeedles, 900);
+      }
     }
   }
-})();
-<\/script>
-</html>`;
-    const blob = new Blob([html], {type:'text/html'});
-    const url  = URL.createObjectURL(blob);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
 
-  /* ========= INIT ========= */
-  const init = () => {
-    buildSlots();
-    buildLibrary();
-    say("Empieza cuando quieras. Selecciona una aguja y luego una ranura.", 'msg-info');
-
-    document.getElementById('btnBack').addEventListener('click', () => {
-      // Ajusta este destino a tu “pistas”
-      location.href = 'index.html';
+  function resetNeedles(){
+    slotsEl.innerHTML = "";
+    libEl.innerHTML = "";
+    finalBox.style.display = "none";
+    finalBox.innerHTML = "";
+    flash.classList.remove("on");
+    NEEDLES.forEach(n=> slotState[n.id] = { placed:false, tries:0 });
+    // reconstruir
+    NEEDLES.forEach(n=>{
+      const s = document.createElement("div");
+      s.className = "slot";
+      s.dataset.accept = n.id;
+      s.dataset.tries = "0";
+      s.addEventListener("dragover", e=>{ e.preventDefault(); s.classList.add("is-target"); });
+      s.addEventListener("dragleave", ()=> s.classList.remove("is-target"));
+      s.addEventListener("drop", e=>{
+        e.preventDefault();
+        s.classList.remove("is-target");
+        const draggedId = e.dataTransfer.getData("text/needle");
+        handleDrop(s, draggedId);
+      });
+      slotsEl.appendChild(s);
     });
-    document.getElementById('btnDamas').addEventListener('click', openDamas);
-  };
+    NEEDLES.forEach(n=>{
+      const d = document.createElement("div");
+      d.className = "needle";
+      d.draggable = true;
+      d.dataset.id = n.id;
+      d.title = n.name;
+      d.addEventListener("dragstart", e=>{
+        e.dataTransfer.setData("text/needle", n.id);
+      });
+      const img = document.createElement("img");
+      img.src = n.img;
+      img.alt = n.name;
+      d.appendChild(img);
+      libEl.appendChild(d);
+    });
+  }
 
-  init();
+  function showFinalClue(){
+    finalBox.style.display = "block";
+    finalBox.innerHTML = `
+      <strong>¡Pista final desbloqueada!</strong><br>
+      “El brillo no viene del metal, sino de quien lo empuña. —Nora”
+    `;
+  }
 })();
+
+/* =========================
+   TABLERO DE DAMAS — DEMO
+   (reglas mínimas para el efecto que pides)
+========================= */
+(function checkersDemo(){
+  const overlay = $("#checkersOverlay");
+  const openBtn = $("#openCheckers");
+  const closeBtn = $("#closeCheckers");
+  const resetBtn = $("#resetDemo");
+  const grid = $("#grid");
+  const status = $("#status");
+
+  // 8x8
+  const SIZE = 8;
+  // Posiciones mínimas para la demo (filas 0 arriba)
+  let round = 1;           // Partida 1 y 2 gana IA; 3 gana jugador
+  let selected = null;     // {r,c}
+  let pieces = null;       // { player: Set("r,c"), ai: Set("r,c") }
+
+  const names = ["Tomás","Nora","Arturo","Daniel","Sofía","Lucía","Mario","Eva"];
+
+  openBtn.addEventListener("click", ()=>{ overlay.classList.add("show"); initBoard(); });
+  closeBtn.addEventListener("click", ()=> overlay.classList.remove("show"));
+  resetBtn.addEventListener("click", ()=> { round=1; initBoard(true); });
+
+  function initBoard(resetText=false){
+    grid.innerHTML = "";
+    selected = null;
+    pieces = {
+      // 4 fichas de jugador en la fila 6 (verdes)
+      player: new Set(["6,1","6,3","6,5","6,7"]),
+      // 5 fichas IA en filas 1 y 2 (rojas)
+      ai: new Set(["1,2","1,4","1,6","2,3","2,5"])
+    };
+    if(resetText){
+      status.innerHTML = "Demo reiniciada. En las dos primeras partidas gana la máquina; en la tercera te deja ganar y verás el mensaje de Nora.";
+    }
+    draw();
+  }
+
+  function draw(){
+    grid.innerHTML = "";
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        const dark = (r+c)%2===1;
+        const cell = document.createElement("div");
+        cell.className = "sq " + (dark ? "dark":"light");
+        cell.dataset.r = r; cell.dataset.c = c;
+
+        // Piezas
+        const key = `${r},${c}`;
+        if(pieces.player.has(key)){
+          cell.appendChild(makePiece("player", labelFor(key)));
+        } else if(pieces.ai.has(key)){
+          cell.appendChild(makePiece("ai"));
+        }
+
+        // Eventos
+        cell.addEventListener("click", ()=> onSquareClick(r,c));
+        grid.appendChild(cell);
+      }
+    }
+    markTargets();
+  }
+
+  function labelFor(key){
+    // Asigna nombres a las 4 verdes
+    const order = ["6,1","6,3","6,5","6,7"];
+    const idx = Math.max(0, order.indexOf(key));
+    return names[idx] || "Jugador";
+  }
+
+  function makePiece(type, name=""){
+    const d = document.createElement("div");
+    d.className = "piece " + type;
+    const span = document.createElement("div");
+    span.className = "label";
+    span.textContent = type==="player" ? (name||"") : "●";
+    d.appendChild(span);
+    return d;
+  }
+
+  function onSquareClick(r,c){
+    const key = `${r},${c}`;
+    if(pieces.player.has(key)){
+      // seleccionar
+      selected = { r, c };
+      draw();
+      return;
+    }
+    // Si hay selección y la casilla es clara adyacente y vacía => mover
+    if(selected && isLight(r,c) && isAdjacent(selected.r,selected.c,r,c) && isEmpty(r,c)){
+      // mover jugador
+      pieces.player.delete(`${selected.r},${selected.c}`);
+      pieces.player.add(`${r},${c}`);
+      selected = null;
+      draw();
+      setTimeout(aiMoveScript, 340); // IA
+    }
+  }
+
+  const isLight = (r,c) => (r+c)%2===0;
+  const isEmpty = (r,c) => !pieces.player.has(`${r},${c}`) && !pieces.ai.has(`${r},${c}`);
+  const isAdjacent = (r1,c1,r2,c2) => Math.abs(r1-r2)===1 && Math.abs(c1-c2)===1;
+
+  function markTargets(){
+    // Pintar posibles movimientos para la ficha seleccionada (adyacentes claros vacíos)
+    if(!selected) return;
+    for(const cell of $$(".sq")){
+      const r = +cell.dataset.r, c = +cell.dataset.c;
+      if(isLight(r,c) && isEmpty(r,c) && isAdjacent(selected.r,selected.c,r,c)){
+        cell.classList.add("target");
+      } else {
+        cell.classList.remove("target");
+      }
+    }
+  }
+
+  function aiMoveScript(){
+    // Guion muy simple para lograr los finales que pediste
+    if(round===1){
+      // IA captura sencilla si puede, si no avanza hacia abajo
+      // Intentar capturar desde (2,3) a (4,1) si hay jugador en (3,2)
+      if(pieces.ai.has("2,3") && pieces.player.has("3,2") && isEmpty(4,1)){
+        pieces.ai.delete("2,3"); pieces.player.delete("3,2"); pieces.ai.add("4,1");
+      } else {
+        stepDownFirstAI();
+      }
+      draw();
+      checkEndOrContinue();
+    } else if(round===2){
+      // Otra captura/avance
+      stepDownFirstAI();
+      draw();
+      checkEndOrContinue();
+    } else {
+      // Ronda 3: dejamos ganar al jugador
+      // IA hace un movimiento “blando”
+      softStepAI();
+      draw();
+      // Si el jugador captura cualquiera de arriba, declaramos victoria jugador:
+      setTimeout(()=>{
+        status.innerHTML = "¡Tu turno! Captura una roja y gana.";
+        // observador simple: si hay 3 rojas o menos => victoria jugador
+        const observer = setInterval(()=>{
+          if(pieces.ai.size <= 3){
+            clearInterval(observer);
+            endPlayerWins();
+          }
+        }, 250);
+      }, 100);
+    }
+  }
+
+  function stepDownFirstAI(){
+    // Mover la primera roja hacia abajo si hay casilla clara libre
+    const candidates = Array.from(pieces.ai).map(k=>k.split(",").map(Number));
+    for(const [r,c] of candidates){
+      const moves = [[r+1,c-1],[r+1,c+1]];
+      for(const [nr,nc] of moves){
+        const key = `${nr},${nc}`;
+        if(nr<SIZE && nc>=0 && nc<SIZE && isLight(nr,nc) && isEmpty(nr,nc)){
+          pieces.ai.delete(`${r},${c}`); pieces.ai.add(key);
+          return;
+        }
+      }
+    }
+  }
+
+  function softStepAI(){
+    // mover una roja lateralmente hacia abajo si es posible, sin capturar
+    stepDownFirstAI();
+  }
+
+  function checkEndOrContinue(){
+    // Final rápido para que “gane IA” en rondas 1 y 2
+    // Si una roja llega a fila 6-7 cerca del jugador, declaramos victoria IA
+    for(const key of pieces.ai){
+      const r = +key.split(",")[0];
+      if(r>=6){
+        endAIWins();
+        return;
+      }
+    }
+    status.innerHTML = "Tu turno de nuevo. La máquina piensa...";
+  }
+
+  function endAIWins(){
+    toast("La máquina gana esta partida");
+    status.innerHTML = "La máquina te ha ganado esta ronda. Pulsa en una ficha verde para empezar otra.";
+    round++;
+    setTimeout(()=> initBoard(), 700);
+  }
+
+  function endPlayerWins(){
+    toast("¡Has ganado esta partida!");
+    showNoraFinal();
+    round = 1; // reinicia ciclo
+    setTimeout(()=> initBoard(), 1800);
+  }
+
+  function showNoraFinal(){
+    const msg = document.createElement("div");
+    msg.className = "banner show";
+    msg.innerHTML = "Nora: <em>Ya has llegado al final del crimen… ¿me seguirás en la próxima novela?</em>";
+    document.body.appendChild(msg);
+    setTimeout(()=> msg.remove(), 4200);
+  }
+})();
+
+/* ====== Abrir/cerrar overlay con ESC ====== */
+document.addEventListener("keydown", (e)=>{
+  if(e.key==="Escape") { document.getElementById("checkersOverlay").classList.remove("show"); }
+});
 </script>
 </body>
 </html>
