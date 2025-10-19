@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Pista 5 — Memoria de agujas</title>
+<title>Reloj de la Verdad</title>
 <style>
   :root{
-    --ink:#0c2f29; --muted:#2b5f55; --ok:#118754; --bad:#c43a2e; --warn:#f0b429; --brand:#0ea5a3;
-    --pane:rgba(255,255,255,.9);
+    --ink:#0c2f29; --muted:#2b5f55; --ok:#118754; --warn:#f0b429; --brand:#0ea5a3;
+    --pane:rgba(255,255,255,.92);
   }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
   body{
-    /* Si quieres tu foto de butacas, descomenta y pon la ruta: */
-    /* background: url('fondo.png') center/cover fixed no-repeat; */
+    /* si quieres el mismo fondo de butacas, pon aquí tu imagen y descomenta */
+    /* background:url('fondo.png') center/cover fixed no-repeat; */
     background: radial-gradient(1200px 900px at 30% 0%, #eaf7f2, #d8efe6 60%, #cde6de);
   }
-  .wrap{max-width:1100px;margin:26px auto 90px;padding:0 16px}
+  .wrap{max-width:1000px;margin:28px auto 90px;padding:0 16px}
   .top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
   .back{border:1px solid #cfe6df;background:#f5fbf9;color:#1c534a;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
   h1{margin:6px 0 12px;font-size:clamp(26px,4vw,44px);color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45)}
@@ -27,198 +27,243 @@
   .primary{background:var(--brand);color:#053f3b}
   .ghost{background:#eef7f5;color:#0c4a3f;border:1px solid #cfe6df}
 
-  /* GRID de cartas */
-  .grid{display:grid;gap:12px;grid-template-columns:repeat(6,1fr)}
-  @media(max-width:960px){.grid{grid-template-columns:repeat(4,1fr)}}
-  @media(max-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
-  .cardx{position:relative;aspect-ratio:3/4;border-radius:14px;cursor:pointer;transform-style:preserve-3d;transition:transform .35s ease}
-  .cardx.lock{cursor:default}
-  .face{position:absolute;inset:0;border-radius:14px;border:1px solid rgba(0,0,0,.12);backface-visibility:hidden;display:grid;place-items:center}
-  .front{background:#fff;transform:rotateY(180deg)}
-  .back{
-    background:
-      radial-gradient(circle at 20% 15%, rgba(255,255,255,.28), rgba(255,255,255,0) 35%),
-      repeating-linear-gradient(45deg,#103f37 0 8px,#145247 8px 16px);
-    border:1px solid rgba(0,0,0,.15);
-  }
-  .cardx.flip{transform:rotateY(180deg)}
-  svg{width:80px;height:110px}
-  .sil{opacity:.26;filter:grayscale(1) contrast(.9)}
-  .glow{filter:drop-shadow(0 0 8px rgba(255,255,140,.9)) drop-shadow(0 0 18px rgba(255,255,140,.7))}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}}
 
-  .msg{margin-top:10px;border-radius:12px;padding:10px 12px;border:1px solid #e3eee9;background:#f8fffc;color:#0e4c41;display:none}
-  .msg.show{display:block}
-  .final{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#f4fffb;border:1px solid #cfe6df}
+  .clockWrap{display:grid;place-items:center}
+  svg{width:min(520px,90vw);height:auto}
+  .face{fill:#fefefe;stroke:#1a5348;stroke-width:3;filter:drop-shadow(0 10px 28px rgba(0,0,0,.18))}
+  .tick{stroke:#184b41;stroke-width:3}
+  .sub{stroke:#184b41;stroke-width:1.5;opacity:.6}
+  .hand{stroke:#0a2f29;stroke-linecap:round;transform-origin:50% 50%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));cursor:grab}
+  .hand:active{cursor:grabbing}
+  .center{fill:#0a2f29}
+  .target{fill:#dff6ef;stroke:#8fd0c3;stroke-width:2;opacity:.9}
+  .unlocked{fill:#bff1e4;stroke:#3bb499}
+  .msg{margin-top:8px;border-radius:12px;padding:10px 12px;border:1px solid #e3eee9;background:#f8fffc;color:#0e4c41}
+  .list{margin-top:10px}
+  .list .row{display:flex;gap:10px;align-items:center;margin:6px 0;padding:8px;border-radius:10px;border:1px solid #e6f2ee;background:#ffffff}
+  .row.done{border-color:#bfeade;background:#f2fffa}
+  .row .time{width:90px;font-weight:700;color:#0a4b44}
+  .row .txt{flex:1;color:#0e3c34}
   .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.9),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s}
   .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
   @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
+  .final{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#f4fffb;border:1px solid #cfe6df}
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
-      <button class="back" onclick="history.back()">← Volver a las pistas</button>
-      <h1>PISTA 5 — Memoria de agujas</h1>
+      <button class="back" onclick="history.back()">← Volver al libro</button>
+      <h1>El reloj de la verdad</h1>
     </div>
 
     <div class="card">
-      <p>Encuentra las parejas correctas: <strong>aguja</strong> + su <strong>sombra</strong>. Al emparejarlas, la aguja <em>encaja</em> en su molde y queda bloqueada. Hay una <em>aguja de luz</em> que hará un destello cuando la encuentres.</p>
-
+      <p>Mueve las agujas del reloj. Alinea <strong>seis horas clave</strong> para desbloquear <em>recuerdos</em> de Nora. No revelan el final: solo orientan la memoria.</p>
       <div class="hud">
-        <span class="pill" id="moves">Movimientos: 0</span>
-        <span class="pill" id="fails">Fallos: 0</span>
-        <span class="pill" id="time">Tiempo: 00:00</span>
-        <button id="restart" class="btn ghost">Reiniciar</button>
+        <span class="pill" id="readout">Hora actual: 12:00</span>
+        <span class="pill">Tolerancia: ±3′</span>
+        <button class="btn ghost" id="resetBtn">Reiniciar</button>
       </div>
 
-      <div id="board" class="grid" aria-label="Tablero de memoria"></div>
+      <div class="grid">
+        <div class="clockWrap">
+          <svg viewBox="0 0 300 300" aria-label="Reloj interactivo">
+            <defs>
+              <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity=".18"/>
+              </filter>
+            </defs>
+            <circle cx="150" cy="150" r="135" class="face"/>
+            <!-- marcas -->
+            <g id="ticks">
+              <!-- horas -->
+              <g>
+                ${Array.from({length:12},(_,i)=>{
+                  const a=(i*Math.PI/6);
+                  const x1=150+Math.sin(a)*110, y1=150- Math.cos(a)*110;
+                  const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
+                  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="tick"/>`;
+                }).join('')}
+              </g>
+              <!-- minutos -->
+              <g>
+                ${Array.from({length:60},(_,i)=>{
+                  if(i%5===0) return '';
+                  const a=(i*Math.PI/30);
+                  const x1=150+Math.sin(a)*118, y1=150- Math.cos(a)*118;
+                  const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
+                  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="sub"/>`;
+                }).join('')}
+              </g>
+            </g>
 
-      <div id="feedback" class="msg"></div>
+            <!-- zonas objetivo (se pintan al desbloquear) -->
+            <g id="targets"></g>
 
-      <div id="finalBox" class="final"></div>
+            <!-- agujas -->
+            <line id="hour" x1="150" y1="150" x2="150" y2="95" stroke-width="6" class="hand"/>
+            <line id="min"  x1="150" y1="150" x2="150" y2="70" stroke-width="4" class="hand"/>
+            <circle cx="150" cy="150" r="5.5" class="center"/>
+          </svg>
+          <div class="msg" id="hint">Consejo: arrastra la <strong>aguja larga</strong> (minutero) y luego ajusta la <strong>corta</strong> (hora).</div>
+        </div>
+
+        <div>
+          <div class="list" id="list"></div>
+          <div id="finalBox" class="final"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="flash" class="flash"></div>
 
 <script>
-/* ===== util ===== */
-const $=s=>document.querySelector(s);
-const pad=n=>String(n).padStart(2,'0');
+const readout = document.getElementById('readout');
+const list    = document.getElementById('list');
+const targetsG= document.getElementById('targets');
+const flash   = document.getElementById('flash');
 
-/* ===== generador de agujas (SVG) ===== */
-function needleSVG({shaft=56, tip="arrow", weight="circle", thick=3, glow=false, shadow=false}={}){
-  const w=90,h=120,cx=w/2,top=20,shaftH=shaft,bot=top+shaftH;
-  const col = shadow ? "#0c2839" : "#0c2839";
-  const op  = shadow ? ' class="sil"' : (glow ? ' class="glow"' : '');
+const hourHand = document.getElementById('hour');
+const minHand  = document.getElementById('min');
+const center = {x:150,y:150};
+let hour=12, minute=0;
 
-  const frame = `<rect x="8" y="6" width="${w-16}" height="${h-12}" rx="10" fill="none" stroke="${shadow?'#21443f':'#1d4d46'}" stroke-width="2"/>`;
-  const line  = `<rect x="${cx-thick/2}" y="${top}" width="${thick}" height="${shaftH}" rx="${thick/2}" fill="${col}"/>`;
-  let tipEl="";
-  if(tip==="arrow") tipEl=`<polygon points="${cx},${top-10} ${cx-8},${top+6} ${cx+8},${top+6}" fill="${col}"/>`;
-  else if(tip==="needle") tipEl=`<rect x="${cx-(thick-1)/2}" y="${top-10}" width="${thick-1}" height="10" fill="${col}"/>`;
-  else tipEl=`<polygon points="${cx},${top-9} ${cx-7},${top} ${cx},${top+9} ${cx+7},${top}" fill="${col}"/>`;
-  let wgt="";
-  if(weight==="circle") wgt=`<circle cx="${cx}" cy="${bot+10}" r="${6+Math.max(0,thick-3)}" fill="${col}"/>`;
-  else if(weight==="spike") wgt=`<rect x="${cx-(thick+2)/2}" y="${bot}" width="${thick+2}" height="14" rx="2" fill="${col}"/>`;
-  else wgt=`<circle cx="${cx}" cy="${bot+10}" r="8" fill="none" stroke="${col}" stroke-width="2"/>`;
-  return `<svg viewBox="0 0 ${w} ${h}"${op}>${frame}${line}${tipEl}${wgt}</svg>`;
-}
+const TOL_MIN = 3; // ±3 minutos
 
-/* ===== modelos ===== */
-const MODELS = [
-  {shaft:58, tip:"arrow",  weight:"circle", thick:3},
-  {shaft:62, tip:"diamond",weight:"spike",  thick:3},
-  {shaft:54, tip:"needle", weight:"ring",   thick:4},
-  {shaft:60, tip:"arrow",  weight:"ring",   thick:2},
-  {shaft:52, tip:"diamond",weight:"circle", thick:4},
-  {shaft:66, tip:"needle", weight:"spike",  thick:2},
-  {shaft:56, tip:"arrow",  weight:"spike",  thick:4},
-  {shaft:64, tip:"diamond",weight:"ring",   thick:3},
-  {shaft:50, tip:"needle", weight:"circle", thick:3},
-  {shaft:68, tip:"arrow",  weight:"circle", thick:2},
-  {shaft:58, tip:"diamond",weight:"spike",  thick:5},
-  {shaft:60, tip:"needle", weight:"ring",   thick:3, glow:true} // aguja de luz
+// Objetivos y frases (no revelan el final)
+const GOALS = [
+  {h:2,  m:15, txt:'A las 02:15, la sombra se movió antes del reflejo.'},
+  {h:5,  m:30, txt:'A las 05:30, alguien giró el tiempo para encajar en su coartada.'},
+  {h:7,  m:45, txt:'A las 07:45, la memoria decidió a quién proteger.'},
+  {h:9,  m:10, txt:'A las 09:10, el corazón latía fuera de lugar.'},
+  {h:11, m:55, txt:'A las 11:55, la verdad respiró detrás del cristal.'},
+  {h:12, m:0,  txt:'A las 12:00, el silencio habló más que las palabras.'}
 ];
+const unlocked = new Set();
 
-/* ===== estado ===== */
-const board=$("#board"), feedback=$("#feedback"), flash=$("#flash");
-const movesEl=$("#moves"), failsEl=$("#fails"), timeEl=$("#time");
-let first=null, second=null, lock=false, pairsFound=0, moves=0, fails=0, t0=null, tick=null;
+function pad(n){return String(n).padStart(2,'0')}
+function timeStr(h,m){return `${pad(h)}:${pad(m)}`}
 
-function build(){
-  clearInterval(tick);
-  board.innerHTML=""; feedback.className="msg"; feedback.textContent="";
-  first=second=null; lock=false; pairsFound=0; moves=0; fails=0;
-  movesEl.textContent="Movimientos: 0"; failsEl.textContent="Fallos: 0";
-  // tiempo
-  t0=Date.now(); timeEl.textContent="Tiempo: 00:00";
-  tick=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); timeEl.textContent=`Tiempo: ${pad(Math.floor(s/60))}:${pad(s%60)}`; },1000);
-
-  // baraja: para cada modelo, dos cartas: sombra y aguja
-  const deck=[];
-  MODELS.forEach((m,i)=>{
-    deck.push({id:i, type:"shadow", html:needleSVG({...m, shadow:true})});
-    deck.push({id:i, type:"needle", html:needleSVG(m)});
-  });
-  deck.sort(()=>Math.random()-.5);
-
-  deck.forEach(card=>{
-    const el=document.createElement("div");
-    el.className="cardx"; el.tabIndex=0;
-    el.dataset.id=card.id; el.dataset.type=card.type;
-    el.innerHTML=`
-      <div class="face front">${card.html}</div>
-      <div class="face back"></div>
-    `;
-    el.addEventListener("click", ()=>flip(el));
-    el.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" ") flip(el); });
-    board.appendChild(el);
-  });
+// dibuja lista de frases y halos objetivos
+function paintList(){
+  list.innerHTML = GOALS.map((g,i)=>`
+    <div class="row ${unlocked.has(i)?'done':''}">
+      <div class="time">${timeStr(g.h,g.m)}</div>
+      <div class="txt">${unlocked.has(i)?g.txt:'— — —'}</div>
+    </div>
+  `).join('');
+  targetsG.innerHTML = GOALS.map((g,i)=>{
+    const angle = (g.m/60)*2*Math.PI;
+    const r=128;
+    const cx = 150 + Math.sin(angle)*r;
+    const cy = 150 - Math.cos(angle)*r;
+    return `<circle cx="${cx}" cy="${cy}" r="7" class="${unlocked.has(i)?'unlocked':'target'}" opacity="${unlocked.has(i)?1:.35}"/>`
+  }).join('');
 }
 
-function flip(el){
-  if(lock || el.classList.contains("flip") || el.classList.contains("lock")) return;
-  el.classList.add("flip");
-  if(!first){ first=el; return; }
-  second=el; lock=true; moves++; movesEl.textContent=`Movimientos: ${moves}`;
+function setHands(h,m){
+  hour=h; minute=m;
+  // min: 6° por minuto
+  const minDeg = m*6;
+  // hour: 30° por hora + 0.5° por minuto
+  const h12 = (h%12);
+  const hourDeg = h12*30 + m*0.5;
+  minHand.style.transform  = `rotate(${minDeg}deg) translateZ(0)`;
+  hourHand.style.transform = `rotate(${hourDeg}deg) translateZ(0)`;
+  readout.textContent = `Hora actual: ${timeStr(h,m)}`;
+  checkGoals();
+}
 
-  const match = first.dataset.id===second.dataset.id && first.dataset.type!==second.dataset.type;
-  if(match){
-    // efecto de “encajar”
-    setTimeout(()=>{
-      first.classList.add("lock");
-      second.classList.add("lock");
-      // fusion visual: deja solo la aguja (quita la sombra)
-      [first,second].forEach(x=>{
-        const isNeedle = x.dataset.type==="needle";
-        if(!isNeedle){
-          x.querySelector(".front").innerHTML = needleSVG(MODELS[+x.dataset.id]);
-        }
-      });
-      // flash si es la aguja de luz
-      if(MODELS[+first.dataset.id].glow || MODELS[+second.dataset.id].glow){
-        flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"),900);
-      }
-      pairsFound++;
-      feedback.className="msg show"; feedback.textContent=["Precisión impecable.","Encaje perfecto.","El molde te reconoce."][Math.floor(Math.random()*3)];
-      resetPick();
-      if(pairsFound===MODELS.length) finish();
-    },260);
-  } else {
-    fails++; failsEl.textContent=`Fallos: ${fails}`;
-    feedback.className="msg show"; feedback.textContent=["No pasa nada: observa la punta.","Contrapeso distinto: memoriza.","Grosor y longitud marcan la diferencia." ][Math.floor(Math.random()*3)];
-    setTimeout(()=>{
-      first.classList.remove("flip");
-      second.classList.remove("flip");
-      resetPick();
-    },650);
+function angleFromPointer(e){
+  const pt = ('touches' in e) ? e.touches[0] : e;
+  const x = pt.clientX - e.target.closest('svg').getBoundingClientRect().left;
+  const y = pt.clientY - e.target.closest('svg').getBoundingClientRect().top;
+  const dx = x - center.x, dy = y - center.y;
+  let ang = Math.atan2(dx, -dy); // 0 en las 12h, sentido horario
+  if(ang<0) ang += 2*Math.PI;
+  return ang; // radianes
+}
+
+let drag=null; // 'min' | 'hour'
+
+function onDown(which){ return (e)=>{ e.preventDefault(); drag=which; }; }
+function onMove(e){
+  if(!drag) return;
+  e.preventDefault();
+  const ang = angleFromPointer(e); // rad
+  const deg = ang*180/Math.PI;
+  if(drag==='min'){
+    const m = Math.round(deg/6) % 60;
+    setHands(hour, m);
+  }else if(drag==='hour'){
+    // convertir ángulo a hora (0..360 -> 0..12h), compensando minutos actuales
+    let rawH = deg/30; // 0..12
+    // queremos cuantizar cerca del valor que encaje con los minutos presentes
+    const snapped = Math.round(rawH) % 12;
+    const h = snapped===0 ? 12 : snapped;
+    setHands(h, minute);
   }
 }
+function onUp(){ drag=null; }
 
-function resetPick(){ first=null; second=null; lock=false; }
+minHand.addEventListener('mousedown', onDown('min'));
+hourHand.addEventListener('mousedown', onDown('hour'));
+document.addEventListener('mousemove', onMove);
+document.addEventListener('mouseup', onUp);
+
+minHand.addEventListener('touchstart', onDown('min'), {passive:false});
+hourHand.addEventListener('touchstart', onDown('hour'), {passive:false});
+document.addEventListener('touchmove', onMove, {passive:false});
+document.addEventListener('touchend', onUp);
+
+// comprobar desbloqueos
+function within(a,b, tol){ return Math.abs(a-b)<=tol; }
+function checkGoals(){
+  GOALS.forEach((g,i)=>{
+    if(unlocked.has(i)) return;
+    const sameHour = ( (g.h%12) === (hour%12) );
+    const sameMin  = within(g.m, minute, TOL_MIN);
+    if(sameHour && sameMin){
+      unlocked.add(i);
+      paintList();
+      // mini destello al desbloquear
+      flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 350);
+      if(unlocked.size===GOALS.length) finish();
+    }
+  });
+}
 
 function finish(){
-  clearInterval(tick);
-  const secs = Math.floor((Date.now()-t0)/1000);
-  const final=$("#finalBox");
-  final.style.display="block";
-  final.innerHTML = `
-    <strong>¡Puzzle completo!</strong><br>
-    Tiempo: <b>${pad(Math.floor(secs/60))}:${pad(secs%60)}</b> — Movimientos: <b>${moves}</b> — Fallos: <b>${fails}</b>.<br><br>
-    Nora: <em>Al final de la línea del reloj has llegado a la novela… ¿me seguirás en mi próxima aventura?</em><br><br>
-    <button class="btn primary" onclick="location.href='pista-final.html'">Continuar</button>
-    <button class="btn ghost" onclick="build()">Volver a jugar</button>
+  // destello final un poco más largo
+  flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 900);
+  const box = document.getElementById('finalBox');
+  box.style.display='block';
+  box.innerHTML = `
+    <strong>El tiempo no delata.</strong><br>
+    Lo hemos resuelto; gracias a tus habilidades… <em>te espero en la próxima novela</em>.<br><br>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" onclick="history.back()">Volver al libro</button>
+      <button class="btn ghost" onclick="resetAll()">Reiniciar reloj</button>
+    </div>
   `;
 }
 
-$("#restart").addEventListener("click", build);
+function resetAll(){
+  unlocked.clear();
+  paintList();
+  setHands(12,0);
+}
 
-build();
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+paintList();
+setHands(12,0);
 </script>
 </body>
 </html>
-
 
 
 
