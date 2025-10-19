@@ -51,6 +51,11 @@
   .hint{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.65);color:#fff;padding:6px 10px;border-radius:10px;font-size:.9rem;border:1px solid rgba(255,255,255,.2)}
   .file{display:none}
 
+  /* Bloque de título + frase (encima del mapa) */
+  .titlewrap{display:flex;flex-direction:column;gap:2px;max-width:min(60vw,900px)}
+  .titlewrap strong{font-weight:900}
+  .subhint{font-size:.95rem;opacity:.92}
+
   /* Popup editable del marcador */
   .pinForm{min-width:220px}
   .pinForm label{display:block;font-size:.85rem;margin:.2rem 0 .1rem;opacity:.9}
@@ -88,7 +93,14 @@
     <div class="backdrop" data-close></div>
     <div class="mw">
       <div class="toolbar">
-        <strong id="mapTitle" style="letter-spacing:.3px">Mapa — Cataluña &amp; sur de Francia</strong>
+        <!-- Título + FRASE (una sola vez y arriba del mapa) -->
+        <div class="titlewrap">
+          <strong id="mapTitle" style="letter-spacing:.3px">Mapa — Cataluña &amp; sur de Francia</strong>
+          <div class="subhint">
+            Coloca la chincheta donde creas que la investigación comienza. Puedes poner chinchetas en todos los lugares que Nora Torres recorre.
+          </div>
+        </div>
+
         <div class="group">
           <button class="tool inverse" id="saveAll">Guardar mapa</button>
           <button class="tool inverse" id="delLast">Borrar última</button>
@@ -99,12 +111,6 @@
           <button class="tool" data-close>&times; Cerrar</button>
         </div>
       </div>
-
-      <!-- ✳️ NUEVA LÍNEA — Frase encima del mapa -->
-      <p style="margin:8px 12px 0;color:#fff;opacity:.95;font-weight:600;letter-spacing:.2px">
-        Coloca la chincheta donde creas que la investigación comienza.
-        Puedes poner chinchetas en todos los lugares que Nora Torres recorre.
-      </p>
 
       <div class="mapWrap">
         <div id="map" aria-label="Mapa interactivo"></div>
@@ -132,8 +138,9 @@
   document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
   /* ====== Mapa (Leaflet) ====== */
+  // Límite aproximado que abarca Catalunya y parte sur de Francia
   const bounds = L.latLngBounds([ [40.4, -1.2], [44.7, 4.2] ]);
-  const center = [42.3, 2.8];
+  const center = [42.3, 2.8]; // zona Girona – Cap de Creus / Perpiñán
   const localKey = 'p02_mapa_chinchetas';
 
   const map = L.map('map', {
@@ -150,8 +157,10 @@
     maxZoom: 19
   }).addTo(map);
 
+  /** Almacén en vivo de marcadores */
   const markers = [];
 
+  /** Crea popup editable para un marcador concreto */
   function setMarkerPopup(marker, data = {}){
     const id   = data.id || ('m_' + Math.random().toString(36).slice(2));
     marker._pinId = id;
@@ -186,24 +195,28 @@
           titulo: (inpT.value || '').trim(),
           nota: (inpN.value || '').trim()
         };
+        // Pequeña confirmación
         saveBt.textContent = 'Guardado ✓';
         setTimeout(()=> saveBt.textContent='Guardar', 900);
       });
 
       delBt.addEventListener('click', ()=>{
         map.removeLayer(marker);
+        // quitar de nuestro array
         const idx = markers.indexOf(marker);
         if (idx>=0) markers.splice(idx,1);
       });
     });
   }
 
+  /** Escapado simple para inputs dentro del popup */
   function escapeHtml(str){
     return (str || '').replace(/[&<>"']/g, s => ({
       '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
     }[s]));
   }
 
+  /** Crear marcador nuevo en un punto */
   function addMarker(latlng, data = {}){
     const m = L.marker(latlng, {draggable:true}).addTo(map);
     setMarkerPopup(m, data);
@@ -212,11 +225,13 @@
     return m;
   }
 
+  /** Click para crear chincheta */
   map.on('click', (e)=>{
     const m = addMarker(e.latlng);
     m.openPopup();
   });
 
+  /** Guardar todos en localStorage */
   function saveAll(){
     const arr = markers.map(m => {
       const p = m.getLatLng();
@@ -226,6 +241,7 @@
     localStorage.setItem(localKey, JSON.stringify(arr));
   }
 
+  /** Cargar desde localStorage */
   function loadAll(){
     try{
       const raw = localStorage.getItem(localKey);
@@ -243,11 +259,13 @@
   }
   loadAll();
 
+  /** Borrar última chincheta */
   function delLast(){
     const m = markers.pop();
     if (m){ map.removeLayer(m); }
   }
 
+  /** Borrar todas */
   function delAll(){
     if (!markers.length) return;
     if (!confirm('¿Borrar todas las chinchetas?')) return;
@@ -258,6 +276,7 @@
     localStorage.removeItem(localKey);
   }
 
+  /** Exportar JSON */
   function exportJSON(){
     const raw = localStorage.getItem(localKey) || '[]';
     const blob = new Blob([raw], {type:'application/json'});
@@ -268,12 +287,13 @@
     URL.revokeObjectURL(url);
   }
 
+  /** Importar JSON */
   function importJSON(file){
     const reader = new FileReader();
     reader.onload = e => {
       try{
         const arr = JSON.parse(e.target.result || '[]');
-        delAll();
+        delAll(); // limpia mapa y storage
         arr.forEach(it=>{
           const m = addMarker([it.lat, it.lng], {id:it.id, titulo:it.titulo, nota:it.nota});
           m._pinData = {id:it.id, titulo:it.titulo||'', nota:it.nota||''};
@@ -286,6 +306,7 @@
     reader.readAsText(file);
   }
 
+  // Botones toolbar
   document.getElementById('saveAll').addEventListener('click', ()=>{ saveAll(); alert('Mapa guardado ✓'); });
   document.getElementById('delLast').addEventListener('click', delLast);
   document.getElementById('delAll').addEventListener('click', delAll);
@@ -303,6 +324,7 @@
 </script>
 </body>
 </html>
+
 
 
 
