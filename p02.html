@@ -64,24 +64,6 @@
   @media (max-width:740px){
     .q{font-size:clamp(1.1rem,1rem + 2.4vw,1.8rem)}
   }
- /* subtítulo bajo el título del mapa en la barra */
-.titlewrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-width: min(70vw, 800px);
-}
-
-.subhint {
-  font-size: .95rem;
-  opacity: .9;
-  line-height: 1.35;
-}
-
-.toolbar {
-  align-items: flex-start;
-}
-
 </style>
 </head>
 <body>
@@ -94,8 +76,6 @@
     <div class="panel">
       <p class="q">“Donde la luz se atrapa, se conservan moldes, planos y frascos.”</p>
       <p class="meta">Archivo #P-02 — Bitácora de estación. Tren 1868.</p>
-     
-
       <div class="actions">
         <button class="btn" id="openMap" type="button" aria-haspopup="dialog" aria-controls="mapModal">Ir al mapa</button>
         <a class="btn btn-ghost" href="index.html">Volver</a>
@@ -107,25 +87,9 @@
   <section class="modal" id="mapModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="mapTitle">
     <div class="backdrop" data-close></div>
     <div class="mw">
-    <div class="toolbar">
-  <div class="titlewrap">
-    <strong id="mapTitle" style="letter-spacing:.3px">
-     <p class="subhint">
-  Coloca la chincheta donde creas que la investigación comienza. 
-  Puedes poner chinchetas en todos los lugares que Nora Torres recorre.
-</p>
-
-      Mapa — Cataluña &amp; sur de Francia
-    </strong>
-    <div class="subhint">
-      Coloca la chincheta donde creas que la investigación comienza.  
-      Puedes poner chinchetas en todos los lugares que Nora Torres recorre.
-    </div>
-  </div>
-  <div class="group">
-
-  <div class="group">
-
+      <div class="toolbar">
+        <strong id="mapTitle" style="letter-spacing:.3px">Mapa — Cataluña &amp; sur de Francia</strong>
+        <div class="group">
           <button class="tool inverse" id="saveAll">Guardar mapa</button>
           <button class="tool inverse" id="delLast">Borrar última</button>
           <button class="tool inverse" id="delAll">Borrar todo</button>
@@ -135,7 +99,16 @@
           <button class="tool" data-close>&times; Cerrar</button>
         </div>
       </div>
-      
+
+      <!-- ✳️ NUEVA LÍNEA — Frase encima del mapa -->
+      <p style="margin:8px 12px 0;color:#fff;opacity:.95;font-weight:600;letter-spacing:.2px">
+        Coloca la chincheta donde creas que la investigación comienza.
+        Puedes poner chinchetas en todos los lugares que Nora Torres recorre.
+      </p>
+
+      <div class="mapWrap">
+        <div id="map" aria-label="Mapa interactivo"></div>
+        <div class="hint">Toca/clic en el mapa para poner una chincheta. Arrástrala para recolocar. Pulsa en la chincheta para editar o eliminar.</div>
       </div>
     </div>
   </section>
@@ -159,9 +132,8 @@
   document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
   /* ====== Mapa (Leaflet) ====== */
-  // Límite aproximado que abarca Catalunya y parte sur de Francia
   const bounds = L.latLngBounds([ [40.4, -1.2], [44.7, 4.2] ]);
-  const center = [42.3, 2.8]; // zona Girona – Cap de Creus / Perpiñán
+  const center = [42.3, 2.8];
   const localKey = 'p02_mapa_chinchetas';
 
   const map = L.map('map', {
@@ -178,10 +150,8 @@
     maxZoom: 19
   }).addTo(map);
 
-  /** Almacén en vivo de marcadores */
   const markers = [];
 
-  /** Crea popup editable para un marcador concreto */
   function setMarkerPopup(marker, data = {}){
     const id   = data.id || ('m_' + Math.random().toString(36).slice(2));
     marker._pinId = id;
@@ -216,28 +186,24 @@
           titulo: (inpT.value || '').trim(),
           nota: (inpN.value || '').trim()
         };
-        // Pequeña confirmación
         saveBt.textContent = 'Guardado ✓';
         setTimeout(()=> saveBt.textContent='Guardar', 900);
       });
 
       delBt.addEventListener('click', ()=>{
         map.removeLayer(marker);
-        // quitar de nuestro array
         const idx = markers.indexOf(marker);
         if (idx>=0) markers.splice(idx,1);
       });
     });
   }
 
-  /** Escapado simple para inputs dentro del popup */
   function escapeHtml(str){
     return (str || '').replace(/[&<>"']/g, s => ({
       '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
     }[s]));
   }
 
-  /** Crear marcador nuevo en un punto */
   function addMarker(latlng, data = {}){
     const m = L.marker(latlng, {draggable:true}).addTo(map);
     setMarkerPopup(m, data);
@@ -246,13 +212,11 @@
     return m;
   }
 
-  /** Click para crear chincheta */
   map.on('click', (e)=>{
     const m = addMarker(e.latlng);
     m.openPopup();
   });
 
-  /** Guardar todos en localStorage */
   function saveAll(){
     const arr = markers.map(m => {
       const p = m.getLatLng();
@@ -262,7 +226,6 @@
     localStorage.setItem(localKey, JSON.stringify(arr));
   }
 
-  /** Cargar desde localStorage */
   function loadAll(){
     try{
       const raw = localStorage.getItem(localKey);
@@ -280,13 +243,11 @@
   }
   loadAll();
 
-  /** Borrar última chincheta */
   function delLast(){
     const m = markers.pop();
     if (m){ map.removeLayer(m); }
   }
 
-  /** Borrar todas */
   function delAll(){
     if (!markers.length) return;
     if (!confirm('¿Borrar todas las chinchetas?')) return;
@@ -297,7 +258,6 @@
     localStorage.removeItem(localKey);
   }
 
-  /** Exportar JSON */
   function exportJSON(){
     const raw = localStorage.getItem(localKey) || '[]';
     const blob = new Blob([raw], {type:'application/json'});
@@ -308,13 +268,12 @@
     URL.revokeObjectURL(url);
   }
 
-  /** Importar JSON */
   function importJSON(file){
     const reader = new FileReader();
     reader.onload = e => {
       try{
         const arr = JSON.parse(e.target.result || '[]');
-        delAll(); // limpia mapa y storage
+        delAll();
         arr.forEach(it=>{
           const m = addMarker([it.lat, it.lng], {id:it.id, titulo:it.titulo, nota:it.nota});
           m._pinData = {id:it.id, titulo:it.titulo||'', nota:it.nota||''};
@@ -327,7 +286,6 @@
     reader.readAsText(file);
   }
 
-  // Botones toolbar
   document.getElementById('saveAll').addEventListener('click', ()=>{ saveAll(); alert('Mapa guardado ✓'); });
   document.getElementById('delLast').addEventListener('click', delLast);
   document.getElementById('delAll').addEventListener('click', delAll);
@@ -345,6 +303,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
