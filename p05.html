@@ -7,7 +7,7 @@
 <style>
   :root{ --text:#0c2621; --card:rgba(255,255,255,.86); --ok:#0b8d42; --bad:#c4382e; --warn:#f0b429; --board-dark:#0c3a28; --board-light:#e2f6ea; }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  body{color:var(--text);background:#e7efe9 center/cover fixed no-repeat} /* JS pondrá el fondo de butacas */
+  body{color:var(--text);background:#e7efe9 center/cover fixed no-repeat} /* El JS pone el fondo real */
   .wrap{max-width:1200px;margin:18px auto 96px;padding:0 16px}
   .topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
   .link-back{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#eef6f4;color:#184a42;border:1px solid rgba(0,0,0,.08)}
@@ -19,7 +19,9 @@
   .panel-title{font-size:22px;margin:2px 0 10px}
   .slots,.library{background:#fff;border:1px dashed rgba(0,0,0,.20);border-radius:16px;padding:16px;min-height:260px;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px}
   .slot,.needle{position:relative;display:flex;align-items:center;justify-content:center;border-radius:14px;overflow:hidden;background:#f5faf8;border:1px solid rgba(0,0,0,.12);min-height:140px;box-shadow:inset 0 12px 24px rgba(0,0,0,.05)}
+  /* molde (si falla la imagen, se verá el texto del data-label) */
   .slot .ghost{position:absolute;inset:10px;background-position:center;background-repeat:no-repeat;background-size:contain;opacity:.28;filter:grayscale(1) contrast(.9);pointer-events:none}
+  .slot .fallback{position:absolute;inset:10px;display:grid;place-items:center;color:#0b3f36;font-size:12px;opacity:.7}
   .slot.is-target{outline:2px solid var(--warn);box-shadow:0 0 0 6px rgba(240,180,41,.15) inset}
   .slot.correct{outline:2px solid var(--ok);box-shadow:0 0 0 6px rgba(11,141,66,.18) inset}
   .slot.fail{outline:2px solid var(--bad);box-shadow:0 0 0 6px rgba(196,56,46,.18) inset}
@@ -45,11 +47,12 @@
   .piece.player{background:#1e7f58} .piece.ai{background:#b84239}
   .sq.target{outline:3px solid var(--warn);box-shadow:inset 0 0 0 6px rgba(240,180,41,.25)}
   .status{font-size:15px;color:#0e3b33;background:#f3fbf8;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:12px;margin-top:10px}
-  .banner{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.12);color:#083831;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:none;z-index:60}
-  .banner.show{display:block}
+  .badge{position:fixed;right:12px;top:12px;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 8px 22px rgba(0,0,0,.2);font-size:12px;color:#0b3f36}
 </style>
 </head>
 <body>
+  <div id="badge" class="badge">rutas…</div>
+
   <div class="wrap">
     <div class="topbar">
       <button class="link-back" onclick="history.back()">← Volver a las pistas</button>
@@ -88,95 +91,94 @@
       <div class="board-wrap" style="margin-top:10px">
         <div>
           <div class="board"><div id="grid" class="grid"></div></div>
-          <div id="status" class="status">Mueve una ficha <strong>verde</strong> (todas con su silueta). Rondas 1 y 2: gana la máquina; ronda 3: te deja ganar y aparece el mensaje de Nora.</div>
+          <div id="status" class="status">Hay <strong>8 fichas verdes</strong> con siluetas (Amelia, Arturo, Azquiel, Daniel, Lise, Nora, Ocaña, Tomás) y 8 rojas. Rondas 1 y 2 gana la máquina; la 3 te deja ganar.</div>
+          <button id="resetDemo" class="btn" style="margin-top:8px">Reiniciar demo</button>
         </div>
         <div class="card" style="margin:0">
           <h3 style="margin:6px 0 8px;color:#0c463d">Siluetas usadas</h3>
           <p style="margin:0">Amelia, Arturo, Azquiel, Daniel, Lise, Nora, Ocaña, Tomás.</p>
-          <button id="resetDemo" class="btn" style="margin-top:8px">Reiniciar demo</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="toast" class="banner"></div>
+  <div id="toast" class="badge" style="left:12px;right:auto;bottom:12px;top:auto;display:none"></div>
   <div class="flash" id="flash"></div>
 
 <script>
-/* ========= Helpers ========= */
+/* ===== Helpers ===== */
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
-function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.add("show"); setTimeout(()=>b.classList.remove("show"), ms); }
+function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.style.display="block"; setTimeout(()=>b.style.display="none", ms); }
 
-/* ========= Resolver rutas automáticamente (pista5/) ========= */
-async function pickBase(candidates){
-  for(const base of candidates){
-    const ok = await new Promise(res=>{ const i=new Image(); i.onload=()=>res(true); i.onerror=()=>res(false); i.src=base+"aguja01.png"; });
-    if(ok) return base;
-  }
-  return candidates[0]; // fallback
-}
-(async()=>{
-  // intenta varias bases para Vercel
-  const BASES = ["pista5/","/pista5/","./pista5/","../pista5/"];
-  const BASE = await pickBase(BASES);
+/* ===== Detectar base de imágenes (pista5) y fondo ===== */
+async function probe(url){ return await new Promise(r=>{ const i=new Image(); i.onload=()=>r(true); i.onerror=()=>r(false); i.src=url; }); }
+(async ()=>{
+  const candidatesBase = ["./pista5/","/pista5/","pista5/","../pista5/"];
+  let BASE = candidatesBase[0];
+  for(const c of candidatesBase){ if(await probe(c+"aguja01.png")){ BASE=c; break; } }
+  const badge=$("#badge"); badge.textContent = `pista5: ${BASE.includes("..")?BASE:"/"+BASE.replace(/^\/?/,"")}${await probe(BASE+"aguja01.png")?"ok":"error"}`;
 
-  // pone el fondo de butacas (primer fondo que exista)
-  const fondos = [BASE+"fondo.png","/fondo.png","pista3/fondo.png","/pista3/fondo.png"];
-  for(const src of fondos){
-    const ok = await new Promise(r=>{ const i=new Image(); i.onload=()=>r(true); i.onerror=()=>r(false); i.src=src; });
-    if(ok){ document.body.style.backgroundImage = `url('${src}')`; break; }
+  // Fondo (butacas): primer match
+  for(const f of [BASE+"fondo.png","/fondo.png","/pista3/fondo.png","pista3/fondo.png"]){
+    if(await probe(f)){ document.body.style.backgroundImage=`url('${f}')`; break; }
   }
 
-  /* ====== PUZZLE de 12 agujas ====== */
+  /* ====== PUZZLE ====== */
   (function(){
     const ids = ["aguja01","aguja02","aguja03","aguja04","aguja05","aguja06","aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz"];
     const NEEDLES = ids.map(id=>({ id, img: BASE+id+".png", name:id.toUpperCase() }));
-    const LIGHT_ID = "aguja_luz";
+    const LIGHT_ID="aguja_luz";
+    const HIT=["¡Bien! Esa encaja.","Pulso perfecto.","Otro paso hacia la verdad."];
+    const MISS=["No pasa nada, vuelve a intentar.","Casi… mira la punta.","Respira: la forma te guía."];
+    const RESET=["Tres fallos: el mecanismo se desmonta. Reiniciando…","Paciencia: el reloj se reinicia.","Se reinicia el puzzle, pero tu mente sigue afilada."];
 
-    const HIT  = ["¡Bien! Esa encaja como un guante.","Perfecto. Tu pulso es exacto.","Otro paso hacia la verdad."];
-    const MISS = ["No pasa nada. Observa la silueta y vuelve a intentar.","Casi… mira la punta y el grosor.","Respira. La forma te guía."];
-    const RESET= ["Tres fallos: el mecanismo se desmonta. Empieza de nuevo.","Reinicio del reloj. La paciencia también es una pista.","Se reinicia el rompecabezas, pero tu mente sigue afilada."];
-
-    const slotsEl=$("#slots"), libEl=$("#library"), finalBox=$("#finalClue"), flash=$("#flash");
-    let fails=0, solved=0, lightPlaced=false;
+    const slots=$("#slots"), lib=$("#library"), final=$("#finalClue"), flash=$("#flash");
+    let fails=0, solved=0, light=false;
 
     function build(){
-      slotsEl.innerHTML=""; libEl.innerHTML=""; finalBox.style.display="none"; finalBox.innerHTML=""; fails=0; solved=0; lightPlaced=false;
+      slots.innerHTML=""; lib.innerHTML=""; final.style.display="none"; final.innerHTML=""; fails=0; solved=0; light=false;
 
       NEEDLES.forEach(n=>{
-        const s=document.createElement("div"); s.className="slot"; s.dataset.accept=n.id;
-        const ghost=document.createElement("div"); ghost.className="ghost"; ghost.style.backgroundImage=`url("${n.img}")`; s.appendChild(ghost);
+        const s=document.createElement("div"); s.className="slot"; s.dataset.accept=n.id; s.dataset.label=n.name;
+        const ghost=document.createElement("div"); ghost.className="ghost"; ghost.style.backgroundImage=`url("${n.img}")`;
+        const fb=document.createElement("div"); fb.className="fallback"; fb.textContent=n.name;
+        ghost.addEventListener("error",()=>{ fb.style.display="grid"; });
+        s.append(ghost,fb);
         s.addEventListener("dragover",e=>{e.preventDefault(); s.classList.add("is-target");});
-        s.addEventListener("dragleave",()=>s.classList.remove("is-target"));
-        s.addEventListener("drop",e=>{e.preventDefault(); s.classList.remove("is-target"); handleDrop(s,e.dataTransfer.getData("text/needle"));});
-        slotsEl.appendChild(s);
+        s.addEventListener("dragleave",()=> s.classList.remove("is-target"));
+        s.addEventListener("drop",e=>{e.preventDefault(); s.classList.remove("is-target"); drop(s,e.dataTransfer.getData("text/needle"));});
+        slots.appendChild(s);
       });
 
       NEEDLES.forEach(n=>{
         const d=document.createElement("div"); d.className="needle"; d.draggable=true; d.dataset.id=n.id; d.title=n.name;
         d.addEventListener("dragstart",e=> e.dataTransfer.setData("text/needle", n.id));
-        const img=document.createElement("img"); img.src=n.img; img.alt=n.name; d.appendChild(img);
-        libEl.appendChild(d);
+        const img=document.createElement("img"); img.src=n.img; img.alt=n.name;
+        img.addEventListener("error",()=>{ d.textContent=n.name; d.style.fontSize="12px"; d.style.color="#0b3f36"; });
+        d.appendChild(img);
+        lib.appendChild(d);
       });
     }
 
-    function handleDrop(slot, draggedId){
-      const accept = slot.dataset.accept;
-      if(slot.classList.contains("correct")) { say("Esa ranura ya está completa"); return; }
-      if(draggedId===accept){
+    function drop(slot, id){
+      const accept=slot.dataset.accept;
+      if(slot.classList.contains("correct")){ say("Esa ranura ya está completa"); return; }
+      if(id===accept){
         slot.classList.add("correct"); solved++;
-        const n = NEEDLES.find(x=>x.id===draggedId);
-        slot.innerHTML=""; const img=document.createElement("img"); img.src=n?.img||""; img.alt=n?.name||""; slot.appendChild(img);
+        const n=NEEDLES.find(x=>x.id===id); slot.innerHTML="";
+        const img=document.createElement("img"); img.src=n.img; img.alt=n.name;
+        img.addEventListener("error",()=>{ const fb=document.createElement("div"); fb.className="fallback"; fb.textContent=n.name; slot.appendChild(fb); });
+        slot.appendChild(img);
         say(HIT[Math.floor(Math.random()*HIT.length)]);
-        if(draggedId===LIGHT_ID){ lightPlaced=true; flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"),900); }
+        if(id===LIGHT_ID){ light=true; flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"),900); }
         if(solved===NEEDLES.length){
-          finalBox.style.display="block";
-          finalBox.innerHTML = `<strong>¡Puzzle completo!</strong><br>Las agujas han hablado: <em>siempre apuntan a nuestro centro</em>.<br><br>${lightPlaced ? "Reto desbloqueado: intenta <strong>ganar el duelo de damas</strong> para llegar a la pista final." : "Coloca también la <strong>aguja de luz</strong> para desbloquear el duelo de damas."}`;
+          final.style.display="block";
+          final.innerHTML = `<strong>¡Puzzle completo!</strong><br>Las agujas apuntan a nuestro centro.<br><br>${light?"Reto desbloqueado: intenta <strong>ganar el duelo de damas</strong> para llegar a la pista final.":"Coloca también la <strong>aguja de luz</strong> para desbloquear el duelo de damas."}`;
         }
       }else{
         slot.classList.add("fail"); setTimeout(()=>slot.classList.remove("fail"),700);
-        if(++fails>=3){ say(RESET[Math.floor(Math.random()*RESET.length)],2200); setTimeout(build,900); }
+        if(++fails>=3){ say(RESET[Math.floor(Math.random()*RESET.length)],2300); setTimeout(build,900); }
         else{ say(MISS[Math.floor(Math.random()*MISS.length)]); }
       }
     }
@@ -184,118 +186,95 @@ async function pickBase(candidates){
     build();
   })();
 
-  /* ====== DAMAS — 8 verdes con silueta + 8 rojas ====== */
+  /* ====== DAMAS ====== */
   (function(){
-    const overlay=$("#checkers"), btnTop=$("#openCheckersTop"), closeBtn=$("#closeCheckers"), resetBtn=$("#resetDemo");
+    const overlay=$("#checkers"), btn=$("#openCheckersTop"), close=$("#closeCheckers"), reset=$("#resetDemo");
     const grid=$("#grid"), status=$("#status");
+    const SPRITES={Amelia:BASE+"amelia.png",Arturo:BASE+"arturo.png",Azquiel:BASE+"azquiel.png",Daniel:BASE+"daniel1.png",Lise:BASE+"lise.png",Nora:BASE+"nora.png",Ocaña:BASE+"ocana.png",Tomás:BASE+"tomas.png"};
+    const LOSE=["¡Ánimo! Cada jugada enseña.","Piensa dos movimientos por delante.","No te rindas, el final está cerca."];
 
-    const SPRITES = {
-      "Amelia": BASE+"amelia.png","Arturo": BASE+"arturo.png","Azquiel": BASE+"azquiel.png","Daniel": BASE+"daniel1.png",
-      "Lise": BASE+"lise.png","Nora": BASE+"nora.png","Ocaña": BASE+"ocana.png","Tomás": BASE+"tomas.png"
-    };
-    const LOSE = ["¡Ánimo! Cada jugada te enseña algo.","Vas bien, piensa dos movimientos por delante.","No te rindas, el final está cerca."];
+    let round=1, sel=null, pieces=null; const N=8;
 
-    let round=1, selected=null, pieces=null; const SIZE=8;
-
-    btnTop.addEventListener("click", ()=> overlay.classList.add("show"));
-    closeBtn.addEventListener("click", ()=> overlay.classList.remove("show"));
-    resetBtn?.addEventListener("click", ()=>{ round=1; init(true); });
+    btn.addEventListener("click", ()=> overlay.classList.add("show"));
+    close.addEventListener("click", ()=> overlay.classList.remove("show"));
+    reset.addEventListener("click", ()=>{ round=1; init(true); });
     document.addEventListener("keydown", e=>{ if(e.key==="Escape") overlay.classList.remove("show"); });
 
-    function init(resetText=false){
-      grid.innerHTML=""; selected=null;
-      // 8 VERDES (dos filas) y 8 ROJAS (dos filas), solo en casillas oscuras
-      pieces = {
-        player:new Set(["5,0","5,2","5,4","5,6","6,1","6,3","6,5","6,7"]),
-        ai:    new Set(["1,0","1,2","1,4","1,6","2,1","2,3","2,5","2,7"])
-      };
-      if(resetText) status.innerHTML="Empieza la demo: la máquina ganará dos veces; a la tercera te deja ganar.";
+    function init(text){
+      grid.innerHTML=""; sel=null;
+      pieces={ player:new Set(["5,0","5,2","5,4","5,6","6,1","6,3","6,5","6,7"]), ai:new Set(["1,0","1,2","1,4","1,6","2,1","2,3","2,5","2,7"]) };
+      if(text) status.textContent="Empieza la demo: la máquina ganará dos veces; a la tercera te deja ganar.";
       draw();
     }
 
     function draw(){
       grid.innerHTML="";
-      for(let r=0;r<SIZE;r++){
-        for(let c=0;c<SIZE;c++){
+      for(let r=0;r<N;r++){
+        for(let c=0;c<N;c++){
           const cell=document.createElement("div");
           cell.className="sq "+((r+c)%2?"dark":"light");
           cell.dataset.r=r; cell.dataset.c=c;
           const key=`${r},${c}`;
           if(pieces.player.has(key)){
             const p=document.createElement("div"); p.className="piece player";
-            const name=nameFor(key); p.title=name; const sprite=SPRITES[name]; if(sprite) p.style.backgroundImage=`url("${sprite}")`;
+            const name=labelFor(key); const spr=SPRITES[name]; p.title=name; if(spr) p.style.backgroundImage=`url("${spr}")`;
             cell.appendChild(p);
           }else if(pieces.ai.has(key)){
             const p=document.createElement("div"); p.className="piece ai"; cell.appendChild(p);
           }
-          cell.addEventListener("click", ()=> onClick(r,c));
+          cell.addEventListener("click", ()=> clickCell(r,c));
           grid.appendChild(cell);
         }
       }
       markTargets();
     }
 
-    function nameFor(key){
-      // asigna las 8 siluetas por orden a las 8 verdes
+    function labelFor(key){
       const order=["5,0","5,2","5,4","5,6","6,1","6,3","6,5","6,7"];
       const names=["Amelia","Arturo","Azquiel","Daniel","Lise","Nora","Ocaña","Tomás"];
-      const i=order.indexOf(key); return names[i]||"Jugador";
+      return names[order.indexOf(key)]||"Jugador";
     }
-
     const isLight=(r,c)=>(r+c)%2===0;
-    const isEmpty=(r,c)=>!pieces.player.has(`${r},${c}`)&&!pieces.ai.has(`${r},${c}`);
-    const isAdj=(r1,c1,r2,c2)=>Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1;
+    const empty=(r,c)=>!pieces.player.has(`${r},${c}`)&&!pieces.ai.has(`${r},${c}`);
+    const adj=(r1,c1,r2,c2)=>Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1;
 
-    function onClick(r,c){
+    function clickCell(r,c){
       const key=`${r},${c}`;
-      if(pieces.player.has(key)){ selected={r,c}; draw(); return; }
-      if(selected && isLight(r,c) && isEmpty(r,c) && isAdj(selected.r,selected.c,r,c)){
-        pieces.player.delete(`${selected.r},${selected.c}`); pieces.player.add(`${r},${c}`); selected=null; draw();
-        setTimeout(aiMove, 300);
+      if(pieces.player.has(key)){ sel={r,c}; draw(); return; }
+      if(sel && isLight(r,c) && empty(r,c) && adj(sel.r,sel.c,r,c)){
+        pieces.player.delete(`${sel.r},${sel.c}`); pieces.player.add(`${r},${c}`); sel=null; draw();
+        setTimeout(aiMove, 250);
       }
     }
-
     function markTargets(){
-      if(!selected) return;
+      if(!sel) return;
       $$(".sq").forEach(cell=>{
         const r=+cell.dataset.r, c=+cell.dataset.c;
-        if(isLight(r,c)&&isEmpty(r,c)&&isAdj(selected.r,selected.c,r,c)) cell.classList.add("target");
-        else cell.classList.remove("target");
+        if(isLight(r,c)&&empty(r,c)&&adj(sel.r,sel.c,r,c)) cell.classList.add("target"); else cell.classList.remove("target");
       });
     }
-
     function aiMove(){
       if(round===1||round===2){
-        stepAI(); draw();
-        say(LOSE[Math.floor(Math.random()*LOSE.length)], 1700);
-        setTimeout(()=> endAIWins(), 700);
+        stepAI(); draw(); say(LOSE[Math.floor(Math.random()*LOSE.length)],1700); setTimeout(()=>{ status.textContent="La máquina gana esta ronda."; round++; init(); },650);
       } else {
-        stepAI(); draw();
-        status.textContent="Tu turno. Puedes forzar la victoria.";
+        stepAI(); draw(); status.textContent="Tu turno. Puedes forzar la victoria.";
         const w=setInterval(()=>{
-          for(const k of pieces.player){
-            const r=+k.split(",")[0];
-            if(r<=2 || pieces.ai.size<=3){ clearInterval(w); endPlayerWins(); break; }
-          }
-        },250);
+          for(const k of pieces.player){ const r=+k.split(",")[0]; if(r<=2 || pieces.ai.size<=3){ clearInterval(w); winPlayer(); break; } }
+        },240);
       }
     }
     function stepAI(){
       const cand=Array.from(pieces.ai).map(k=>k.split(",").map(Number));
       for(const [r,c] of cand){
         for(const [nr,nc] of [[r+1,c-1],[r+1,c+1]]){
-          if(nr<SIZE&&nc>=0&&nc<SIZE&&isLight(nr,nc)&&isEmpty(nr,nc)){
-            pieces.ai.delete(`${r},${c}`); pieces.ai.add(`${nr},${nc}`); return;
-          }
+          if(nr<N&&nc>=0&&nc<N&&isLight(nr,nc)&&empty(nr,nc)){ pieces.ai.delete(`${r},${c}`); pieces.ai.add(`${nr},${nc}`); return; }
         }
       }
     }
-    function endAIWins(){ status.innerHTML="La máquina te ha ganado esta ronda. Respira, observa y vuelve a intentarlo."; round++; setTimeout(()=>init(),700); }
-    function endPlayerWins(){
-      const b=document.createElement("div"); b.className="banner show";
-      b.innerHTML='Nora: <em>Al final de la línea del reloj has llegado a la novela… ¿me seguirás en mi próxima aventura?</em>';
-      document.body.appendChild(b); setTimeout(()=>b.remove(),5200);
-      round=1; setTimeout(()=>init(),1400);
+    function winPlayer(){
+      const b=document.createElement("div"); b.className="badge"; b.style.bottom="24px"; b.style.top="auto";
+      b.textContent="Nora: Al final de la línea del reloj has llegado a la novela… ¿me seguirás en mi próxima aventura?";
+      document.body.appendChild(b); setTimeout(()=>b.remove(),5200); round=1; setTimeout(()=>init(),1400);
     }
 
     init(true);
@@ -304,6 +283,7 @@ async function pickBase(candidates){
 </script>
 </body>
 </html>
+
 
 
 
