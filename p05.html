@@ -6,13 +6,9 @@
 <title>Pista 5 — El mural de las agujas</title>
 <style>
   :root{
-    --bg:#0f1115;
-    --panel:#141821;
     --ink:#e6f1ff;
-    --muted:#93a0b4;
+    --muted:#aab6c8;
     --ok:#7ce0ff;
-    --warn:#ffd166;
-    --err:#ff8a8a;
     --glow: 0 0 0 2px rgba(124,224,255,.35), 0 0 26px rgba(124,224,255,.35);
   }
   *{box-sizing:border-box}
@@ -20,49 +16,49 @@
   body{
     margin:0;
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    background: radial-gradient(1000px 400px at 50% -10%, #1a2030 0%, var(--bg) 48%, #0b0d11 100%);
     color: var(--ink);
+    /* FONDO con imagen y capa oscura para contraste */
+    background: url('fondo.png') center/cover fixed no-repeat;
+    position: relative;
+  }
+  body::before{
+    content:"";
+    position: fixed; inset:0;
+    /* viñeta y oscurecimiento suave para que resalten las agujas */
+    background: radial-gradient(1200px 500px at 50% -10%, rgba(0,0,0,.35), rgba(0,0,0,.65) 60%, rgba(0,0,0,.8) 100%);
+    pointer-events:none;
+    z-index:-1;
   }
   .wrap{
     max-width: 1200px;
     margin: 24px auto 64px;
     padding: 0 16px;
   }
-  h1{
-    margin: 0 0 12px;
-    font-weight: 700;
-    letter-spacing:.2px;
-  }
+  h1{ margin:0 0 10px; font-weight:700; letter-spacing:.2px; }
   .lead{
     margin: 0 0 18px;
     color: var(--muted);
-    line-height: 1.55;
+    line-height: 1.6;
   }
-  .row{
-    display: grid;
-    gap: 18px;
-  }
-
-  /* Ranuras (arriba) */
-  .slots{
-    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
-    padding: 16px;
+  .panel{
+    background: rgba(8,12,18,.65);
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255,255,255,.08);
     border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.06);
+    padding: 16px;
   }
-  .grid{
-    display: grid;
-    grid-template-columns: repeat(6, minmax(120px,1fr));
-    gap: 14px;
-  }
-  @media (max-width: 980px){
-    .grid{ grid-template-columns: repeat(3, minmax(100px,1fr)); }
-  }
+  h2{ margin:0 0 10px; font-size:20px }
+
+  /* Grids */
+  .grid{ display:grid; grid-template-columns: repeat(6,minmax(120px,1fr)); gap:14px; }
+  @media (max-width:980px){ .grid{ grid-template-columns: repeat(3,minmax(100px,1fr)); } }
+
+  /* Ranuras */
   .slot{
     position: relative;
     height: 180px;
     border-radius: 12px;
-    background: #0c0f14;
+    background: rgba(12,15,20,.7);
     border: 1px dashed rgba(255,255,255,.18);
     overflow: hidden;
     cursor: pointer;
@@ -70,130 +66,67 @@
     display:flex;align-items:center;justify-content:center;
   }
   .slot:hover{ transform: translateY(-1px); }
-  .slot::before{
-    /* “sombra”/silhouette de la aguja correcta */
-    content:"";
+  .slot img{
     position:absolute; inset:6px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    filter: grayscale(1) opacity(.16);
+    width: calc(100% - 12px); height: calc(100% - 12px);
+    object-fit: contain; pointer-events:none;
+    filter: grayscale(1) opacity(.18);
     transition: filter .25s ease, opacity .25s ease;
   }
-  .slot.placed{
-    border:1px solid rgba(255,255,255,.16);
-    box-shadow: var(--glow);
-  }
-  .slot.placed::before{
-    filter: none;
-    opacity: 1;
-  }
+  .slot.placed{ border:1px solid rgba(255,255,255,.18); box-shadow: var(--glow); }
+  .slot.placed img{ filter:none; opacity:1; }
 
-  .slots h2, .library h2{ margin:0 0 10px; font-size: 20px; font-weight: 700; letter-spacing:.2px;}
-
-  /* Biblioteca (abajo) */
-  .library{
-    margin-top: 28px;
-    padding: 16px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.06);
-    background: var(--panel);
-  }
-  .pieces{
-    display:grid;
-    grid-template-columns: repeat(6, minmax(120px,1fr));
-    gap: 14px;
-  }
-  @media (max-width:980px){
-    .pieces{ grid-template-columns: repeat(3, minmax(100px,1fr)); }
-  }
+  /* Biblioteca */
+  .pieces{ display:grid; grid-template-columns: repeat(6,minmax(120px,1fr)); gap:14px; }
+  @media (max-width:980px){ .pieces{ grid-template-columns: repeat(3,minmax(100px,1fr)); } }
   .piece{
-    height: 160px;
-    border-radius: 12px;
-    background: #0b0f15;
-    border: 1px solid rgba(255,255,255,.08);
-    overflow: hidden;
-    cursor: pointer;
-    display:flex;align-items:center;justify-content:center;
+    height:160px; border-radius:12px; background: rgba(11,15,21,.75);
+    border:1px solid rgba(255,255,255,.1);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
     transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
   }
-  .piece img{
-    max-width: 92%;
-    max-height: 92%;
-    object-fit: contain;
-    pointer-events: none;
-  }
   .piece:hover{ transform: translateY(-1px); }
-  .piece.selected{
-    border-color: var(--ok);
-    box-shadow: var(--glow);
-    transform: translateY(-1px) scale(1.01);
-  }
-  .piece.used{
-    opacity:.35;
-    pointer-events: none;
-    filter: grayscale(1);
-  }
+  .piece.selected{ border-color:var(--ok); box-shadow: var(--glow); transform: translateY(-1px) scale(1.01); }
+  .piece.used{ opacity:.35; pointer-events:none; filter:grayscale(1); }
+  .piece img{ max-width:92%; max-height:92%; object-fit:contain; pointer-events:none; }
 
-  /* Mensajes / footer */
-  .bar{
-    margin-top: 18px;
-    display:flex; gap: 12px; align-items:center; flex-wrap: wrap;
-  }
-  .msg{
-    flex:1 1 320px;
-    min-height: 42px;
-    background: rgba(255,255,255,.05);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 10px;
-    padding: 10px 12px;
-    color: var(--ink);
-    line-height: 1.4;
-  }
-  .btn{
-    appearance:none; border:0; cursor:pointer;
-    padding:10px 14px; border-radius:10px;
-    background:#1c2332; color:var(--ink);
-    border:1px solid rgba(255,255,255,.1);
-    transition: filter .15s ease, transform .1s ease;
-  }
-  .btn:hover{ filter: brightness(1.06); }
-  .btn:active{ transform: translateY(1px); }
-
-  .hint{ color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+  /* Mensajes / botones */
+  .bar{ margin-top: 14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .msg{ flex:1 1 320px; min-height:42px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 12px; line-height:1.4; }
+  .btn{ appearance:none; border:0; cursor:pointer; padding:10px 14px; border-radius:10px; background:#1c2332; color:var(--ink); border:1px solid rgba(255,255,255,.12); }
+  .btn:hover{ filter:brightness(1.06); }
 
   /* Destello especial */
   @keyframes sparkle {
-    0%   { box-shadow: 0 0 0 0 rgba(124,224,255,.0); }
-    40%  { box-shadow: 0 0 0 6px rgba(124,224,255,.25), 0 0 36px rgba(124,224,255,.55); }
-    70%  { box-shadow: 0 0 0 2px rgba(124,224,255,.25), 0 0 18px rgba(124,224,255,.35); }
-    100% { box-shadow: var(--glow); }
+    0%{ box-shadow:0 0 0 0 rgba(124,224,255,0); }
+    40%{ box-shadow:0 0 0 6px rgba(124,224,255,.25), 0 0 36px rgba(124,224,255,.55); }
+    70%{ box-shadow:0 0 0 2px rgba(124,224,255,.25), 0 0 18px rgba(124,224,255,.35); }
+    100%{ box-shadow:var(--glow); }
   }
-  .spark{
-    animation: sparkle .9s ease-out 1 forwards;
-  }
+  .spark{ animation: sparkle .9s ease-out 1 forwards; }
 </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Pista 5 — El mural de las agujas</h1>
     <p class="lead">
-      Coloca cada <strong>aguja</strong> en su <strong>ranura</strong> correspondiente como si fuera un puzzle.
-      Si te equivocas, verás un mensaje de ánimo. Cuando completes todas, la aguja especial
-      destellará y aparecerá una pista final.
+      Coloca cada <strong>aguja</strong> en su <strong>ranura</strong> (verás la silueta tenue como guía).  
+      <strong>Reglas:</strong> selecciona una aguja de la biblioteca y toca la ranura donde crees que encaja.
+      Tienes <strong>3 intentos por aguja</strong>. Si una aguja agota sus intentos, el puzzle se
+      <strong>reinicia desde el principio</strong>. Completa las 12 y la aguja especial destellará con la pista final.
     </p>
 
-    <!-- RANURAS -->
-    <section class="slots">
+    <!-- Ranuras -->
+    <section class="panel">
       <h2>Ranuras</h2>
       <div id="slots" class="grid" aria-label="Ranuras para colocar agujas"></div>
-      <p class="hint">Consejo: toca una aguja de la biblioteca para seleccionarla y luego toca la ranura correcta.</p>
     </section>
 
-    <!-- BIBLIOTECA -->
-    <section class="library">
+    <!-- Biblioteca -->
+    <section class="panel" style="margin-top:18px">
       <h2>Biblioteca de agujas</h2>
-      <div id="pieces" class="pieces" aria-label="Agujas para arrastrar o tocar"></div>
+      <div id="pieces" class="pieces" aria-label="Agujas disponibles"></div>
       <div class="bar">
         <div id="msg" class="msg" role="status" aria-live="polite"></div>
         <button id="reset" class="btn">Reiniciar</button>
@@ -203,34 +136,33 @@
 
 <script>
 (() => {
-  // === Datos (ids deben coincidir con los nombres de archivo) ===
+  // === Configuración ===
   const needles = [
     "aguja01","aguja02","aguja03","aguja04","aguja05","aguja06",
-    "aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz" // azul
+    "aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz"
   ];
-  // Mensajes de ánimo para intentos incorrectos
+  const MAX_TRIES = 3;  // intentos por aguja
   const encouragement = [
-    "Casi, pero no. Vuelve a intentarlo, el tiempo apremia…",
-    "No encaja ahí. Observa bien la forma del borde.",
-    "Otra vez: compara el cuerpo de la aguja con la silueta.",
-    "Aún no. Cuando aciertes lo sabrás.",
-    "Sigue, estás más cerca de lo que piensas.",
+    "No encaja ahí. Te quedan {n} intentos para esta aguja.",
+    "Buen ojo, pero no. Intentos restantes: {n}.",
+    "Casi… compara la forma de la silueta. Intentos: {n}."
   ];
   const finalClue = "La hora correcta es <strong>8:30</strong> y el emblema ilumina el camino.";
 
-  // Estado
-  let selected = null;           // id de aguja seleccionada desde la biblioteca
-  const placed = new Set();      // ids ya colocados
-  const correctBySlot = {};      // slotId -> needleId esperado (aquí coinciden)
+  // === Estado ===
+  let selected = null;           // id de aguja seleccionada
+  const placed = new Set();      // agujas ya colocadas
+  const triesLeft = new Map();   // id -> intentos restantes
+  needles.forEach(id => triesLeft.set(id, MAX_TRIES));
 
-  // Utilidades
+  // === Utilidades ===
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const msg = (html) => $("#msg").innerHTML = html;
   const rand = (arr) => arr[Math.floor(Math.random()*arr.length)];
   const shuffle = (arr) => arr.sort(() => Math.random() - .5);
 
-  // Construir ranuras (sombra = misma imagen con opacidad baja)
+  // Construir ranuras
   function renderSlots(){
     const host = $("#slots");
     host.innerHTML = "";
@@ -240,61 +172,18 @@
       slot.type = "button";
       slot.dataset.slot = id;
       slot.setAttribute("aria-label", `Ranura para ${id}`);
-      slot.style.setProperty("--img", `url('${id}.png')`);
-      slot.style.position = "relative";
-      // sombra
-      slot.style.setProperty("--img", `url('${id}.png')`);
-      slot.style.background = "none";
+      slot.innerHTML = `<img src="${id}.png" alt="">`;
       slot.addEventListener("click", () => tryPlace(slot));
       slot.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tryPlace(slot);} });
-      // aplicamos “sombra” a ::before mediante inline style
-      slot.style.setProperty("--bg", `url('${id}.png')`);
-      slot.style.setProperty("backgroundImage","none");
-      slot.style.setProperty("backgroundSize","contain");
-      // truco para ::before: usamos stylesheet general; aquí seteamos el estilo directo:
-      slot.style.setProperty("--shadow","url('"+id+".png')");
-      slot.style.setProperty("--opacity",".16");
-      slot.style.setProperty("--gray","grayscale(1)");
-      // pero ::before no puede leer vars directamente; así que:
-      slot.style.setProperty("--x","0"); // placeholder
-
-      // Asignamos la imagen sombra vía CSSOM:
-      const setShadow = () => {
-        slot.style.setProperty("--x","0"); // no-op
-        slot.style.setProperty("position","relative");
-        slot.style.setProperty("isolation","isolate");
-      };
-      setShadow();
-
-      // Insertamos una hoja <style> por única vez con el selector .slot::before
-      // (ya definida en CSS global) que usa background vía style.backgroundImage:
-      slot.style.setProperty("backgroundImage","none");
-      slot.style.setProperty("backgroundColor","transparent");
-      slot.style.setProperty("--bgImg", `url('${id}.png')`);
-      // Usamos attribute style for ::before (hack): creamos un hijo para manejar la imagen real
-      const ghost = document.createElement("img");
-      ghost.src = `${id}.png`;
-      ghost.alt = "";
-      ghost.style.position = "absolute";
-      ghost.style.inset = "6px";
-      ghost.style.objectFit = "contain";
-      ghost.style.width = "calc(100% - 12px)";
-      ghost.style.height = "calc(100% - 12px)";
-      ghost.style.filter = "grayscale(1) opacity(.18)";
-      ghost.style.pointerEvents = "none";
-      slot.appendChild(ghost);
-
       host.appendChild(slot);
-      correctBySlot[id] = id; // aquí ranura==aguja
     });
   }
 
-  // Construir biblioteca (aleatorio)
+  // Construir piezas aleatorias
   function renderPieces(){
     const host = $("#pieces");
     host.innerHTML = "";
-    const mix = shuffle([...needles]);
-    mix.forEach(id => {
+    shuffle([...needles]).forEach(id => {
       const el = document.createElement("button");
       el.className = "piece";
       el.type = "button";
@@ -315,7 +204,6 @@
   function selectPiece(el){
     if(el.classList.contains("used")) return;
     if(selected === el.dataset.id){
-      // deseleccionar
       el.classList.remove("selected");
       selected = null;
       msg("Has deseleccionado la aguja.");
@@ -324,60 +212,61 @@
     clearSelection();
     selected = el.dataset.id;
     el.classList.add("selected");
-    msg(`Aguja seleccionada: <strong>${selected}</strong>. Ahora toca la ranura correspondiente.`);
+    msg(`Aguja seleccionada: <strong>${selected}</strong>. Toca la ranura correspondiente. Intentos disponibles: <strong>${triesLeft.get(selected)}</strong>.`);
   }
 
   function tryPlace(slot){
-    if(!selected){
-      msg("Primero selecciona una aguja en la biblioteca.");
-      return;
-    }
-    const expect = correctBySlot[slot.dataset.slot];
+    if(!selected){ msg("Selecciona primero una aguja en la biblioteca."); return; }
+
+    const expect = slot.dataset.slot;
     if(selected === expect){
-      // correcta
+      // Correcta
       placed.add(selected);
-      // “rellenamos” la ranura con la imagen buena (sin filtro)
       const img = slot.querySelector("img");
       if(img){ img.style.filter = "none"; img.style.opacity = "1"; }
       slot.classList.add("placed","spark");
-      setTimeout(()=>slot.classList.remove("spark"), 1000);
-
-      // marcar la pieza como usada
+      setTimeout(()=>slot.classList.remove("spark"), 900);
       const btn = $(`.piece[data-id="${selected}"]`);
       if(btn){ btn.classList.add("used"); btn.classList.remove("selected"); }
-
-      msg(`¡Encaja! <strong>${selected}</strong> colocada correctamente.`);
+      msg(`¡Encaja! <strong>${selected}</strong> colocada. `+
+          `Quedan <strong>${needles.length - placed.size}</strong>.`);
       selected = null;
 
-      // ¿completado?
       if(placed.size === needles.length){
-        // efecto especial en aguja_luz
         const special = $(`.slot[data-slot="aguja_luz"]`);
-        if(special){
-          special.classList.add("spark");
-          setTimeout(()=>special.classList.remove("spark"), 1200);
-        }
-        setTimeout(()=>{
-          msg(`✨ <strong>Pista final:</strong> ${finalClue}`);
-        }, 300);
+        if(special){ special.classList.add("spark"); setTimeout(()=>special.classList.remove("spark"), 1200); }
+        setTimeout(()=> msg(`✨ <strong>Pista final:</strong> ${finalClue}`), 350);
       }
+      return;
+    }
+
+    // Incorrecta → restar intento
+    const left = Math.max(0, (triesLeft.get(selected) ?? MAX_TRIES) - 1);
+    triesLeft.set(selected, left);
+    if(left === 0){
+      // Reinicio completo
+      msg(`Has agotado los intentos de <strong>${selected}</strong>. El puzzle se reinicia…`);
+      setTimeout(resetAll, 900);
     }else{
-      msg(rand(encouragement));
+      const txt = rand(encouragement).replace("{n}", `<strong>${left}</strong>`);
+      msg(txt);
     }
   }
 
   function resetAll(){
     placed.clear();
     clearSelection();
+    triesLeft.clear();
+    needles.forEach(id => triesLeft.set(id, MAX_TRIES));
     renderSlots();
     renderPieces();
-    msg("Juego reiniciado. Selecciona una aguja y colócala en su ranura.");
+    msg("Puzzle reiniciado. Selecciona una aguja y colócala en su ranura. Recuerda: 3 intentos por aguja.");
   }
 
   // Inicio
   renderSlots();
   renderPieces();
-  msg("Selecciona una aguja y colócala en su ranura correspondiente.");
+  msg("Selecciona una aguja y colócala en su ranura. Tienes <strong>3 intentos por aguja</strong>. ¡Suerte!");
 
   $("#reset").addEventListener("click", resetAll);
 })();
