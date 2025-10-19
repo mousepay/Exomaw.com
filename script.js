@@ -1,3 +1,19 @@
+const params  = new URLSearchParams(location.search);
+const inicial = params.get('src') || 'p01.html';
+const auto    = params.get('autoplay') === '1';   // <— NUEVO
+const frame   = document.getElementById('view');
+frame.src = inicial;
+
+const audio = document.getElementById('musicaFondo');
+const btn   = document.getElementById('btnMusica');
+
+// si venimos con autoplay=1 o si quedó activo de antes, reproducimos
+const estabaActiva = localStorage.getItem('musicaActiva') === 'true';
+if (auto || estabaActiva) {
+  audio.play().then(()=>{
+    localStorage.setItem('musicaActiva','true');
+  }).catch(()=>{});
+}
 // ====== CONFIGURA AQUÍ LA FECHA DE LANZAMIENTO ======
 const launch = new Date('2026-01-15T20:00:00+01:00'); // Madrid (CET/CEST)
 
@@ -93,4 +109,5 @@ const launch = new Date('2026-01-15T20:00:00+01:00'); // Madrid (CET/CEST)
   musica.addEventListener('play', () => localStorage.setItem('musicaActiva', 'true'));
   musica.addEventListener('pause', () => localStorage.setItem('musicaActiva', 'false'));
 })();
+
 
