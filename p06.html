@@ -1,42 +1,188 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal #P-01 — EXOMAW</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0a0c10;
-      color: #eaf1fb;
-      font: 16px/1.6 system-ui, Segoe UI, Roboto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .wrap {
-      max-width: 720px;
-      padding: 2rem;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      text-align: center;
-    }
-    a {
-      color: #8be9fd;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>El reloj de la verdad</title>
+<style>
+  :root{ --ink:#0c2f29; --muted:#2b5f55; --ok:#118754; --warn:#f0b429; --brand:#0ea5a3; --pane:rgba(255,255,255,.92); }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+  body{
+    /* background:url('fondo.png') center/cover fixed no-repeat; */
+    background: radial-gradient(1200px 900px at 30% 0%, #eaf7f2, #d8efe6 60%, #cde6de);
+  }
+  .wrap{max-width:1000px;margin:28px auto 90px;padding:0 16px}
+  .top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .back{border:1px solid #cfe6df;background:#f5fbf9;color:#1c534a;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+  h1{margin:6px 0 12px;font-size:clamp(26px,4vw,44px);color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45)}
+  .card{background:var(--pane);backdrop-filter:blur(6px);border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+  .hud{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}
+  .pill{padding:6px 10px;border-radius:999px;background:#eef7f5;border:1px solid #cfe6df;color:#17584c;font-size:14px}
+  .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+  .primary{background:var(--brand);color:#053f3b}
+  .ghost{background:#eef7f5;color:#0c4a3f;border:1px solid #cfe6df}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}}
+  .clockWrap{display:grid;place-items:center}
+  svg{width:min(520px,90vw);height:auto}
+  .face{fill:#fefefe;stroke:#1a5348;stroke-width:3;filter:drop-shadow(0 10px 28px rgba(0,0,0,.18))}
+  .tick{stroke:#184b41;stroke-width:3}
+  .sub{stroke:#184b41;stroke-width:1.5;opacity:.6}
+  .hand{stroke:#0a2f29;stroke-linecap:round;transform-origin:50% 50%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));cursor:grab}
+  .hand:active{cursor:grabbing}
+  .center{fill:#0a2f29}
+  .target{fill:#dff6ef;stroke:#8fd0c3;stroke-width:2;opacity:.9}
+  .unlocked{fill:#bff1e4;stroke:#3bb499}
+  .msg{margin-top:8px;border-radius:12px;padding:10px 12px;border:1px solid #e3eee9;background:#f8fffc;color:#0e4c41}
+  .list{margin-top:10px}
+  .list .row{display:flex;gap:10px;align-items:center;margin:6px 0;padding:8px;border-radius:10px;border:1px solid #e6f2ee;background:#ffffff}
+  .row.done{border-color:#bfeade;background:#f2fffa}
+  .row .time{width:90px;font-weight:700;color:#0a4b44}
+  .row .txt{flex:1;color:#0e3c34}
+  .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.9),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s}
+  .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
+  @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
+  .final{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#f4fffb;border:1px solid #cfe6df}
+
+  /* Libreta */
+  .notes{margin-top:14px;border:1px solid #cfe6df;background:#ffffff;border-radius:12px;overflow:hidden}
+  .notes .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#eef7f5;border-bottom:1px solid #cfe6df}
+  .notes .title{font-weight:700;color:#0c4a3f}
+  .notes .body{padding:10px}
+  .notes textarea{width:100%;min-height:110px;border:1px solid #cfe6df;border-radius:10px;padding:10px;resize:vertical}
+  .notes .actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+</style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Portal #P-01</h1>
-    <p>Este es un portal de prueba. Cuando el libro esté publicado, aquí aparecerá la primera pista.</p>
-    <p><a href="/">← Volver al inicio</a></p>
+    <div class="top">
+      <button class="back" onclick="history.back()">← Volver al libro</button>
+      <h1>El reloj de la verdad</h1>
+    </div>
+
+    <div class="card">
+      <p><strong>Cómo se juega:</strong> ajusta las agujas para alinear <strong>seis horas clave</strong>. Cada acierto desbloquea un recuerdo de Nora (no revela al asesino). Tolerancia: ±3 minutos. Sugerencia: mueve primero la aguja larga (minutos) y luego la corta (horas).</p>
+
+      <div class="hud">
+        <span class="pill" id="readout">Hora actual: 12:00</span>
+        <span class="pill">Tolerancia: ±3′</span>
+        <button class="btn ghost" id="resetBtn">Reiniciar</button>
+      </div>
+
+      <div class="grid">
+        <div class="clockWrap">
+          <svg viewBox="0 0 300 300" aria-label="Reloj interactivo">
+            <circle cx="150" cy="150" r="135" class="face"/>
+            <!-- marcas -->
+            <g id="ticks">
+              <g>
+                <!-- horas -->
+                <!-- se inyecta en JS si quisieras; aquí dejamos las 12 -->
+                <!-- H -->
+                <script>
+                  /* marcador para no romper HTML; JS lo añadirá al cargar */
+                </script>
+              </g>
+            </g>
+            <g id="targets"></g>
+            <!-- agujas -->
+            <line id="hour" x1="150" y1="150" x2="150" y2="95" stroke-width="6" class="hand"/>
+            <line id="min"  x1="150" y1="150" x2="150" y2="70" stroke-width="4" class="hand"/>
+            <circle cx="150" cy="150" r="5.5" class="center"/>
+          </svg>
+          <div class="msg" id="hint">Consejo: arrastra la <strong>aguja larga</strong> (minutero) y luego ajusta la <strong>corta</strong> (hora).</div>
+
+          <!-- Libreta -->
+          <div class="notes" id="notes">
+            <div class="bar">
+              <div class="title">Libreta del reloj</div>
+              <div style="font-size:12px;color:#1a5c51">Se guarda en este dispositivo</div>
+            </div>
+            <div class="body">
+              <textarea id="notesArea" placeholder="Apunta horas, relaciones y frases que te sugieran…"></textarea>
+              <div class="actions">
+                <button class="btn primary" id="saveLine">Guardar línea</button>
+                <button class="btn ghost" id="undoLine">Borrar última línea</button>
+                <button class="btn ghost" id="clearAll">Borrar todo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="list" id="list"></div>
+          <div id="finalBox" class="final"></div>
+        </div>
+      </div>
+    </div>
   </div>
-</body>
-</html>
+
+  <div id="flash" class="flash"></div>
+
+<script>
+const readout = document.getElementById('readout');
+const list    = document.getElementById('list');
+const targetsG= document.getElementById('targets');
+const flash   = document.getElementById('flash');
+
+const hourHand = document.getElementById('hour');
+const minHand  = document.getElementById('min');
+const center = {x:150,y:150};
+let hour=12, minute=0;
+
+const TOL_MIN = 3; // ±3'
+
+// Objetivos y frases (no spoilers)
+const GOALS = [
+  {h:2,  m:15, txt:'A las 02:15, la sombra se movió antes del reflejo.'},
+  {h:5,  m:30, txt:'A las 05:30, alguien giró el tiempo para encajar en su coartada.'},
+  {h:7,  m:45, txt:'A las 07:45, la memoria decidió a quién proteger.'},
+  {h:9,  m:10, txt:'A las 09:10, el corazón latía fuera de lugar.'},
+  {h:11, m:55, txt:'A las 11:55, la verdad respiró detrás del cristal.'},
+  {h:12, m:0,  txt:'A las 12:00, el silencio habló más que las palabras.'}
+];
+const unlocked = new Set();
+
+function pad(n){return String(n).padStart(2,'0')}
+function timeStr(h,m){return `${pad(h)}:${pad(m)}`}
+
+function paintTicks(){
+  const svg = document.querySelector('svg');
+  const gH = document.createElementNS('http://www.w3.org/2000/svg','g');
+  const gM = document.createElementNS('http://www.w3.org/2000/svg','g');
+  // horas
+  for(let i=0;i<12;i++){
+    const a = i*Math.PI/6;
+    const x1=150+Math.sin(a)*110, y1=150- Math.cos(a)*110;
+    const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
+    const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
+    ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
+    ln.setAttribute('class','tick'); gH.appendChild(ln);
+  }
+  // minutos
+  for(let i=0;i<60;i++){
+    if(i%5===0) continue;
+    const a=i*Math.PI/30;
+    const x1=150+Math.sin(a)*118, y1=150- Math.cos(a)*118;
+    const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
+    ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
+    ln.setAttribute('class','sub'); gM.appendChild(ln);
+  }
+  svg.querySelector('#ticks').append(gH,gM);
+}
+
+// lista y halos
+function paintList(){
+  list.innerHTML = GOALS.map((g,i)=>`
+    <div class="row ${unlocked.has(i)?'done':''}">
+      <div class="time">${timeStr(g.h,g.m)}</div>
+      <div class="txt">${unlocked.has(i)?g.txt:'— — —'}</div>
+    </div>
+  `).join('');
+  targetsG.innerHTML = GOALS.map((g,i)=>{
+    c
+
+
