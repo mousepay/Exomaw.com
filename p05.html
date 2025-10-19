@@ -15,30 +15,21 @@
     --ok:#63ffb2;
     --err:#ff6b6b;
     --accent:#8ddcff;
-    --slot-glow: rgba(137, 246, 255, .45);
+    --slot-glow: rgba(137, 246, 255, .55);
   }
   *{ box-sizing: border-box; }
-  html,body{ height:100%; background:#000; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Ubuntu, Cantarell, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"; color:var(--fg); }
+  html,body{ height:100%; background:#000; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Ubuntu, Cantarell, Arial, "Noto Sans"; color:var(--fg); }
   .wrap{
     min-height:100dvh;
     background:#000 url('./fondo.png') center top / cover no-repeat fixed;
   }
   .overlay{
-    /* velo para subir brillo sobre el fondo y dar contraste de slots */
-    background: linear-gradient( to bottom, rgba(18,20,25,.55), rgba(18,20,25,.65) 18%, rgba(18,20,25,.72) 28%, rgba(18,20,25,.9) 100%);
+    background: linear-gradient( to bottom, rgba(18,20,25,.50), rgba(18,20,25,.62) 18%, rgba(18,20,25,.7) 28%, rgba(18,20,25,.88) 100%);
     backdrop-filter: saturate(120%) blur(1px);
   }
-  .container{
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+  .container{ max-width: 1200px; margin: 0 auto; padding: 24px; }
 
-  h1{
-    margin:0 0 14px 0;
-    font-size: clamp(26px, 2.6vw, 36px);
-    line-height:1.2;
-  }
+  h1{ margin:0 0 14px 0; font-size: clamp(26px, 2.6vw, 36px); line-height:1.2; }
   .lead{ color:var(--fg-dim); font-size: clamp(16px, 1.7vw, 18px); }
   .toolbar{ display:flex; gap:12px; flex-wrap:wrap; margin: 18px 0 6px; }
 
@@ -55,135 +46,64 @@
   .btn--brand{ background: linear-gradient(90deg, #4cc9f0, #4895ef); }
   .btn--brand:hover{ background: linear-gradient(90deg, #56e0ff, #5aa4ff); }
 
-  .grid{
-    display:grid; gap:18px;
-    grid-template-columns: 1.25fr 1fr;
-    margin: 22px 0 40px;
-  }
-
-  .panel{
-    background: rgba(20,22,27,.72);
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 40px rgba(0,0,0,.35);
-  }
-  .panel h2{
-    margin:0 0 10px; font-size: clamp(18px,1.9vw,21px); color:var(--fg);
-  }
+  .grid{ display:grid; gap:18px; grid-template-columns: 1.25fr 1fr; margin: 22px 0 40px; }
+  .panel{ background: rgba(20,22,27,.72); border-radius: 18px; padding: 18px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 40px rgba(0,0,0,.35); }
+  .panel h2{ margin:0 0 10px; font-size: clamp(18px,1.9vw,21px); color:var(--fg); }
 
   /* ZONA RANURAS (izquierda) */
-  .slots{
-    display:grid;
-    gap: 12px;
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .slots{ display:grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
   .slot{
-    position:relative;
-    border-radius: 16px;
-    padding: 10px;
-    aspect-ratio: 1 / 1.35; /* vertical */
+    position:relative; border-radius: 16px; padding: 10px; aspect-ratio: 1 / 1.35;
     background:
-      radial-gradient(100px 40px at 50% 15%, rgba(255,255,255,.08), transparent 50%),
-      rgba(11,12,16,.65);
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,.06) inset,
-      0 10px 30px rgba(0,0,0,.35);
+      radial-gradient(100px 40px at 50% 15%, rgba(255,255,255,.10), transparent 50%),
+      rgba(18,22,27,.58); /* más clara */
+    box-shadow: 0 0 0 1px rgba(255,255,255,.07) inset, 0 10px 30px rgba(0,0,0,.35);
     overflow:hidden;
   }
-  .slot::after{
-    /* halo suave para “levantar” la ranura sobre el fondo */
-    content:'';
-    position:absolute; inset:-1px;
-    border-radius:16px;
-    box-shadow: 0 0 0 2px rgba(255,255,255,.06) inset, 0 0 0 8px rgba(255,255,255,.02) inset;
-    pointer-events:none;
-  }
-  .slot.is-target{ outline: 2px solid var(--slot-glow); box-shadow: 0 0 0 6px rgba(137,246,255,.08) inset; }
-  .slot.locked{ background: rgba(20,90,60,.14); }
+  .slot::after{ content:''; position:absolute; inset:-1px; border-radius:16px;
+    box-shadow: 0 0 0 2px rgba(255,255,255,.06) inset, 0 0 0 8px rgba(255,255,255,.02) inset; pointer-events:none; }
+  .slot.is-target{ outline: 2px solid var(--slot-glow); box-shadow: 0 0 0 6px rgba(137,246,255,.10) inset; }
+  .slot.locked{ background: rgba(20,90,60,.18); }
   .ghost{
-    /* “sombra” clara: la misma aguja con filtros para que se intuya */
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    filter: grayscale(100%) brightness(.95) contrast(110%) opacity(.30);
+    width: 100%; height: 100%;
+    background-position: center; background-repeat: no-repeat; background-size: contain;
+    filter: grayscale(100%) brightness(1.05) contrast(110%) opacity(.42); /* más visible */
     mix-blend-mode: screen;
   }
   .placed{
-    position:absolute; inset:10px;
-    background-position:center;
-    background-repeat:no-repeat;
-    background-size:contain;
-    filter: drop-shadow(0 12px 12px rgba(0,0,0,.45));
-    pointer-events:none;
+    position:absolute; inset:10px; background-position:center; background-repeat:no-repeat; background-size:contain;
+    filter: drop-shadow(0 12px 12px rgba(0,0,0,.45)); pointer-events:none;
   }
 
   /* ZONA PIEZAS (derecha) */
-  .library{
-    display:grid; gap:12px;
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .library{ display:grid; gap:12px; grid-template-columns: repeat(2, 1fr); }
   .piece{
-    border-radius: 14px;
-    background: rgba(14,16,20,.78);
+    border-radius: 14px; background: rgba(14,16,20,.78);
     box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
-    padding: 12px;
-    aspect-ratio: 1 / 1.35;
-    cursor: pointer;
-    position:relative;
+    padding: 12px; aspect-ratio: 1 / 1.35; cursor: pointer; position:relative;
     transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
   }
   .piece:hover{ transform: translateY(-1px); background: rgba(18,21,27,.9); }
-  .piece:active{ transform: translateY(0); }
-  .piece.is-selected{ outline: 2px solid var(--accent); box-shadow: 0 0 0 8px rgba(137,246,255,.08) inset; }
+  .piece.is-selected{ outline: 2px solid var(--accent); box-shadow: 0 0 0 8px rgba(137,246,255,.10) inset; }
+  .piece .img{ position:absolute; inset:12px; background-position: center; background-repeat: no-repeat; background-size: contain; }
 
-  .piece .img{
-    position:absolute; inset:12px;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-  }
-
-  /* CAJA MENSAJES */
-  .messages{
-    margin: -6px 0 30px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    background: rgba(8,10,12,.6);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
-    min-height: 52px;
-    display:flex; align-items:center;
-    color: var(--fg);
-    font-size: clamp(14px, 1.6vw, 16px);
-  }
+  /* MENSAJES */
+  .messages{ margin: -6px 0 30px; padding: 14px 16px; border-radius: 12px; background: rgba(8,10,12,.6);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; min-height: 52px; display:flex; align-items:center;
+    color: var(--fg); font-size: clamp(14px, 1.6vw, 16px); }
   .msg-ok{ color: var(--ok); }
   .msg-err{ color: var(--err); }
   .msg-info{ color: var(--fg-dim); }
 
   /* DESTELLO */
-  .flash{
-    position: fixed; inset: 0;
-    pointer-events: none;
+  .flash{ position: fixed; inset: 0; pointer-events: none;
     background: radial-gradient(600px 300px at 50% 40%, rgba(140,220,255,.85), transparent 70%);
-    opacity: 0; transition: opacity .4s ease;
-  }
+    opacity: 0; transition: opacity .4s ease; }
   .flash.show{ opacity: 1; animation: fadeFlash .9s ease forwards; }
-  @keyframes fadeFlash{
-    0%{ opacity: 0; }
-    20%{ opacity: 1; }
-    100%{ opacity: 0; }
-  }
+  @keyframes fadeFlash{ 0%{opacity:0} 20%{opacity:1} 100%{opacity:0} }
 
-  @media (max-width: 980px){
-    .grid{ grid-template-columns: 1fr; }
-    .library{ grid-template-columns: repeat(3, 1fr); }
-    .slots{ grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (max-width: 560px){
-    .library{ grid-template-columns: repeat(2, 1fr); }
-    .slots{ grid-template-columns: repeat(2, 1fr); }
-  }
+  @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } .library{ grid-template-columns: repeat(3, 1fr); } .slots{ grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px){ .library{ grid-template-columns: repeat(2, 1fr); } .slots{ grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
@@ -231,10 +151,10 @@
   const MAX_TRIES_PER_SLOT = 3;
 
   /* ========= STATE ========= */
-  let selectedPiece = null;          // nombre fichero aguja seleccionada
-  let solvedCount = 0;               // cuántas ranuras completadas
-  let triesBySlot = {};              // idSlot -> intentos consumidos
-  let isLocked = false;              // para evitar doble click durante animación
+  let selectedPiece = null;
+  let solvedCount = 0;
+  let triesBySlot = {};
+  let isLocked = false;
 
   /* ========= DOM ========= */
   const $library = document.getElementById('library');
@@ -261,22 +181,19 @@
     $slots.innerHTML = '';
     triesBySlot = {};
     solvedCount = 0;
-    // Para orden estable (y poder ser puzzle), usaremos los 12 nombres en un orden fijo:
-    const order = NEEDLES.slice(); // misma lista, pero la sombra es “su” solución
+    const order = NEEDLES.slice(); // cada sombra “pide” su aguja
     order.forEach((file, idx) => {
       const slot = document.createElement('div');
       slot.className = 'slot';
-      slot.dataset.answer = file;     // archivo correcto
+      slot.dataset.answer = file;
       slot.dataset.slotId = 's'+idx;
       triesBySlot[slot.dataset.slotId] = 0;
 
-      // fondo “sombra” usando el mismo png pero con filtro
       const ghost = document.createElement('div');
       ghost.className = 'ghost';
       ghost.style.backgroundImage = `url('./${file}')`;
       slot.appendChild(ghost);
 
-      // click para intentar colocar
       slot.addEventListener('click', () => tryPlace(slot));
 
       $slots.appendChild(slot);
@@ -300,7 +217,6 @@
 
       const select = () => {
         if (isLocked) return;
-        // toggle selección
         [...$library.querySelectorAll('.piece')].forEach(p=>p.classList.remove('is-selected'));
         if (selectedPiece === file) {
           selectedPiece = null;
@@ -328,20 +244,16 @@
     const slotId = slot.dataset.slotId;
 
     if (selectedPiece === answer) {
-      // OK
       placeInSlot(slot, selectedPiece);
     } else {
-      // ERROR
       triesBySlot[slotId] += 1;
       const left = MAX_TRIES_PER_SLOT - triesBySlot[slotId];
       if (left <= 0) {
-        // reiniciar todo
         say(failAll, 'msg-err');
         resetPuzzle();
       } else {
         const msg = ENCOURAGE[Math.floor(Math.random()*ENCOURAGE.length)];
         say(`${msg} (${left} intento${left===1?'':'s'} restantes en esta ranura)`, 'msg-err');
-        // feedback visual
         slot.classList.add('is-target');
         setTimeout(()=> slot.classList.remove('is-target'), 350);
       }
@@ -351,19 +263,16 @@
   const placeInSlot = (slot, file) => {
     isLocked = true;
 
-    // Mostrar pieza “puesta”
     const done = document.createElement('div');
     done.className = 'placed';
     done.style.backgroundImage = `url('./${file}')`;
     slot.appendChild(done);
     slot.classList.add('locked');
 
-    // Quitar de biblioteca y limpiar selección
     const node = $library.querySelector(`.piece[data-file="${file}"]`);
     if (node) node.remove();
     selectedPiece = null;
 
-    // Si es la aguja especial: destello + mensaje
     if (file === SPECIAL_NAME) {
       flash();
       setTimeout(()=> say(finalHint, 'msg-ok'), 260);
@@ -380,7 +289,6 @@
   };
 
   const resetPuzzle = () => {
-    // pequeña pausa para que se lea el mensaje
     isLocked = true;
     setTimeout(()=>{
       isLocked = false;
@@ -391,11 +299,12 @@
   };
 
   const flash = () => {
-    $flash.classList.add('show');
-    setTimeout(()=> $flash.classList.remove('show'), 900);
+    const $f = document.getElementById('flash');
+    $f.classList.add('show');
+    setTimeout(()=> $f.classList.remove('show'), 900);
   };
 
-  /* ========= DAMAS (ventana nueva auto-generada) ========= */
+  /* ========= DAMAS en ventana nueva (ESCAPADO <\/script>) ========= */
   const openDamas = () => {
     const html = `
 <!DOCTYPE html>
@@ -431,11 +340,11 @@
     </div>
     <div class="panel">
       <h2>Instrucciones (demo)</h2>
-      <p>Este es un tablero ilustrativo para acompañar la pista. La “máquina” hace dos jugadas y te deja ganar en la tercera, para que el lector termine en alto.</p>
+      <p>Este es un tablero ilustrativo. La “máquina” hace dos jugadas y te deja ganar en la tercera, para que el lector termine en alto.</p>
       <ol>
-        <li>Haz clic sobre una ficha azul (jugador) y luego sobre una casilla clara adyacente para mover.</li>
-        <li>La máquina (rojas) moverá automáticamente tras tu movimiento.</li>
-        <li>En la tercera ronda, se forzará tu victoria.</li>
+        <li>Haz clic en una ficha azul (jugador) y luego en una casilla clara adyacente.</li>
+        <li>La máquina (rojas) moverá automáticamente tras tu jugada.</li>
+        <li>En la tercera ronda, te deja ganar y muestra el texto final.</li>
       </ol>
     </div>
   </div>
@@ -445,7 +354,6 @@
   const $b = document.getElementById('board');
   const $m = document.getElementById('msg');
 
-  // Montamos 8x8 con patrón damas
   const squares=[];
   for(let r=0;r<8;r++){
     for(let c=0;c<8;c++){
@@ -457,10 +365,9 @@
     }
   }
 
-  // Colocar 6 fichas jugador (azules) y 6 máquina (rojas) simplificadas
   const P = []; const M=[];
-  const place=(r,c,cls)=>{ const p=document.createElement('div'); p.className='piece '+cls; get(r,c).appendChild(p); return p; };
   const get=(r,c)=>squares[r*8+c];
+  const place=(r,c,cls)=>{ const p=document.createElement('div'); p.className='piece '+cls; get(r,c).appendChild(p); return p; };
 
   [[5,1],[5,3],[5,5],[6,0],[6,2],[6,4]].forEach(([r,c])=>P.push(place(r,c,'P')));
   [[1,2],[1,4],[1,6],[2,1],[2,3],[2,5]].forEach(([r,c])=>M.push(place(r,c,'M')));
@@ -473,20 +380,14 @@
     if(!cell) return;
     const hasP = cell.querySelector('.P');
 
-    if(hasP){ // seleccionar
-      selected = cell;
-      $m.textContent="Has seleccionado una ficha azul. Toca una casilla clara adyacente para mover.";
-      return;
-    }
+    if(hasP){ selected = cell; $m.textContent="Has seleccionado una ficha azul. Toca una casilla clara adyacente para mover."; return; }
     if(selected){
-      // mover solo a casilla clara vacía y adyacente (demo)
       if(!cell.classList.contains('light') || cell.childElementCount) { $m.textContent="Movimiento no válido."; selected=null; return; }
       const r0 = +selected.dataset.r, c0=+selected.dataset.c;
       const r1 = +cell.dataset.r,     c1=+cell.dataset.c;
       if(Math.abs(r1-r0)===1 && Math.abs(c1-c0)===1){
         cell.appendChild(selected.querySelector('.P'));
         selected=null; moves++;
-        // turno máquina (dos jugadas tontas) y a la tercera te deja ganar
         setTimeout(()=>aiMove(),420);
       }else{ $m.textContent="Solo un paso en diagonal."; selected=null; }
     }
@@ -494,7 +395,6 @@
 
   function aiMove(){
     if(moves<2){
-      // máquina mueve una cualquiera 1 paso si puede (muy simple)
       for(const m of M){
         const cell = m.parentElement, r=+cell.dataset.r, c=+cell.dataset.c;
         const d = [[1,-1],[1,1]];
@@ -509,13 +409,12 @@
       }
       $m.textContent="Las pistas pueden estar en todos ellos, pero solo uno sabe la verdad.";
     }else{
-      // Te deja ganar: elimina una roja y muestra mensaje final
       if(M[0] && M[0].parentElement) M[0].parentElement.removeChild(M[0]);
       $m.textContent="Al final has descubierto quién es el asesino. Ahora te espero en el próximo caso…";
     }
   }
 })();
-</script>
+<\/script>
 </html>`;
     const blob = new Blob([html], {type:'text/html'});
     const url  = URL.createObjectURL(blob);
@@ -528,9 +427,8 @@
     buildLibrary();
     say("Empieza cuando quieras. Selecciona una aguja y luego una ranura.", 'msg-info');
 
-    // botones
     document.getElementById('btnBack').addEventListener('click', () => {
-      // Ajusta al destino real de “pistas”
+      // Ajusta este destino a tu “pistas”
       location.href = 'index.html';
     });
     document.getElementById('btnDamas').addEventListener('click', openDamas);
@@ -541,6 +439,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
