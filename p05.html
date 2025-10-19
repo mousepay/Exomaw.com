@@ -11,7 +11,7 @@
     --board-dark:#0c3a28; --board-light:#e2f6ea;
   }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  body{color:var(--text);background:#e7efe9 center/cover fixed no-repeat} /* se cambia por JS al primer fondo disponible */
+  body{color:var(--text);background:#e7efe9 center/cover fixed no-repeat} /* JS pondrá el fondo */
   .wrap{max-width:1200px;margin:18px auto 96px;padding:0 16px}
   .topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
   .link-back{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#eef6f4;color:#184a42;border:1px solid rgba(0,0,0,.08)}
@@ -29,34 +29,26 @@
   .slot,.needle{
     position:relative; display:flex; align-items:center; justify-content:center;
     border-radius:14px; overflow:hidden;
-    background: #f5faf8;
-    border:1px solid rgba(0,0,0,.12);
-    min-height: 140px;
-    box-shadow: inset 0 12px 24px rgba(0,0,0,.05);
+    background:#f5faf8; border:1px solid rgba(0,0,0,.12);
+    min-height:140px; box-shadow: inset 0 12px 24px rgba(0,0,0,.05);
   }
-  /* molde visible SIEMPRE (aunque falle la imagen) */
   .slot .ghost{
     position:absolute; inset:10px;
     background-position:center; background-repeat:no-repeat; background-size:contain;
-    opacity:.26; filter:grayscale(1) contrast(.9);
-    pointer-events:none;
+    opacity:.26; filter:grayscale(1) contrast(.9); pointer-events:none;
   }
-  .slot.is-target{outline:2px solid var(--warn); box-shadow: 0 0 0 6px rgba(240,180,41,.15) inset}
-  .slot.correct{outline:2px solid var(--ok); box-shadow: 0 0 0 6px rgba(11,141,66,.18) inset}
-  .slot.fail{outline:2px solid var(--bad); box-shadow: 0 0 0 6px rgba(196,56,46,.18) inset}
-  .needle{cursor:grab; transition: transform .08s ease}
-  .needle:active{cursor:grabbing; transform: scale(.98)}
-  .needle img,.slot img{
-    max-width:88px; max-height:110px; object-fit:contain;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,.35));
-  }
+  .slot.is-target{outline:2px solid var(--warn); box-shadow:0 0 0 6px rgba(240,180,41,.15) inset}
+  .slot.correct{outline:2px solid var(--ok); box-shadow:0 0 0 6px rgba(11,141,66,.18) inset}
+  .slot.fail{outline:2px solid var(--bad); box-shadow:0 0 0 6px rgba(196,56,46,.18) inset}
+  .needle{cursor:grab; transition:transform .08s ease}
+  .needle:active{cursor:grabbing; transform:scale(.98)}
+  .needle img,.slot img{max-width:88px; max-height:110px; object-fit:contain; filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
   .hint{font-size:14px;color:#0a4b41}
   .final-msg{display:none;margin-top:12px;padding:12px;background:#f2fbf8;border:1px solid rgba(0,0,0,.1);border-radius:12px;color:#0a3a32}
   .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.92),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s}
   .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
   @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
-
-  /* ===== Damas ===== */
+  /* Damas */
   .overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:50}
   .overlay.show{display:grid}
   .modal{width:min(980px,94vw);background:#fff;color:#0b2a24;border-radius:16px;padding:16px 18px 18px;box-shadow:0 30px 80px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.08)}
@@ -128,34 +120,31 @@
   <div class="flash" id="flash"></div>
 
 <script>
-/* ====== helpers ====== */
+/* ===== helpers ===== */
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.add("show"); setTimeout(()=>b.classList.remove("show"), ms); }
 
-/* ====== FONDO: busca el primero que exista (butacas) ====== */
-(function setBackground(){
-  const candidates = ["pista5/fondo.png","fondo.png","pista3/fondo.png"];
-  (async () => {
-    for (const src of candidates){
-      try{
-        const img = new Image();
-        const ok = await new Promise(res=>{ img.onload=()=>res(true); img.onerror=()=>res(false); img.src=src; });
-        if(ok){ document.body.style.backgroundImage = `url('${src}')`; break; }
-      }catch(e){}
-    }
-  })();
+/* ===== RUTAS FIJAS (absolutas) ===== */
+const BASE = "/pista5/";            // <— AQUÍ están tus PNG en Vercel
+const FONDO_CANDIDATES = [ BASE+"fondo.png", "/fondo.png", "/pista3/fondo.png" ];
+
+/* Fondo butacas: primer archivo que exista */
+(async function setBackground(){
+  for (const src of FONDO_CANDIDATES){
+    const ok = await new Promise(r=>{ const i=new Image(); i.onload=()=>r(true); i.onerror=()=>r(false); i.src=src; });
+    if(ok){ document.body.style.backgroundImage = `url('${src}')`; break; }
+  }
 })();
 
 /* =========================================================
    PUZZLE — 12 agujas con molde exacto + 3 fallos globales
 ========================================================= */
 (function(){
-  // NOMBRES EXACTOS QUE TIENES EN /pista5/
   const NEEDLES = [
     "aguja01","aguja02","aguja03","aguja04","aguja05","aguja06",
     "aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz"
-  ].map(id=>({ id, img:`pista5/${id}.png`, name:id.toUpperCase() }));
+  ].map(id=>({ id, img:`${BASE}${id}.png`, name:id.toUpperCase() }));
   const LIGHT_ID = "aguja_luz";
 
   const HIT = ["¡Bien! Esa encaja como un guante.","Perfecto. Tu pulso es exacto.","Otro paso hacia la verdad."];
@@ -163,7 +152,6 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
   const RESET = ["Tres fallos: el mecanismo se desmonta. Empieza de nuevo: lo conseguirás.","Reinicio del reloj. La paciencia también es una pista.","Se reinicia el rompecabezas, pero tu mente sigue afilada."];
 
   const slotsEl = $("#slots"), libEl = $("#library"), finalBox = $("#finalClue"), flash = $("#flash");
-
   let fails = 0, solved = 0, lightPlaced = false;
 
   function build(){
@@ -174,7 +162,6 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
     NEEDLES.forEach(n=>{
       const s = document.createElement("div");
       s.className="slot"; s.dataset.accept=n.id;
-      // molde
       const ghost = document.createElement("div");
       ghost.className = "ghost"; ghost.style.backgroundImage = `url("${n.img}")`;
       s.appendChild(ghost);
@@ -231,7 +218,7 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
   const overlay=$("#checkers"), btnTop=$("#openCheckersTop"), closeBtn=$("#closeCheckers"), resetBtn=$("#resetDemo");
   const grid=$("#grid"), status=$("#status");
 
-  const SIL = "pista5/"; // tus siluetas están aquí
+  const SIL = BASE; // siluetas están en /pista5/
   const SPRITES = {
     "Amelia": SIL+"amelia.png","Arturo": SIL+"arturo.png","Azquiel": SIL+"azquiel.png","Daniel": SIL+"daniel1.png",
     "Lise": SIL+"lise.png","Nora": SIL+"nora.png","Ocaña": SIL+"ocana.png","Tomás": SIL+"tomas.png"
@@ -344,7 +331,6 @@ document.getElementById("closeCheckers").addEventListener("click", ()=> document
 </script>
 </body>
 </html>
-
 
 
 
