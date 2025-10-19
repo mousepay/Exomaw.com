@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EXOMAW — Cuaderno</title>
+  <style>
+    html,body{height:100%;margin:0;background:#0b0e10;}
+    .topbar{
+      position:fixed;inset:0 0 auto 0;height:56px;display:flex;align-items:center;
+      gap:12px;padding:8px 12px;box-sizing:border-box;z-index:9999;
+      background:rgba(5,8,10,.35);backdrop-filter:saturate(1.2) blur(6px);
+      color:#eaf6f3;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    }
+    .topbar .btn{
+      margin-left:auto;appearance:none;border:0;border-radius:10px;padding:10px 14px;
+      font-weight:600;cursor:pointer;background:#0fa39a;color:#042725;box-shadow:0 6px 16px rgba(15,163,154,.35);
+    }
+    .topbar .btn:hover{filter:brightness(1.05)}
+    .wrap{position:fixed;inset:56px 0 0 0;}
+    iframe{width:100%;height:100%;border:0;display:block;background:#111}
+    .pill{
+      display:inline-flex;align-items:center;gap:.5rem;background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);padding:.45rem .75rem;border-radius:999px;
+      font-size:.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- reproductor persistente -->
+  <audio id="musicaFondo" src="audio.mp3" preload="auto" loop></audio>
+
+  <!-- barra superior -->
+  <div class="topbar">
+    <span class="pill">🎧 Música de ambiente</span>
+    <button id="btnMusica" class="btn">Música ON/OFF</button>
+  </div>
+
+  <!-- zona de contenido (todas las pistas aquí) -->
+  <div class="wrap">
+    <iframe id="view" src="" title="Cuaderno de Nora"></iframe>
+  </div>
+
+  <script>
+    // --- lee la página inicial: ?src=p01.html (por ejemplo)
+    const params = new URLSearchParams(location.search);
+    const inicial = params.get('src') || 'p01.html';
+    const frame = document.getElementById('view');
+    frame.src = inicial;
+
+    // --- control música persistente
+    const audio = document.getElementById('musicaFondo');
+    const btn   = document.getElementById('btnMusica');
+
+    const estabaActiva = localStorage.getItem('musicaActiva') === 'true';
+    if (estabaActiva) audio.play().catch(()=>{});
+
+    function pinta() {
+      btn.textContent = audio.paused ? 'Música ON' : 'Música OFF';
+    }
+    pinta();
+
+    btn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().then(()=> {
+          localStorage.setItem('musicaActiva','true');
+          pinta();
+        }).catch(()=>{});
+      } else {
+        audio.pause();
+        localStorage.setItem('musicaActiva','false');
+        pinta();
+      }
+    });
+
+    audio.addEventListener('play',  ()=>{ localStorage.setItem('musicaActiva','true');  pinta(); });
+    audio.addEventListener('pause', ()=>{ localStorage.setItem('musicaActiva','false'); pinta(); });
+  </script>
+</body>
+</html>
