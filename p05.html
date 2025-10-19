@@ -3,286 +3,210 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Pista 5 — Agujas + Damas</title>
+<title>Pista 5 — El enigma de las agujas (SVG)</title>
 <style>
-  :root{ --text:#0c2621; --card:rgba(255,255,255,.86); --ok:#0b8d42; --bad:#c4382e; --warn:#f0b429; --board-dark:#0c3a28; --board-light:#e2f6ea; }
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  body{color:var(--text);background:#e7efe9 center/cover fixed no-repeat} /* El JS pone el fondo real */
-  .wrap{max-width:1200px;margin:18px auto 96px;padding:0 16px}
-  .topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-  .link-back{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#eef6f4;color:#184a42;border:1px solid rgba(0,0,0,.08)}
-  h1{margin:0;font-size:clamp(26px,4vw,46px);color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45)}
-  .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#0ea5a3;color:#052a27;box-shadow:0 6px 24px rgba(14,165,163,.25)}
-  .card{background:var(--card);border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+  :root{
+    --ink:#093730; --muted:#2b5e55; --ok:#0b8d42; --bad:#c33a2f; --warn:#f0b429;
+    --glass: rgba(255,255,255,.86);
+    --panel: #ffffff;
+    --brand:#0ea5a3;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+  body{
+    /* Si quieres tu foto de butacas: descomenta la línea siguiente y pon la URL */
+    /* background: url('fondo.png') center/cover fixed no-repeat; */
+    background: radial-gradient(1200px 900px at 30% 0%, #eaf7f2, #d8efe6 60%, #cde6de);
+  }
+  .wrap{max-width:1200px;margin:22px auto 96px;padding:0 16px}
+  .top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .back{border:1px solid #cfe6df;background:#f5fbf9;color:#1c534a;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+  h1{margin:6px 0 16px;font-size:clamp(26px,4vw,44px);color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45)}
+  .card{background:var(--glass);backdrop-filter: blur(6px); border:1px solid rgba(0,0,0,.08); border-radius:18px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.18)}
   .areas{display:grid;gap:18px;grid-template-columns:1fr 1fr}
   @media(max-width:980px){.areas{grid-template-columns:1fr}}
-  .panel-title{font-size:22px;margin:2px 0 10px}
-  .slots,.library{background:#fff;border:1px dashed rgba(0,0,0,.20);border-radius:16px;padding:16px;min-height:260px;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px}
-  .slot,.needle{position:relative;display:flex;align-items:center;justify-content:center;border-radius:14px;overflow:hidden;background:#f5faf8;border:1px solid rgba(0,0,0,.12);min-height:140px;box-shadow:inset 0 12px 24px rgba(0,0,0,.05)}
-  /* molde (si falla la imagen, se verá el texto del data-label) */
-  .slot .ghost{position:absolute;inset:10px;background-position:center;background-repeat:no-repeat;background-size:contain;opacity:.28;filter:grayscale(1) contrast(.9);pointer-events:none}
-  .slot .fallback{position:absolute;inset:10px;display:grid;place-items:center;color:#0b3f36;font-size:12px;opacity:.7}
-  .slot.is-target{outline:2px solid var(--warn);box-shadow:0 0 0 6px rgba(240,180,41,.15) inset}
-  .slot.correct{outline:2px solid var(--ok);box-shadow:0 0 0 6px rgba(11,141,66,.18) inset}
-  .slot.fail{outline:2px solid var(--bad);box-shadow:0 0 0 6px rgba(196,56,46,.18) inset}
-  .needle{cursor:grab;transition:transform .08s ease}
-  .needle:active{transform:scale(.98)}
-  .needle img,.slot img{max-width:88px;max-height:110px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
-  .hint{font-size:14px;color:#0a4b41}
-  .final-msg{display:none;margin-top:12px;padding:12px;background:#f2fbf8;border:1px solid rgba(0,0,0,.1);border-radius:12px;color:#0a3a32}
+  .panel-title{font-size:22px;margin:2px 0 10px;color:#0e4c41}
+  .slots,.library{
+    background:#fff; border:1px dashed rgba(0,0,0,.2);
+    border-radius:16px; padding:16px; min-height:280px;
+    display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:14px;
+  }
+  .slot,.needle{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    border-radius:14px; overflow:hidden; min-height:150px;
+    background:#f5faf8; border:1px solid rgba(0,0,0,.12);
+    box-shadow: inset 0 12px 24px rgba(0,0,0,.05);
+  }
+  .slot .ghost{position:absolute; inset:10px; opacity:.25; filter:grayscale(1) contrast(.9); pointer-events:none}
+  .slot.is-target{outline:2px solid var(--warn); box-shadow: 0 0 0 6px rgba(240,180,41,.15) inset}
+  .slot.correct{outline:2px solid var(--ok); box-shadow: 0 0 0 6px rgba(11,141,66,.18) inset}
+  .slot.fail{outline:2px solid var(--bad); box-shadow: 0 0 0 6px rgba(195,58,47,.18) inset}
+  .needle{cursor:grab; transition: transform .08s ease}
+  .needle:active{cursor:grabbing; transform: scale(.98)}
+  svg{width:90px; height:120px}
+  .glow{filter: drop-shadow(0 0 10px rgba(255,255,160,.9)) drop-shadow(0 0 20px rgba(255,255,160,.7))}
+  .hint{font-size:14px;color:#0f4c42}
+  .final{display:none;margin-top:12px;padding:12px;background:#f2fbf8;border:1px solid rgba(0,0,0,.1);border-radius:12px;color:#0a3a32}
+  .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+  .primary{background:var(--brand);color:#053f3b}
   .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.9),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s}
   .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
   @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
-  /* Damas */
-  .overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:50}
-  .overlay.show{display:grid}
-  .modal{width:min(980px,94vw);background:#fff;color:#0b2a24;border-radius:16px;padding:16px 18px 18px;box-shadow:0 30px 80px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.08)}
-  .board-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:980px){.board-wrap{grid-template-columns:1fr}}
-  .board{width:100%;aspect-ratio:1/1;max-width:620px;margin:auto;border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,.1);box-shadow:0 12px 28px rgba(0,0,0,.25)}
-  .grid{display:grid;grid-template-columns:repeat(8,1fr);width:100%;height:100%}
-  .sq{display:flex;align-items:center;justify-content:center}
-  .sq.dark{background:var(--board-dark)} .sq.light{background:var(--board-light)}
-  .piece{width:min(66px,9.4vmin);height:min(66px,9.4vmin);border-radius:50%;display:grid;place-items:center;border:3px solid rgba(0,0,0,.35);box-shadow:0 8px 20px rgba(0,0,0,.28);background-size:72% auto;background-position:center;background-repeat:no-repeat}
-  .piece.player{background:#1e7f58} .piece.ai{background:#b84239}
-  .sq.target{outline:3px solid var(--warn);box-shadow:inset 0 0 0 6px rgba(240,180,41,.25)}
-  .status{font-size:15px;color:#0e3b33;background:#f3fbf8;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:12px;margin-top:10px}
-  .badge{position:fixed;right:12px;top:12px;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 8px 22px rgba(0,0,0,.2);font-size:12px;color:#0b3f36}
+  .toast{position:fixed;left:12px;bottom:14px;background:#fff;border:1px solid rgba(0,0,0,.12);padding:8px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.2);display:none}
 </style>
 </head>
 <body>
-  <div id="badge" class="badge">rutas…</div>
-
   <div class="wrap">
-    <div class="topbar">
-      <button class="link-back" onclick="history.back()">← Volver a las pistas</button>
+    <div class="top">
+      <button class="back" onclick="history.back()">← Volver a las pistas</button>
       <h1>PISTA 5 — El enigma de las agujas</h1>
-      <button id="openCheckersTop" class="btn">Ir al tablero de damas</button>
     </div>
 
     <div class="card">
-      <p>Arrastra cada <strong>aguja</strong> desde la biblioteca hasta su <strong>molde</strong> (silueta real). Tienes <strong>3 fallos</strong> en total. Al completar las 12 y colocar la <em>aguja de luz</em>, podrás pasar al duelo de damas.</p>
+      <p>Arrastra cada <strong>aguja</strong> desde la biblioteca hasta su <strong>molde</strong> (sombra). Tienes <strong>3 fallos</strong> en total. Al colocar todas y la <em>aguja de luz</em>, aparecerá el mensaje final.</p>
 
       <div class="areas">
         <section>
           <div class="panel-title">Ranuras (sombras)</div>
           <div id="slots" class="slots"></div>
-          <p class="hint">Las sombras usan la misma imagen a baja opacidad para encajar como puzzle.</p>
+          <p class="hint">Las sombras son la silueta real a baja opacidad: encaja por forma, no por texto.</p>
         </section>
 
         <section>
           <div class="panel-title">Biblioteca de agujas</div>
           <div id="library" class="library"></div>
-          <p class="hint">Completa todas. La “aguja de luz” revelará la pista y abrirá el tablero.</p>
+          <p class="hint">Busca diferencias: punta, contrapeso, grosor, longitud… Una brilla: es la <em>aguja de luz</em>.</p>
         </section>
       </div>
 
-      <div id="finalClue" class="final-msg"></div>
+      <div id="finalBox" class="final"></div>
     </div>
   </div>
 
-  <!-- Tablero de damas -->
-  <div id="checkers" class="overlay" aria-modal="true" role="dialog" aria-label="Tablero de damas">
-    <div class="modal">
-      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap">
-        <h2 style="margin:0;color:#083831">Duelo de damas</h2>
-        <button id="closeCheckers" class="btn" style="background:#e8f4f2;color:#08534a">Cerrar</button>
-      </div>
-      <div class="board-wrap" style="margin-top:10px">
-        <div>
-          <div class="board"><div id="grid" class="grid"></div></div>
-          <div id="status" class="status">Hay <strong>8 fichas verdes</strong> con siluetas (Amelia, Arturo, Azquiel, Daniel, Lise, Nora, Ocaña, Tomás) y 8 rojas. Rondas 1 y 2 gana la máquina; la 3 te deja ganar.</div>
-          <button id="resetDemo" class="btn" style="margin-top:8px">Reiniciar demo</button>
-        </div>
-        <div class="card" style="margin:0">
-          <h3 style="margin:6px 0 8px;color:#0c463d">Siluetas usadas</h3>
-          <p style="margin:0">Amelia, Arturo, Azquiel, Daniel, Lise, Nora, Ocaña, Tomás.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast" class="badge" style="left:12px;right:auto;bottom:12px;top:auto;display:none"></div>
-  <div class="flash" id="flash"></div>
+  <div id="flash" class="flash"></div>
+  <div id="toast" class="toast"></div>
 
 <script>
-/* ===== Helpers ===== */
+/* ===== util ===== */
 const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.style.display="block"; setTimeout(()=>b.style.display="none", ms); }
+function toast(t, ms=1600){ const b=$("#toast"); b.textContent=t; b.style.display="block"; setTimeout(()=>b.style.display="none", ms); }
 
-/* ===== Detectar base de imágenes (pista5) y fondo ===== */
-async function probe(url){ return await new Promise(r=>{ const i=new Image(); i.onload=()=>r(true); i.onerror=()=>r(false); i.src=url; }); }
-(async ()=>{
-  const candidatesBase = ["./pista5/","/pista5/","pista5/","../pista5/"];
-  let BASE = candidatesBase[0];
-  for(const c of candidatesBase){ if(await probe(c+"aguja01.png")){ BASE=c; break; } }
-  const badge=$("#badge"); badge.textContent = `pista5: ${BASE.includes("..")?BASE:"/"+BASE.replace(/^\/?/,"")}${await probe(BASE+"aguja01.png")?"ok":"error"}`;
-
-  // Fondo (butacas): primer match
-  for(const f of [BASE+"fondo.png","/fondo.png","/pista3/fondo.png","pista3/fondo.png"]){
-    if(await probe(f)){ document.body.style.backgroundImage=`url('${f}')`; break; }
+/* ===== generador de agujas SVG (sin imágenes) ===== */
+function needleSVG({shaft=56, tip="arrow", weight="circle", thick=3, glow=false}={}){
+  const w=90,h=120, cx=w/2, top=20, bot=top+shaft;
+  // eje
+  const line = `<rect x="${cx-thick/2}" y="${top}" width="${thick}" height="${shaft}" rx="${thick/2}" fill="#0c2839"/>`;
+  // punta
+  let p="";
+  if(tip==="arrow"){
+    p = `<polygon points="${cx},${top-10} ${cx-8},${top+6} ${cx+8},${top+6}" fill="#0c2839"/>`;
+  } else if(tip==="needle"){
+    p = `<rect x="${cx-(thick-1)/2}" y="${top-10}" width="${thick-1}" height="10" fill="#0c2839"/>`;
+  } else { // diamond
+    p = `<polygon points="${cx},${top-9} ${cx-7},${top} ${cx},${top+9} ${cx+7},${top}" fill="#0c2839"/>`;
   }
+  // contrapeso
+  let wgt="";
+  if(weight==="circle"){
+    wgt = `<circle cx="${cx}" cy="${bot+10}" r="${6+Math.max(0,thick-3)}" fill="#0c2839"/>`;
+  } else if(weight==="spike"){
+    wgt = `<rect x="${cx-(thick+2)/2}" y="${bot}" width="${thick+2}" height="14" rx="2" fill="#0c2839"/>`;
+  } else { // ring
+    wgt = `<circle cx="${cx}" cy="${bot+10}" r="${8}" fill="none" stroke="#0c2839" stroke-width="2"/>`;
+  }
+  const frame = `
+    <rect x="8" y="6" width="${w-16}" height="${h-12}" rx="10" fill="none" stroke="#1d4d46" stroke-width="2"/>
+  `;
+  const g = glow ? 'class="glow"' : '';
+  return `<svg viewBox="0 0 ${w} ${h}" ${g} aria-hidden="true">${frame}${line}${p}${wgt}</svg>`;
+}
 
-  /* ====== PUZZLE ====== */
-  (function(){
-    const ids = ["aguja01","aguja02","aguja03","aguja04","aguja05","aguja06","aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz"];
-    const NEEDLES = ids.map(id=>({ id, img: BASE+id+".png", name:id.toUpperCase() }));
-    const LIGHT_ID="aguja_luz";
-    const HIT=["¡Bien! Esa encaja.","Pulso perfecto.","Otro paso hacia la verdad."];
-    const MISS=["No pasa nada, vuelve a intentar.","Casi… mira la punta.","Respira: la forma te guía."];
-    const RESET=["Tres fallos: el mecanismo se desmonta. Reiniciando…","Paciencia: el reloj se reinicia.","Se reinicia el puzzle, pero tu mente sigue afilada."];
+/* ===== datos de 12 agujas únicas ===== */
+const MODELS = [
+  {shaft:58, tip:"arrow",  weight:"circle", thick:3},
+  {shaft:62, tip:"diamond",weight:"spike",  thick:3},
+  {shaft:54, tip:"needle", weight:"ring",   thick:4},
+  {shaft:60, tip:"arrow",  weight:"ring",   thick:2},
+  {shaft:52, tip:"diamond",weight:"circle", thick:4},
+  {shaft:66, tip:"needle", weight:"spike",  thick:2},
+  {shaft:56, tip:"arrow",  weight:"spike",  thick:4},
+  {shaft:64, tip:"diamond",weight:"ring",   thick:3},
+  {shaft:50, tip:"needle", weight:"circle", thick:3},
+  {shaft:68, tip:"arrow",  weight:"circle", thick:2},
+  {shaft:58, tip:"diamond",weight:"spike",  thick:5},
+  {shaft:60, tip:"needle", weight:"ring",   thick:3, glow:true} // aguja de luz
+];
 
-    const slots=$("#slots"), lib=$("#library"), final=$("#finalClue"), flash=$("#flash");
-    let fails=0, solved=0, light=false;
+/* ===== construcción de UI ===== */
+const slots = $("#slots");
+const lib = $("#library");
+let fails=0, solved=0;
 
-    function build(){
-      slots.innerHTML=""; lib.innerHTML=""; final.style.display="none"; final.innerHTML=""; fails=0; solved=0; light=false;
+function build(){
+  slots.innerHTML=""; lib.innerHTML=""; fails=0; solved=0; $("#finalBox").style.display="none";
+  // Creamos slots con su sombra exacta
+  MODELS.forEach((m, i)=>{
+    const s=document.createElement("div");
+    s.className="slot"; s.dataset.accept = String(i);
+    const ghost=document.createElement("div");
+    ghost.className="ghost";
+    ghost.innerHTML = needleSVG(m);
+    s.appendChild(ghost);
+    s.addEventListener("dragover", e=>{e.preventDefault(); s.classList.add("is-target");});
+    s.addEventListener("dragleave", ()=> s.classList.remove("is-target"));
+    s.addEventListener("drop", e=>{
+      e.preventDefault(); s.classList.remove("is-target");
+      const id = e.dataTransfer.getData("text/needle");
+      handleDrop(s,id);
+    });
+    slots.appendChild(s);
+  });
+  // Creamos biblioteca (desordenada)
+  const order = Array.from(MODELS.keys());
+  order.sort(()=>Math.random()-.5);
+  order.forEach(i=>{
+    const d=document.createElement("div");
+    d.className="needle"; d.draggable=true; d.dataset.id=String(i);
+    d.addEventListener("dragstart", e=> e.dataTransfer.setData("text/needle", String(i)));
+    d.innerHTML = needleSVG(MODELS[i]);
+    lib.appendChild(d);
+  });
+}
 
-      NEEDLES.forEach(n=>{
-        const s=document.createElement("div"); s.className="slot"; s.dataset.accept=n.id; s.dataset.label=n.name;
-        const ghost=document.createElement("div"); ghost.className="ghost"; ghost.style.backgroundImage=`url("${n.img}")`;
-        const fb=document.createElement("div"); fb.className="fallback"; fb.textContent=n.name;
-        ghost.addEventListener("error",()=>{ fb.style.display="grid"; });
-        s.append(ghost,fb);
-        s.addEventListener("dragover",e=>{e.preventDefault(); s.classList.add("is-target");});
-        s.addEventListener("dragleave",()=> s.classList.remove("is-target"));
-        s.addEventListener("drop",e=>{e.preventDefault(); s.classList.remove("is-target"); drop(s,e.dataTransfer.getData("text/needle"));});
-        slots.appendChild(s);
-      });
+function handleDrop(slot, id){
+  if(slot.classList.contains("correct")){ toast("Esa ranura ya está completa"); return; }
+  if(id===slot.dataset.accept){
+    slot.classList.add("correct");
+    solved++;
+    const model = MODELS[+id];
+    slot.innerHTML = needleSVG(model);
+    toast(["¡Precisión impecable!","¡Encaja perfecto!","Otro paso al centro."][Math.floor(Math.random()*3)]);
+    if(model.glow){ const f=$("#flash"); f.classList.add("on"); setTimeout(()=>f.classList.remove("on"),900); }
+    if(solved===MODELS.length){ showFinal(); }
+  } else {
+    slot.classList.add("fail"); setTimeout(()=>slot.classList.remove("fail"),700);
+    fails++;
+    if(fails>=3){ toast("Tres fallos. El mecanismo se reinicia…",2000); setTimeout(build,900); }
+    else { toast(["Casi… fíjate en la punta.","Mira el contrapeso.","Atiende al grosor y longitud."][Math.floor(Math.random()*3)]); }
+  }
+}
 
-      NEEDLES.forEach(n=>{
-        const d=document.createElement("div"); d.className="needle"; d.draggable=true; d.dataset.id=n.id; d.title=n.name;
-        d.addEventListener("dragstart",e=> e.dataTransfer.setData("text/needle", n.id));
-        const img=document.createElement("img"); img.src=n.img; img.alt=n.name;
-        img.addEventListener("error",()=>{ d.textContent=n.name; d.style.fontSize="12px"; d.style.color="#0b3f36"; });
-        d.appendChild(img);
-        lib.appendChild(d);
-      });
-    }
+function showFinal(){
+  const box=$("#finalBox");
+  box.style.display="block";
+  box.innerHTML = `
+    <strong>¡Puzzle completo!</strong><br>
+    Las agujas te lo susurran: <em>siempre apuntan a tu centro</em>.<br><br>
+    Nora: <em>Has llegado al final del crimen… ¿me seguirás en mi próxima novela?</em><br><br>
+    <button class="btn primary" onclick="location.href='pista-final.html'">Continuar</button>
+  `;
+}
 
-    function drop(slot, id){
-      const accept=slot.dataset.accept;
-      if(slot.classList.contains("correct")){ say("Esa ranura ya está completa"); return; }
-      if(id===accept){
-        slot.classList.add("correct"); solved++;
-        const n=NEEDLES.find(x=>x.id===id); slot.innerHTML="";
-        const img=document.createElement("img"); img.src=n.img; img.alt=n.name;
-        img.addEventListener("error",()=>{ const fb=document.createElement("div"); fb.className="fallback"; fb.textContent=n.name; slot.appendChild(fb); });
-        slot.appendChild(img);
-        say(HIT[Math.floor(Math.random()*HIT.length)]);
-        if(id===LIGHT_ID){ light=true; flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"),900); }
-        if(solved===NEEDLES.length){
-          final.style.display="block";
-          final.innerHTML = `<strong>¡Puzzle completo!</strong><br>Las agujas apuntan a nuestro centro.<br><br>${light?"Reto desbloqueado: intenta <strong>ganar el duelo de damas</strong> para llegar a la pista final.":"Coloca también la <strong>aguja de luz</strong> para desbloquear el duelo de damas."}`;
-        }
-      }else{
-        slot.classList.add("fail"); setTimeout(()=>slot.classList.remove("fail"),700);
-        if(++fails>=3){ say(RESET[Math.floor(Math.random()*RESET.length)],2300); setTimeout(build,900); }
-        else{ say(MISS[Math.floor(Math.random()*MISS.length)]); }
-      }
-    }
-
-    build();
-  })();
-
-  /* ====== DAMAS ====== */
-  (function(){
-    const overlay=$("#checkers"), btn=$("#openCheckersTop"), close=$("#closeCheckers"), reset=$("#resetDemo");
-    const grid=$("#grid"), status=$("#status");
-    const SPRITES={Amelia:BASE+"amelia.png",Arturo:BASE+"arturo.png",Azquiel:BASE+"azquiel.png",Daniel:BASE+"daniel1.png",Lise:BASE+"lise.png",Nora:BASE+"nora.png",Ocaña:BASE+"ocana.png",Tomás:BASE+"tomas.png"};
-    const LOSE=["¡Ánimo! Cada jugada enseña.","Piensa dos movimientos por delante.","No te rindas, el final está cerca."];
-
-    let round=1, sel=null, pieces=null; const N=8;
-
-    btn.addEventListener("click", ()=> overlay.classList.add("show"));
-    close.addEventListener("click", ()=> overlay.classList.remove("show"));
-    reset.addEventListener("click", ()=>{ round=1; init(true); });
-    document.addEventListener("keydown", e=>{ if(e.key==="Escape") overlay.classList.remove("show"); });
-
-    function init(text){
-      grid.innerHTML=""; sel=null;
-      pieces={ player:new Set(["5,0","5,2","5,4","5,6","6,1","6,3","6,5","6,7"]), ai:new Set(["1,0","1,2","1,4","1,6","2,1","2,3","2,5","2,7"]) };
-      if(text) status.textContent="Empieza la demo: la máquina ganará dos veces; a la tercera te deja ganar.";
-      draw();
-    }
-
-    function draw(){
-      grid.innerHTML="";
-      for(let r=0;r<N;r++){
-        for(let c=0;c<N;c++){
-          const cell=document.createElement("div");
-          cell.className="sq "+((r+c)%2?"dark":"light");
-          cell.dataset.r=r; cell.dataset.c=c;
-          const key=`${r},${c}`;
-          if(pieces.player.has(key)){
-            const p=document.createElement("div"); p.className="piece player";
-            const name=labelFor(key); const spr=SPRITES[name]; p.title=name; if(spr) p.style.backgroundImage=`url("${spr}")`;
-            cell.appendChild(p);
-          }else if(pieces.ai.has(key)){
-            const p=document.createElement("div"); p.className="piece ai"; cell.appendChild(p);
-          }
-          cell.addEventListener("click", ()=> clickCell(r,c));
-          grid.appendChild(cell);
-        }
-      }
-      markTargets();
-    }
-
-    function labelFor(key){
-      const order=["5,0","5,2","5,4","5,6","6,1","6,3","6,5","6,7"];
-      const names=["Amelia","Arturo","Azquiel","Daniel","Lise","Nora","Ocaña","Tomás"];
-      return names[order.indexOf(key)]||"Jugador";
-    }
-    const isLight=(r,c)=>(r+c)%2===0;
-    const empty=(r,c)=>!pieces.player.has(`${r},${c}`)&&!pieces.ai.has(`${r},${c}`);
-    const adj=(r1,c1,r2,c2)=>Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1;
-
-    function clickCell(r,c){
-      const key=`${r},${c}`;
-      if(pieces.player.has(key)){ sel={r,c}; draw(); return; }
-      if(sel && isLight(r,c) && empty(r,c) && adj(sel.r,sel.c,r,c)){
-        pieces.player.delete(`${sel.r},${sel.c}`); pieces.player.add(`${r},${c}`); sel=null; draw();
-        setTimeout(aiMove, 250);
-      }
-    }
-    function markTargets(){
-      if(!sel) return;
-      $$(".sq").forEach(cell=>{
-        const r=+cell.dataset.r, c=+cell.dataset.c;
-        if(isLight(r,c)&&empty(r,c)&&adj(sel.r,sel.c,r,c)) cell.classList.add("target"); else cell.classList.remove("target");
-      });
-    }
-    function aiMove(){
-      if(round===1||round===2){
-        stepAI(); draw(); say(LOSE[Math.floor(Math.random()*LOSE.length)],1700); setTimeout(()=>{ status.textContent="La máquina gana esta ronda."; round++; init(); },650);
-      } else {
-        stepAI(); draw(); status.textContent="Tu turno. Puedes forzar la victoria.";
-        const w=setInterval(()=>{
-          for(const k of pieces.player){ const r=+k.split(",")[0]; if(r<=2 || pieces.ai.size<=3){ clearInterval(w); winPlayer(); break; } }
-        },240);
-      }
-    }
-    function stepAI(){
-      const cand=Array.from(pieces.ai).map(k=>k.split(",").map(Number));
-      for(const [r,c] of cand){
-        for(const [nr,nc] of [[r+1,c-1],[r+1,c+1]]){
-          if(nr<N&&nc>=0&&nc<N&&isLight(nr,nc)&&empty(nr,nc)){ pieces.ai.delete(`${r},${c}`); pieces.ai.add(`${nr},${nc}`); return; }
-        }
-      }
-    }
-    function winPlayer(){
-      const b=document.createElement("div"); b.className="badge"; b.style.bottom="24px"; b.style.top="auto";
-      b.textContent="Nora: Al final de la línea del reloj has llegado a la novela… ¿me seguirás en mi próxima aventura?";
-      document.body.appendChild(b); setTimeout(()=>b.remove(),5200); round=1; setTimeout(()=>init(),1400);
-    }
-
-    init(true);
-  })();
-})();
+build();
 </script>
 </body>
 </html>
+
+
 
 
 
