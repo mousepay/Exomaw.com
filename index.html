@@ -7,47 +7,80 @@
   <title>EXOMAW – Próximamente</title>
   <link rel="stylesheet" href="style.css">
 </head>
-  <body>
-<!-- Música de fondo con botón de silencio -->
-<audio id="musicaFondo" autoplay loop>
-  <source src="audio.mp3" type="audio/mpeg">
-  Tu navegador no soporta el audio.
-</audio>
+<body>
 
-<button id="botonMusica" style="
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  z-index: 9999;
-">
-  🔊 Música ON/OFF
-</button>
+  <!-- Música de fondo con botón ON/OFF -->
+  <audio id="musicaFondo" loop>
+    <source src="audio.mp3" type="audio/mpeg">
+    Tu navegador no soporta el audio.
+  </audio>
 
-<script>
-  const boton = document.getElementById('botonMusica');
-  const musica = document.getElementById('musicaFondo');
-  let sonidoActivo = true;
+  <button id="botonMusica" style="
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 9999;
+  ">
+    🔈 Reproducir Música
+  </button>
 
-  boton.addEventListener('click', () => {
-    if (sonidoActivo) {
-      musica.pause();
-      boton.textContent = '🔈 Música OFF';
-    } else {
-      musica.play();
-      boton.textContent = '🔊 Música ON';
-    }
-    sonidoActivo = !sonidoActivo;
-  });
-</script>
+  <script>
+    const boton = document.getElementById('botonMusica');
+    const musica = document.getElementById('musicaFondo');
+    let activo = false;
 
+    boton.addEventListener('click', () => {
+      if (!activo) {
+        musica.play();
+        boton.textContent = '🔊 Detener Música';
+        activo = true;
+      } else {
+        musica.pause();
+        boton.textContent = '🔈 Reproducir Música';
+        activo = false;
+      }
+    });
+  </script>
+
+  <!-- Portada de fondo -->
+  <div class="overlay"></div>
+
+  <!-- Card principal -->
+  <main id="card" class="wrap hero card">
+    <button id="toggleMini" aria-pressed="false" title="Minimizar / Restaurar">◱</button>
+    <div class="grid">
+      <section class="p-hero">
+        <span class="kicker">Presentación</span>
+        <h2 class="title">
+          EXOMAW presenta a Nora Torres en su primera aventura.
+        </h2>
+        <p class="lead">
+          La primera historia resuelta con <strong id="prota">Nora Torres</strong>.
+        </p>
+      </section>
+
+      <p class="foot">
+        ¿Podrás acompañar a Nora Torres en su investigación a través de las pistas?
+      </p>
+      <a href="/p01.html" class="button">VER EL CUADERNO DE Nora Torres</a>
+    </div>
+  </main>
+
+  <footer>
+    © EXOMAW — literatura inmersiva 2025 ( QR+Móvil )
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
+
+
 
 
 
