@@ -1,380 +1,562 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pista 5 — El mural y las agujas</title>
-
 <style>
   :root{
-    --bg:#0b0b0b; --ink:#eee; --muted:#bdbdbd; --accent:#8be6ff; --accent2:#4cff9e;
-    --panel:rgba(0,0,0,.6);
+    --bg:#0f0f0f;
+    --panel:#141414;
+    --ink:#e5e5e5;
+    --muted:#9aa3a6;
+    --accent:#8be9fd;
+    --good:#8fff99;
+    --warn:#ffc66d;
+    --danger:#ff6b6b;
+    --glow:0 0 24px rgba(139,233,253,.55);
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,Segoe UI,Roboto,Arial;
+  }
+  h1,h2{font-family:ui-rounded,system-ui,Segoe UI,Roboto,Arial}
+  h1{font-size:clamp(22px,3vw,32px); margin:20px 16px 8px}
+  h2{font-size:clamp(18px,2.4vw,24px); margin:28px 16px 12px}
+  .wrap{max-width:1200px; margin:0 auto; padding:0 12px 80px}
 
-  .wrap{max-width:1200px;margin:0 auto;padding:16px}
-  .title{margin:0 0 8px;font-size:clamp(20px,1.2rem + .8vw,28px)}
-  .muted{color:var(--muted)}
-  .panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px}
-
-  /* ===== Escena del salón ===== */
+  /* ================== Escena ================== */
   .scene{
-    position:relative; aspect-ratio: 16/9; width:100%;
-    background:#0a0a0a url('fondo.png') center/cover no-repeat;
-    border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.15);
+    position:relative;
+    border-radius:14px;
+    overflow:hidden;
+    background:#143b1d;
+    box-shadow:0 12px 40px rgba(0,0,0,.55) inset, 0 0 0 1px rgba(255,255,255,.04);
   }
-  /* zonas de asiento (drop) */
-  .seat{
-    position:absolute; width:26%; aspect-ratio:1/1;
-    border:2px dashed rgba(255,255,255,.35); border-radius:14px;
-    backdrop-filter: blur(0.5px);
+  .room{
+    width:100%;
+    display:block;
+    user-select:none;
+    pointer-events:none;
   }
-  .seat.dragover{outline:3px solid var(--accent); outline-offset:3px}
-  /* posiciones aproximadas sobre las butacas */
-  .seat.left{ left:18%; top:37%;}
-  .seat.right{ left:57%; top:37%;}
 
-  /* otras zonas (taza/mancha) — opcional, las mantenemos */
-  .spot{
-    position:absolute; width:17%; aspect-ratio:1/1;
-    border:2px dashed rgba(255,255,255,.25); border-radius:12px;
+  /* Zonas de snap (sofás + hotspots) */
+  .sofa-zone, .hotspot{
+    position:absolute; outline:2px dashed rgba(255,255,255,.12);
+    outline-offset:-2px; border-radius:12px; pointer-events:auto;
   }
-  .spot.taza{ right:15%; bottom:9%;}
-  .spot.mancha{ right:33%; bottom:9%;}
+  .sofa-zone{ /* visibles solo al empezar; luego suavizo */
+    opacity:.35;
+    transition:opacity .6s ease;
+  }
+  .sofa-zone.faded{opacity:.08}
+  .hotspot{outline-style:dotted; outline-color:transparent} /* invisibles */
 
-  /* pieza arrastrable (siluetas/tazas/mancha) */
+  /* Piezas */
   .piece{
-    position:absolute; left:0; top:0; transform-origin:center center;
-    touch-action:none; cursor:grab; user-select:none;
-    transition: box-shadow .2s ease;
+    position:absolute; touch-action:none; user-select:none; cursor:grab;
+    filter:drop-shadow(0 8px 16px rgba(0,0,0,.45));
+    transition:transform .18s ease, opacity .25s ease;
   }
-  .piece:active{ cursor:grabbing; }
-  .piece.selected{ box-shadow: 0 0 0 3px var(--accent) inset; border-radius:10px }
+  .piece:active{cursor:grabbing}
+  .hidden{display:none}
 
-  /* bandeja de piezas */
-  .tray{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px }
-  .tray .thumb{
-    width:110px; height:82px; border-radius:10px; overflow:hidden; background:#111;
-    border:1px solid rgba(255,255,255,.2); cursor:grab; display:grid; place-items:center;
+  /* Estados al encajar */
+  .snapped{ animation:pop .25s ease; }
+  @keyframes pop{
+    0%{transform:scale(.96)}
+    100%{transform:scale(1)}
   }
-  .tray img{ max-width:100%; max-height:100%; pointer-events:none }
 
-  /* controles de escala */
-  .scale-controls{
-    position:sticky; bottom:10px; display:flex; gap:8px; justify-content:flex-start; margin-top:10px;
+  /* Controles de escala */
+  .scale-toolbar{
+    position:sticky; bottom:0; z-index:40;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    background:linear-gradient(180deg, rgba(20,20,20,0) 0%, rgba(20,20,20,.95) 30%, rgba(20,20,20,.98) 100%);
+    padding:10px 12px; margin-top:8px; border-radius:12px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:8px; color:#cfd6d9;
+    background:#1a1a1a; border:1px solid #2a2a2a; padding:10px 12px;
+    border-radius:999px; font-weight:600;
   }
   .btn{
-    appearance:none; border:1px solid #fff; background:#fff; color:#000; font-weight:800;
-    padding:8px 12px; border-radius:999px; cursor:pointer;
+    appearance:none; border:1px solid #2a2a2a; background:#1b1b1b; color:#fff;
+    padding:8px 12px; border-radius:10px; font-weight:700; cursor:pointer;
   }
-  .btn.ghost{ background:transparent; color:#fff; }
-  .btn:active{ transform:translateY(1px) }
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+  .btn.glow{ box-shadow:var(--glow); border-color:#2b4c51 }
 
-  /* ===== Agujas ===== */
-  .needles{ margin-top:22px }
-  .grid{
-    display:grid; gap:14px;
-    grid-template-columns: repeat(6, minmax(120px,1fr));
+  /* Biblioteca */
+  .tray{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:14px;
+    background:var(--panel); padding:14px; border-radius:12px; margin-top:16px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.04);
   }
-  @media (max-width:900px){ .grid{ grid-template-columns: repeat(3, 1fr) } }
-  @media (max-width:520px){ .grid{ grid-template-columns: repeat(2, 1fr) } }
-
-  .needle{
-    background:#0f0f10; border:1px solid rgba(255,255,255,.12);
-    border-radius:14px; padding:10px; display:grid; place-items:center;
-    filter: brightness(.85) saturate(.9);
+  .tray .thumb{
+    background:#0e0e0e; border:1px solid #232323; border-radius:12px;
+    aspect-ratio: 5 / 3; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; cursor:grab;
   }
-  .needle img{ width:100%; height:auto; pointer-events:none; user-select:none }
-  .needle.dragstart{ outline:2px solid var(--accent); }
+  .tray img{max-width:95%; max-height:95%; filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+  .muted{color:var(--muted); font-size:.95rem}
 
-  .try-row{
-    display:grid; grid-template-columns: 1.2fr .8fr; gap:14px; margin-top:14px;
+  /* ================== Agujas ================== */
+  .needle-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:18px;
   }
-  @media (max-width:780px){ .try-row{ grid-template-columns:1fr } }
-
-  .slot{
-    min-height:200px; display:grid; place-items:center;
-    border:2px dashed rgba(255,255,255,.35); border-radius:14px;
-    background:rgba(255,255,255,.02);
-    position:relative; overflow:hidden;
+  .frame{
+    background:#0e0e0e; border:1px solid #222; border-radius:16px; padding:18px;
+    min-height:260px; display:flex; align-items:center; justify-content:center;
+    transition:transform .15s ease,border-color .2s ease;
   }
-  .slot.dragover{ outline:3px solid var(--accent2); outline-offset:2px }
-  .slot .placed{ max-width:90%; height:auto; display:block }
+  .frame:hover{transform:translateY(-2px); border-color:#2b2b2b}
+  .frame img{max-width:92%; max-height:92%; pointer-events:none; user-select:none}
 
-  .flash{ animation:flash 750ms ease-out 1 }
+  .test-area{
+    position:relative; background:#0d0d0d; border:1px dashed #2b2b2b; border-radius:16px;
+    min-height:320px; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .test-slot{
+    position:absolute; inset:20px; border-radius:12px;
+    background:radial-gradient(transparent 55%, rgba(255,255,255,.02) 60%);
+  }
+  .test-needle{
+    position:absolute; width:min(60vmin,380px); max-width:86%;
+    filter:drop-shadow(0 18px 32px rgba(0,0,0,.6));
+    transform-origin:50% 85%;
+    transition:transform .12s ease;
+  }
+  .emblem{
+    position:absolute; inset:auto auto 22% auto; left:50%; translate:-50% 0;
+    width:140px; opacity:.14; pointer-events:none;
+  }
+  .flash{ animation:flash .7s ease }
   @keyframes flash{
-    0%{ box-shadow:0 0 0 rgba(255,255,255,0) }
-    40%{ box-shadow:0 0 55px rgba(120,255,200,.9) }
-    100%{ box-shadow:0 0 0 rgba(255,255,255,0) }
+    0%{filter:drop-shadow(0 0 0 rgba(139,233,253,0))}
+    50%{filter:drop-shadow(0 0 26px rgba(139,233,253,.9))}
+    100%{filter:drop-shadow(0 0 0 rgba(139,233,253,0))}
+  }
+  .msg-panel{
+    background:#0f0f0f; border:1px solid #222; border-radius:14px; padding:14px 16px;
   }
 
-  .tip{ margin-top:10px; font-style:italic; color:#e8f7ff; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.15); padding:10px 12px; border-radius:12px }
+  /* Animación de caída */
+  .falling{ animation:fall 1.4s ease forwards }
+  @keyframes fall{
+    0%{ transform:translate(0,0) scale(1) rotate(0deg); opacity:1 }
+    60%{ transform:translate(60px,80px) rotate(18deg) scale(.98) }
+    100%{ transform:translate(120px,140px) rotate(26deg) scale(1); opacity:1 }
+  }
 
-  /* helpers */
-  .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-  .space{ height:14px }
+  /* Pequeños helpers */
+  .center{display:flex; align-items:center; justify-content:center}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .note{font-size:.95rem; color:var(--muted)}
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Pista 5 — El mural y las agujas</h1>
+    <p class="note">Arresta las siluetas, usa <strong>±</strong> para ajustarlas y déjalas sentadas en los sofás. Descubre la <em>taza</em> y la <em>mancha</em> tocando el lugar correcto. Cuando encajes ambas, algo ocurrirá… Luego resuelve el reloj: prueba agujas y, cuando des con la correcta, <strong>gírala hasta las 8:30</strong> alineándola con el emblema.</p>
 
-<div class="wrap">
-  <h1 class="title">Pista 5 — El mural y las agujas</h1>
-  <p class="muted">Arrastra <strong>las siluetas</strong> y si hace falta usa <em>+</em> y <em>–</em> para ajustarlas y que queden sentadas en las butacas. Después, prueba <strong>las agujas</strong> en la ranura: si no encaja, leerás un mensaje; si aciertas, verás un destello y aparecerá la pista.</p>
+    <!-- ====================== ESCENA ====================== -->
+    <div class="scene" id="scene">
+      <img class="room" src="fondo.png" alt="Sala de estar verde con dos sofás" />
 
-  <!-- ===== ESCENA / SALÓN ===== -->
-  <section class="scene" id="scene">
-    <!-- Zonas de asiento -->
-    <div class="seat left"  data-accept="silueta"></div>
-    <div class="seat right" data-accept="silueta"></div>
-    <!-- Zonas extra (opcional) -->
-    <div class="spot mancha" data-accept="mancha"></div>
-    <div class="spot taza"   data-accept="taza"></div>
-    <!-- Piezas (se colocan inicialmente sueltas, abajo hay miniaturas para reponer) -->
-  </section>
+      <!-- Zonas sofás (aprox, ajustadas a fondo.png) -->
+      <div id="sofaL" class="sofa-zone" style="left:12%; top:22%; width:34%; height:42%"></div>
+      <div id="sofaR" class="sofa-zone" style="left:56%; top:22%; width:33%; height:42%"></div>
 
-  <!-- Bandeja / biblioteca de piezas -->
-  <div class="panel" style="margin-top:10px">
-    <strong>Biblioteca de piezas</strong>
+      <!-- Hotspots invisibles -->
+      <!-- mesa centro -->
+      <button id="hotspotTaza" class="hotspot" aria-label="Mesa" style="left:44%; top:30%; width:16%; height:28%; background:transparent; border:none;"></button>
+      <!-- suelo verde (zona inferior centro-dcha) -->
+      <button id="hotspotMancha" class="hotspot" aria-label="Suelo" style="left:59%; top:66%; width:28%; height:26%; background:transparent; border:none;"></button>
+
+      <!-- Siluetas (arrastrables) -->
+      <img id="nora" class="piece" src="silueta_a.png" alt="Silueta mujer" style="left:62%; top:38%; width:12%;"/>
+      <img id="tomas" class="piece" src="silueta_b.png" alt="Silueta hombre" style="left:28%; top:42%; width:12%;"/>
+
+      <!-- Objetivos revelados -->
+      <img id="tazaTarget" class="piece hidden" src="taza_b.png" alt="Silueta taza (objetivo)" style="left:57.5%; top:31%; width:7%; opacity:.18; pointer-events:none"/>
+      <img id="manchaTarget" class="piece hidden" src="mancha.png" alt="Silueta mancha (objetivo)" style="left:67%; top:72%; width:10%; opacity:.12; pointer-events:none"/>
+
+      <!-- Piezas reales que se podrán coger desde la bandeja -->
+    </div>
+
+    <!-- controles de escala -->
+    <div class="scale-toolbar row">
+      <span class="chip">Selecciona una silueta y usa estos botones para cambiar su tamaño:</span>
+      <button class="btn" id="scaleMinus">–</button>
+      <button class="btn" id="scalePlus">+</button>
+      <span id="selName" class="muted">Nada seleccionado</span>
+    </div>
+
+    <!-- Biblioteca de piezas -->
+    <h2>Biblioteca de piezas</h2>
     <div class="tray" id="tray">
-      <div class="thumb" data-type="silueta" data-src="silueta_a.png"><img src="silueta_a.png" alt=""></div>
-      <div class="thumb" data-type="silueta" data-src="silueta_b.png"><img src="silueta_b.png" alt=""></div>
-      <div class="thumb" data-type="taza" data-src="taza_a.png"><img src="taza_a.png" alt=""></div>
-      <div class="thumb" data-type="taza" data-src="taza_b.png"><img src="taza_b.png" alt=""></div>
-      <div class="thumb" data-type="mancha" data-src="mancha.png"><img src="mancha.png" alt=""></div>
+      <div class="thumb" data-piece="nora"><img src="silueta_a.png" alt="Nora"></div>
+      <div class="thumb" data-piece="tomas"><img src="silueta_b.png" alt="Tomás"></div>
+      <!-- Revealed on hotspot -->
+      <div class="thumb hidden" data-piece="taza"><img src="taza_a.png" alt="Taza"></div>
+      <div class="thumb hidden" data-piece="mancha"><img src="mancha.png" alt="Mancha"></div>
     </div>
 
-    <div class="scale-controls">
-      <button class="btn ghost" id="smaller">–</button>
-      <button class="btn" id="bigger">+</button>
-      <span class="muted" id="scaleHint">(Selecciona una pieza para cambiar su tamaño)</span>
+    <!-- ====================== AGUJAS ====================== -->
+    <h2 style="margin-top:26px">Prueba las agujas</h2>
+    <div class="needle-grid" id="needleGrid">
+      <!-- Se dibujan por JS para no repetir -->
+    </div>
+
+    <h2>Ranura de prueba</h2>
+    <div class="test-area" id="testArea" aria-live="polite">
+      <div class="test-slot" id="testSlot"></div>
+      <!-- emblema de referencia -->
+      <img class="emblem" id="emblem" src="aguja_luz.png" alt="" aria-hidden="true" />
+      <!-- aguja encajada -->
+      <img class="test-needle hidden" id="testNeedle" src="" alt="Aguja en prueba" />
+    </div>
+
+    <div class="row" style="margin:10px 0 6px">
+      <button class="btn" id="rotMinus" disabled>⟲ –5°</button>
+      <button class="btn" id="rotPlus" disabled>⟳ +5°</button>
+      <input id="rotRange" type="range" min="0" max="359" value="0" disabled style="flex:1"/>
+      <span class="muted">Objetivo: <strong>8:30 → 255°</strong></span>
+    </div>
+
+    <div class="msg-panel" id="msgPanel">
+      <div class="muted">Mensajes</div>
+      <div id="messages" style="margin-top:6px; font-size:1.05rem"></div>
     </div>
   </div>
-
-  <div class="space"></div>
-
-  <!-- ===== AGUJAS ===== -->
-  <section class="needles">
-    <h2 class="title" style="font-size:1.2rem">Prueba las agujas</h2>
-    <div class="grid" id="needleGrid">
-      <!-- 12 agujas (11 normales + 1 aguja_luz) -->
-      <div class="needle" draggable="true"><img src="aguja01.png" alt="aguja 1"></div>
-      <div class="needle" draggable="true"><img src="aguja02.png" alt="aguja 2"></div>
-      <div class="needle" draggable="true"><img src="aguja03.png" alt="aguja 3"></div>
-      <div class="needle" draggable="true"><img src="aguja04.png" alt="aguja 4"></div>
-      <div class="needle" draggable="true"><img src="aguja05.png" alt="aguja 5"></div>
-      <div class="needle" draggable="true"><img src="aguja06.png" alt="aguja 6"></div>
-      <div class="needle" draggable="true"><img src="aguja07.png" alt="aguja 7"></div>
-      <div class="needle" draggable="true"><img src="aguja08.png" alt="aguja 8"></div>
-      <div class="needle" draggable="true"><img src="aguja09.png" alt="aguja 9"></div>
-      <div class="needle" draggable="true"><img src="aguja010.png" alt="aguja 10"></div>
-      <div class="needle" draggable="true"><img src="aguja011.png" alt="aguja 11"></div>
-      <div class="needle" draggable="true"><img src="aguja_luz.png" alt="aguja correcta"></div>
-    </div>
-
-    <div class="try-row">
-      <div class="slot" id="slot">
-        <span class="muted">Suelta aquí una aguja para probarla</span>
-      </div>
-      <div class="panel">
-        <strong>Mensajes</strong>
-        <div class="tip" id="msg">Elige una aguja y pruébala…</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="space"></div>
-  <div class="row">
-    <button class="btn ghost" onclick="location.href='index.html'">← Volver a pistas</button>
-  </div>
-  <div class="space"></div>
-</div>
 
 <script>
-/* ===========================================================
-   Utilidades de drag en móvil y desktop
-   =========================================================== */
-function enableDragFor(el, kind){
-  // Desktop drag (para la ranura de agujas usamos DataTransfer; para siluetas usamos pointer).
-  if(kind === 'needle'){
-    el.addEventListener('dragstart', e=>{
-      e.dataTransfer.setData('text/plain', el.querySelector('img').getAttribute('src'));
-      el.classList.add('dragstart');
-    });
-    el.addEventListener('dragend', ()=> el.classList.remove('dragstart'));
-  }
-}
+/* ========= Utilidades ========= */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => [...document.querySelectorAll(sel)];
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)) }
+function within(a,b,tol){ return Math.abs(a-b) <= tol }
 
-/* ===========================================================
-   1) Salón: piezas posicionables + escala
-   =========================================================== */
-const scene = document.getElementById('scene');
-const tray  = document.getElementById('tray');
+const scene = $('#scene');
+const tray  = $('#tray');
 
-let zTop = 10;
+const sofaL = $('#sofaL'), sofaR = $('#sofaR');
+const hotspotTaza = $('#hotspotTaza'), hotspotMancha = $('#hotspotMancha');
+const tazaTarget = $('#tazaTarget'), manchaTarget = $('#manchaTarget');
+
+const btnMinus = $('#scaleMinus'), btnPlus = $('#scalePlus'), selName = $('#selName');
+
 let selectedPiece = null;
-
-function addPiece(src, type, x=10, y=70, scale=1){
-  const img = new Image();
-  img.src = src;
-  img.onload = ()=>{
-    const piece = document.createElement('img');
-    piece.src = src;
-    piece.className = 'piece';
-    piece.dataset.type = type;
-    piece.style.left = x+'%';
-    piece.style.top  = y+'%';
-    piece.style.width = Math.min(30, (img.width>img.height? 22 : 18)) + '%'; // tamaño base adaptable
-    piece.style.transform = `translate(-50%,-50%) scale(${scale})`;
-    piece.style.zIndex = String(++zTop);
-    piece.draggable = false;
-    scene.appendChild(piece);
-
-    // Selección
-    piece.addEventListener('pointerdown', (e)=>{
-      selectedPiece?.classList.remove('selected');
-      selectedPiece = piece;
-      piece.classList.add('selected');
-      piece.setPointerCapture(e.pointerId);
-      piece._drag = {dx:0, dy:0};
-    });
-    piece.addEventListener('pointermove', (e)=>{
-      if(!piece.hasPointerCapture(e.pointerId)) return;
-      const rect = scene.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left)/rect.width)*100;
-      const ny = ((e.clientY - rect.top)/rect.height)*100;
-      piece.style.left = Math.max(0, Math.min(100, nx))+'%';
-      piece.style.top  = Math.max(0, Math.min(100, ny))+'%';
-    });
-    piece.addEventListener('pointerup', (e)=>{
-      tryDropOnTargets(piece);
-      piece.releasePointerCapture(e.pointerId);
-    });
-  };
-}
-
-function tryDropOnTargets(piece){
-  const type = piece.dataset.type;
-  const targets = [...scene.querySelectorAll('.seat, .spot')];
-  const pr = piece.getBoundingClientRect();
-  for(const t of targets){
-    const accept = t.dataset.accept;
-    const tr = t.getBoundingClientRect();
-    const overlap = !(pr.right<tr.left || pr.left>tr.right || pr.bottom<tr.top || pr.top>tr.bottom);
-    if(overlap && ((accept==='silueta' && type==='silueta') || (accept===type))){
-      // centra la pieza dentro del target
-      const sc  = scene.getBoundingClientRect();
-      const cx = ((tr.left + tr.width/2) - sc.left)/sc.width*100;
-      const cy = ((tr.top  + tr.height/2) - sc.top )/sc.height*100;
-      piece.style.left = cx+'%';
-      piece.style.top  = cy+'%';
-      // lleva la pieza por encima
-      piece.style.zIndex = String(++zTop);
-      // resalta destino
-      t.classList.add('flash');
-      setTimeout(()=> t.classList.remove('flash'), 600);
-      return;
-    }
-  }
-}
-
-// miniaturas → crear piezas
-tray.addEventListener('click', (e)=>{
-  const th = e.target.closest('.thumb'); if(!th) return;
-  addPiece(th.dataset.src, th.dataset.type);
-});
-
-// controles de escala
-document.getElementById('bigger').addEventListener('click', ()=>{
-  if(!selectedPiece) return;
-  // limita a 1.6x
-  const m = selectedPiece.style.transform.match(/scale\(([^)]+)\)/);
-  const s = m? parseFloat(m[1]) : 1;
-  const ns = Math.min(1.6, s + 0.08);
-  selectedPiece.style.transform = `translate(-50%,-50%) scale(${ns})`;
-});
-document.getElementById('smaller').addEventListener('click', ()=>{
-  if(!selectedPiece) return;
-  const m = selectedPiece.style.transform.match(/scale\(([^)]+)\)/);
-  const s = m? parseFloat(m[1]) : 1;
-  const ns = Math.max(0.7, s - 0.08);
-  selectedPiece.style.transform = `translate(-50%,-50%) scale(${ns})`;
-});
-
-// estados visuales al pasar por encima
-scene.querySelectorAll('.seat, .spot').forEach(t=>{
-  t.addEventListener('dragover', e=> e.preventDefault());
-  t.addEventListener('dragenter', ()=> t.classList.add('dragover'));
-  t.addEventListener('dragleave', ()=> t.classList.remove('dragover'));
-});
-
-/* ===========================================================
-   2) Agujas: probar en ranura con frases y acierto
-   =========================================================== */
-const messages = {
-  'aguja01.png':  'No encaja… vuelve a intentarlo; el tiempo no juega a tu favor.',
-  'aguja02.png':  'Demasiado fina. El murmullo del reloj te dice que no es por aquí.',
-  'aguja03.png':  'Esta forma engaña. Quizá otra geometría.',
-  'aguja04.png':  'No. El marco la rechaza suavemente.',
-  'aguja05.png':  'Tic… tac… sigue probando.',
-  'aguja06.png':  'El diente no coincide. Prueba otra.',
-  'aguja07.png':  'Demasiado corta. El ritmo se pierde.',
-  'aguja08.png':  'Casi… pero no. Falta una pista.',
-  'aguja09.png':  'El metal parece correcto, la forma no.',
-  'aguja010.png': 'No abre el paso del tiempo.',
-  'aguja011.png': 'Sientes que estás cerca, pero no es esta.',
-  'aguja_luz.png': '“Soy Nora y estoy segura de que la pista es la misma que la mía”.'
+const pieces = {
+  nora: $('#nora'),
+  tomas: $('#tomas'),
+  // las piezas "taza" y "mancha" las creamos al revelar
 };
-const slot = document.getElementById('slot');
-const msg  = document.getElementById('msg');
-let slotLocked = false;
+let revealed = { taza:false, mancha:false };
+let placed = { taza:false, mancha:false };
 
-// habilita drag para todas las agujas
-document.querySelectorAll('.needle').forEach(n=> enableDragFor(n,'needle'));
+/* ========= Drag & Scale de siluetas ========= */
+function makeDraggable(el){
+  let px=0, py=0, startX=0, startY=0;
+  const onPointerDown = (e)=>{
+    selectedPiece = el;
+    selName.textContent = el.id === 'nora' ? 'Nora seleccionada' :
+                          el.id === 'tomas' ? 'Tomás seleccionado' :
+                          el.id === 'taza' ? 'Taza seleccionada' :
+                          el.id === 'mancha' ? 'Mancha seleccionada' : 'Pieza';
+    el.setPointerCapture(e.pointerId);
+    const r = el.getBoundingClientRect();
+    startX = e.clientX; startY = e.clientY;
+    px = r.left; py = r.top;
+  };
+  const onPointerMove = (e)=>{
+    if(!el.hasPointerCapture(e.pointerId)) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const sceneRect = scene.getBoundingClientRect();
+    let nx = px + dx - sceneRect.left;
+    let ny = py + dy - sceneRect.top;
+    // limitar dentro de escena
+    nx = clamp(nx, -el.offsetWidth*0.5, sceneRect.width - el.offsetWidth*0.5);
+    ny = clamp(ny, -el.offsetHeight*0.5, sceneRect.height - el.offsetHeight*0.5);
+    el.style.left = (nx/sceneRect.width*100) + '%';
+    el.style.top  = (ny/sceneRect.height*100) + '%';
+  };
+  const onPointerUp = (e)=>{
+    el.releasePointerCapture(e.pointerId);
+    // snap si es silueta sobre sofá
+    if(el.id==='nora' || el.id==='tomas'){
+      trySnapToSofa(el);
+    }
+    // snap taza/mancha si sus objetivos están activos
+    if(el.id==='taza' && !placed.taza && !tazaTarget.classList.contains('hidden')){
+      trySnapToTarget(el, tazaTarget, 'taza');
+    }
+    if(el.id==='mancha' && !placed.mancha && !manchaTarget.classList.contains('hidden')){
+      trySnapToTarget(el, manchaTarget, 'mancha');
+    }
+  };
+  el.addEventListener('pointerdown', onPointerDown);
+  el.addEventListener('pointermove', onPointerMove);
+  el.addEventListener('pointerup', onPointerUp);
+}
 
-// eventos del slot (desktop)
-slot.addEventListener('dragover', e=>{ e.preventDefault(); if(!slotLocked) slot.classList.add('dragover'); });
-slot.addEventListener('dragleave', ()=> slot.classList.remove('dragover'));
-slot.addEventListener('drop', e=>{
-  e.preventDefault();
-  slot.classList.remove('dragover');
-  if(slotLocked) return;
+makeDraggable(pieces.nora);
+makeDraggable(pieces.tomas);
 
-  const src = e.dataTransfer.getData('text/plain');
-  testNeedle(src);
-});
+function rectPct(el){
+  const a = el.getBoundingClientRect();
+  const s = scene.getBoundingClientRect();
+  return {left:(a.left-s.left)/s.width, top:(a.top-s.top)/s.height, w:a.width/s.width, h:a.height/s.height};
+}
+function intersects(a,b){
+  return !(a.left>a2(b) || a2(a)<b.left || a.top>b2(b) || a2b(a)>b.top);
+  function a2(r){return r.left+r.w}
+  function b2(r){return r.top+r.h}
+  function a2b(r){return r.top+r.h}
+}
 
-// soporte táctil: tocar una aguja → probar
-document.getElementById('needleGrid').addEventListener('click', (e)=>{
-  const el = e.target.closest('.needle'); if(!el) return;
-  const src = el.querySelector('img').getAttribute('src');
-  testNeedle(src);
-});
+function trySnapToSofa(el){
+  const r = rectPct(el), L = rectPct(sofaL), R = rectPct(sofaR);
+  const insideL = !(r.left> L.left+L.w || r.left+r.w < L.left || r.top> L.top+L.h || r.top+r.h < L.top);
+  const insideR = !(r.left> R.left+R.w || r.left+r.w < R.left || r.top> R.top+R.h || r.top+r.h < R.top);
+  if(insideL){
+    // posición “sentado” aproximada
+    el.style.left = (L.left + L.w*0.42)*100 + '%';
+    el.style.top  = (L.top  + L.h*0.48)*100 + '%';
+    el.style.width = '12%';
+    el.classList.add('snapped');
+  }else if(insideR){
+    el.style.left = (R.left + R.w*0.46)*100 + '%';
+    el.style.top  = (R.top  + R.h*0.50)*100 + '%';
+    el.style.width = '12%';
+    el.classList.add('snapped');
+  }
+  // difuminar zonas sofa
+  sofaL.classList.add('faded'); sofaR.classList.add('faded');
+}
 
-function testNeedle(src){
-  // limpia anterior
-  slot.innerHTML = '';
-  const im = new Image();
-  im.src = src; im.className = 'placed';
-  slot.appendChild(im);
-
-  if(src.includes('aguja_luz')){
-    slot.classList.add('flash');
-    setTimeout(()=> slot.classList.remove('flash'), 800);
-    msg.textContent = messages['aguja_luz.png'];
-    slotLocked = true;
+function trySnapToTarget(el, target, key){
+  const r1 = el.getBoundingClientRect();
+  const r2 = target.getBoundingClientRect();
+  const cx1 = r1.left + r1.width/2, cy1 = r1.top + r1.height/2;
+  const cx2 = r2.left + r2.width/2, cy2 = r2.top + r2.height/2;
+  const dist = Math.hypot(cx2-cx1, cy2-cy1);
+  const tol = Math.min(r2.width, r2.height)/3;
+  if(dist<tol){
+    // encaja
+    el.style.left = target.style.left;
+    el.style.top  = target.style.top;
+    el.style.width = target.style.width;
+    el.classList.add('snapped','flash');
+    placed[key]=true;
+    // ¿se han colocado ambas? => caída
+    if(placed.taza && placed.mancha) triggerFall();
   }else{
-    msg.textContent = messages[src.split('/').pop()] || 'No encaja. Prueba otra.';
+    // rebote suave
+    el.animate([{transform:'translateY(0)'},{transform:'translateY(-8px)'},{transform:'translateY(0)'}],{duration:260});
   }
 }
 
+/* ========= Hotspots (revelado de objetivos y piezas) ========= */
+hotspotTaza.addEventListener('click', ()=>{
+  if(revealed.taza) return;
+  revealed.taza = true;
+  tazaTarget.classList.remove('hidden');
+  // mostrar pieza en bandeja
+  tray.querySelector('[data-piece="taza"]').classList.remove('hidden');
+  // crear pieza real si aún no existe
+  if(!pieces.taza){
+    const img = document.createElement('img');
+    img.id='taza'; img.src='taza_a.png'; img.alt='Taza'; img.className='piece';
+    img.style.left='53%'; img.style.top='55%'; img.style.width='7%';
+    scene.appendChild(img);
+    pieces.taza = img; makeDraggable(img);
+  }
+});
+hotspotMancha.addEventListener('click', ()=>{
+  if(revealed.mancha) return;
+  revealed.mancha = true;
+  manchaTarget.classList.remove('hidden');
+  tray.querySelector('[data-piece="mancha"]').classList.remove('hidden');
+  if(!pieces.mancha){
+    const img = document.createElement('img');
+    img.id='mancha'; img.src='mancha.png'; img.alt='Mancha'; img.className='piece';
+    img.style.left='60%'; img.style.top='70%'; img.style.width='10%';
+    scene.appendChild(img);
+    pieces.mancha = img; makeDraggable(img);
+  }
+});
+
+/* ========= Biblioteca: clic para “tomar” pieza ========= */
+tray.addEventListener('click', (e)=>{
+  const cell = e.target.closest('.thumb'); if(!cell) return;
+  const id = cell.dataset.piece;
+  const el = pieces[id];
+  if(el){
+    // resaltar para escalar
+    selectedPiece = el;
+    selName.textContent = (id==='nora'?'Nora':id==='tomas'?'Tomás':id==='taza'?'Taza':'Mancha')+' seleccionada';
+    el.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:220});
+  }
+});
+
+/* ========= Controles de escala ========= */
+function scaleSelected(delta){
+  if(!selectedPiece) return;
+  const w = selectedPiece.getBoundingClientRect().width;
+  const s = scene.getBoundingClientRect().width;
+  const cur = (w/s)*100;
+  const next = clamp(cur*(1+delta), 6, 24);
+  selectedPiece.style.width = next+'%';
+}
+btnMinus.addEventListener('click', ()=>scaleSelected(-0.08));
+btnPlus.addEventListener('click', ()=>scaleSelected(+0.08));
+
+/* ========= Caída de Nora ========= */
+function triggerFall(){
+  // Asegura que Nora está visible y cerca del sofá derecho
+  const n = pieces.nora;
+  if(!n) return;
+  n.classList.add('falling');
+  // Mensajito visual
+  messages.innerHTML = `<em>Algo cae…</em>`;
+}
+
 /* ===========================================================
-   Arranque: deja dos piezas iniciales en escena (puedes quitarlo)
+   SECCIÓN AGUJAS — data + lógica de prueba y rotación
    =========================================================== */
-addPiece('silueta_a.png', 'silueta', 30, 80, 1);
-addPiece('silueta_b.png', 'silueta', 55, 82, 1);
+const needleList = [
+  'aguja01.png','aguja02.png','aguja03.png','aguja04.png','aguja05.png',
+  'aguja06.png','aguja07.png','aguja08.png','aguja09.png','aguja010.png','aguja011.png',
+  'aguja_luz.png' // la correcta
+];
+
+const wrongHints = {
+  'aguja01.png':'Vuelve a intentarlo; el tiempo no juega a tu favor.',
+  'aguja02.png':'Demasiado afilada para este reloj.',
+  'aguja03.png':'Esa aguja apunta al pasado, no a la respuesta.',
+  'aguja04.png':'No encaja. Quizá otra forma sea la correcta.',
+  'aguja05.png':'Cerca… pero el segundo se te escapa.',
+  'aguja06.png':'No brilla; aquí no está la pista.',
+  'aguja07.png':'El marco la rechaza. Prueba con otra.',
+  'aguja08.png':'Sigue buscando: el detalle está en la forma.',
+  'aguja09.png':'Por aquí no destella nada aún.',
+  'aguja010.png':'No. Observa el emblema del marco.',
+  'aguja011.png':'Esa no ilumina la verdad.'
+};
+
+const needleGrid = $('#needleGrid');
+needleList.forEach(src=>{
+  const cell = document.createElement('div');
+  cell.className='frame center';
+  const img = document.createElement('img');
+  img.src = src; img.alt = src==='aguja_luz.png'?'Aguja especial': 'Aguja';
+  cell.appendChild(img);
+  cell.draggable = true;
+
+  // Drag al test-slot (semántico vía dataset)
+  cell.addEventListener('dragstart', ev=>{
+    ev.dataTransfer.setData('text/plain', src);
+  });
+  // También click → probar directo
+  cell.addEventListener('click', ()=>tryNeedle(src));
+
+  needleGrid.appendChild(cell);
+});
+
+// Test area setup
+const testArea = $('#testArea'), testSlot = $('#testSlot'), testNeedle = $('#testNeedle');
+const emblem = $('#emblem');
+let currentNeedle = null;
+let currentAngle = 0;
+const TARGET_ANGLE = 255; // 8:30 (hora) ~ 8.5*30 = 255°
+const TOL = 4;
+
+testArea.addEventListener('dragover', e=>e.preventDefault());
+testArea.addEventListener('drop', e=>{
+  e.preventDefault();
+  const src = e.dataTransfer.getData('text/plain');
+  if(src) tryNeedle(src);
+});
+
+function msg(txt){ messages.innerHTML = `<div>${txt}</div>`; }
+
+function tryNeedle(src){
+  // Reset de rotación si veníamos de una correcta anterior
+  disableRotation();
+
+  if(src !== 'aguja_luz.png'){
+    // feedback de error
+    testArea.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220});
+    msg(`“${wrongHints[src] || 'No es la aguja correcta.'}”`);
+    return;
+  }
+  // Correcta: mostrar en test, destello y habilitar rotación
+  currentNeedle = src;
+  testNeedle.src = src;
+  testNeedle.classList.remove('hidden');
+  testNeedle.classList.add('flash');
+  msg('¡Encaja! Ahora <strong>gírala</strong> y alinea con el emblema a las <strong>8:30</strong>.');
+
+  enableRotation();
+}
+
+/* ========= Rotación ========= */
+const rotRange = $('#rotRange'), rotMinus = $('#rotMinus'), rotPlus = $('#rotPlus');
+
+function setAngle(a){
+  currentAngle = (a+360)%360;
+  testNeedle.style.transform = `rotate(${currentAngle}deg)`;
+  checkSolved();
+}
+function enableRotation(){
+  [rotRange, rotMinus, rotPlus].forEach(el=>el.disabled=false);
+  rotRange.value = 0;
+  setAngle(0);
+  // Emblema en posición “objetivo”
+  emblem.style.opacity = .18;
+  emblem.classList.add('flash');
+}
+function disableRotation(){
+  [rotRange, rotMinus, rotPlus].forEach(el=>el.disabled=true);
+  testNeedle.classList.add('hidden');
+  emblem.style.opacity = .14;
+}
+rotRange.addEventListener('input', e=> setAngle(+e.target.value));
+rotMinus.addEventListener('click', ()=> setAngle(currentAngle-5));
+rotPlus .addEventListener('click', ()=> setAngle(currentAngle+5));
+
+function checkSolved(){
+  if(within(currentAngle, TARGET_ANGLE, TOL)){
+    // éxito
+    msg('<strong>¡Perfecto!</strong> Las agujas y su tiempo terminan aquí…');
+    testNeedle.classList.add('flash');
+    rotRange.disabled = rotMinus.disabled = rotPlus.disabled = true;
+  }
+}
+
+/* ========= Accesibilidad menor ========= */
+document.addEventListener('keydown', (e)=>{
+  if(!selectedPiece) return;
+  const step = 0.8; // %
+  const sceneRect = scene.getBoundingClientRect();
+  const x = parseFloat(selectedPiece.style.left)||0;
+  const y = parseFloat(selectedPiece.style.top)||0;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+    e.preventDefault();
+    if(e.key==='ArrowLeft') selectedPiece.style.left = (x-step)+'%';
+    if(e.key==='ArrowRight') selectedPiece.style.left = (x+step)+'%';
+    if(e.key==='ArrowUp') selectedPiece.style.top = (y-step)+'%';
+    if(e.key==='ArrowDown') selectedPiece.style.top = (y+step)+'%';
+  }
+});
+
+/* Inicial: zonas sofá atenuadas tras 2s */
+setTimeout(()=>{ sofaL.classList.add('faded'); sofaR.classList.add('faded'); }, 2000);
+
 </script>
 </body>
 </html>
-
