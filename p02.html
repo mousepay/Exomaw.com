@@ -64,6 +64,24 @@
   @media (max-width:740px){
     .q{font-size:clamp(1.1rem,1rem + 2.4vw,1.8rem)}
   }
+ /* subtítulo bajo el título del mapa en la barra */
+.titlewrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: min(70vw, 800px);
+}
+
+.subhint {
+  font-size: .95rem;
+  opacity: .9;
+  line-height: 1.35;
+}
+
+.toolbar {
+  align-items: flex-start;
+}
+
 </style>
 </head>
 <body>
@@ -89,9 +107,20 @@
   <section class="modal" id="mapModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="mapTitle">
     <div class="backdrop" data-close></div>
     <div class="mw">
-      <div class="toolbar">
-        <strong id="mapTitle" style="letter-spacing:.3px">Mapa — Cataluña &amp; sur de Francia</strong>
-        <div class="group">
+    <div class="toolbar">
+  <div class="titlewrap">
+    <strong id="mapTitle" style="letter-spacing:.3px">
+      Mapa — Cataluña &amp; sur de Francia
+    </strong>
+    <div class="subhint">
+      Coloca la chincheta donde creas que la investigación comienza.  
+      Puedes poner chinchetas en todos los lugares que Nora Torres recorre.
+    </div>
+  </div>
+  <div class="group">
+
+  <div class="group">
+
           <button class="tool inverse" id="saveAll">Guardar mapa</button>
           <button class="tool inverse" id="delLast">Borrar última</button>
           <button class="tool inverse" id="delAll">Borrar todo</button>
@@ -101,10 +130,7 @@
           <button class="tool" data-close>&times; Cerrar</button>
         </div>
       </div>
-      <div class="mapWrap">
-        <div id="map" aria-label="Mapa interactivo"></div>
-      <div class="hint">Coloca la chincheta donde creas que la investigación comienza. Puedes poner chinchetas en todos los lugares que Nora Torres recorre.</div>
-
+      
       </div>
     </div>
   </section>
@@ -314,6 +340,7 @@
 </script>
 </body>
 </html>
+
 
 
 
