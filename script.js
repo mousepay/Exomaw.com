@@ -79,4 +79,18 @@ const launch = new Date('2026-01-15T20:00:00+01:00'); // Madrid (CET/CEST)
 
   // (Opcional) empezar minimizado en móvil:
   // if (window.matchMedia('(max-width: 640px)').matches) card.classList.add('mini');
+  // ===== CONTROL DE MÚSICA ENTRE PÁGINAS =====
+(function mantenerMusica() {
+  const musica = document.getElementById('musicaFondo');
+  if (!musica) return;
+
+  // Si la música estaba activa, la reanuda
+  if (localStorage.getItem('musicaActiva') === 'true') {
+    musica.play().catch(() => {});
+  }
+
+  // Guarda el estado cada vez que se pausa o reanuda
+  musica.addEventListener('play', () => localStorage.setItem('musicaActiva', 'true'));
+  musica.addEventListener('pause', () => localStorage.setItem('musicaActiva', 'false'));
 })();
+
