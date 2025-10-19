@@ -109,5 +109,26 @@ const launch = new Date('2026-01-15T20:00:00+01:00'); // Madrid (CET/CEST)
   musica.addEventListener('play', () => localStorage.setItem('musicaActiva', 'true'));
   musica.addEventListener('pause', () => localStorage.setItem('musicaActiva', 'false'));
 })();
+// ===== ANIMACIÓN DE PORTADA =====
+
+// Espera a que todo el contenido esté cargado
+window.addEventListener('load', () => {
+  const titulo = document.querySelector('.titulo-animado');
+  const nora = document.querySelector('.nora-camina');
+  const niebla = document.querySelector('.niebla');
+
+  // Activa las animaciones al cargar
+  if (titulo && nora && niebla) {
+    titulo.classList.add('mostrar');
+    nora.classList.add('andar');
+    niebla.classList.add('mover-niebla');
+  }
+
+  // Hace que Nora camine y luego se detenga suavemente
+  setTimeout(() => {
+    nora.classList.remove('andar');
+  }, 8000); // 8 segundos caminando
+});
+
 
 
