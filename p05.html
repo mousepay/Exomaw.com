@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PISTA 5 — Memoria de agujas</title>
+<title>El reloj de la verdad</title>
 <style>
-  :root{ --ink:#0c2f29; --muted:#2b5f55; --ok:#118754; --bad:#c43a2e; --warn:#f0b429; --brand:#0ea5a3; --pane:rgba(255,255,255,.9); }
+  :root{ --ink:#0c2f29; --muted:#2b5f55; --ok:#118754; --warn:#f0b429; --brand:#0ea5a3; --pane:rgba(255,255,255,.92); }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
   body{
-    /* Puedes cambiar por tu fondo si quieres: */
+    /* Si quieres usar tu imagen: descomenta la siguiente línea y pon el nombre del archivo */
     /* background:url('fondo.png') center/cover fixed no-repeat; */
     background: radial-gradient(1200px 900px at 30% 0%, #eaf7f2, #d8efe6 60%, #cde6de);
   }
-  .wrap{max-width:1100px;margin:26px auto 90px;padding:0 16px}
+  .wrap{max-width:1100px;margin:28px auto 90px;padding:0 16px}
   .top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
   .back{border:1px solid #cfe6df;background:#f5fbf9;color:#1c534a;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
   h1{margin:6px 0 12px;font-size:clamp(26px,4vw,44px);color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.45)}
@@ -22,31 +22,29 @@
   .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
   .primary{background:var(--brand);color:#053f3b}
   .ghost{background:#eef7f5;color:#0c4a3f;border:1px solid #cfe6df}
-
-  .grid{display:grid;gap:12px;grid-template-columns:repeat(6,1fr)}
-  @media(max-width:960px){.grid{grid-template-columns:repeat(4,1fr)}}
-  @media(max-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
-  .cardx{position:relative;aspect-ratio:3/4;border-radius:14px;cursor:pointer;transform-style:preserve-3d;transition:transform .35s ease}
-  .cardx.lock{cursor:default}
-  .face{position:absolute;inset:0;border-radius:14px;border:1px solid rgba(0,0,0,.12);backface-visibility:hidden;display:grid;place-items:center}
-  .front{background:#fff;transform:rotateY(180deg)}
-  .back{
-    background:
-      radial-gradient(circle at 20% 15%, rgba(255,255,255,.28), rgba(255,255,255,0) 35%),
-      repeating-linear-gradient(45deg,#103f37 0 8px,#145247 8px 16px);
-    border:1px solid rgba(0,0,0,.15);
-  }
-  .cardx.flip{transform:rotateY(180deg)}
-  svg{width:80px;height:110px}
-  .sil{opacity:.26;filter:grayscale(1) contrast(.9)}
-  .glow{filter:drop-shadow(0 0 8px rgba(255,255,140,.9)) drop-shadow(0 0 18px rgba(255,255,140,.7))}
-
-  .msg{margin-top:10px;border-radius:12px;padding:10px 12px;border:1px solid #e3eee9;background:#f8fffc;color:#0e4c41;display:none}
-  .msg.show{display:block}
-  .final{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#f4fffb;border:1px solid #cfe6df}
-  .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.9),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s}
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+  .clockWrap{display:grid;place-items:center}
+  svg{width:min(560px,92vw);height:auto}
+  .face{fill:#fefefe;stroke:#1a5348;stroke-width:3;filter:drop-shadow(0 10px 28px rgba(0,0,0,.18))}
+  .tick{stroke:#184b41;stroke-width:3}
+  .sub{stroke:#184b41;stroke-width:1.5;opacity:.6}
+  .hand{stroke:#0a2f29;stroke-linecap:round;transform-origin:50% 50%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));cursor:grab}
+  .hand:active{cursor:grabbing}
+  .center{fill:#0a2f29}
+  .target{fill:#dff6ef;stroke:#8fd0c3;stroke-width:2;opacity:.9}
+  .unlocked{fill:#bff1e4;stroke:#3bb499}
+  .msg{margin-top:8px;border-radius:12px;padding:10px 12px;border:1px solid #e3eee9;background:#f8fffc;color:#0e4c41}
+  .list{margin-top:10px}
+  .list .row{display:flex;gap:10px;align-items:center;margin:6px 0;padding:10px;border-radius:10px;border:1px solid #e6f2ee;background:#ffffff}
+  .row.done{border-color:#bfeade;background:#f2fffa}
+  .row .time{width:90px;font-weight:700;color:#0a4b44}
+  .row .txt{flex:1;color:#0e3c34}
+  .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.9),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s;z-index:20}
   .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
   @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
+  .final{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#f4fffb;border:1px solid #cfe6df}
+
   /* Libreta */
   .notes{margin-top:14px;border:1px solid #cfe6df;background:#ffffff;border-radius:12px;overflow:hidden}
   .notes .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#eef7f5;border-bottom:1px solid #cfe6df}
@@ -54,51 +52,68 @@
   .notes .body{padding:10px}
   .notes textarea{width:100%;min-height:110px;border:1px solid #cfe6df;border-radius:10px;padding:10px;resize:vertical}
   .notes .actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+
+  /* Modal colores */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:30}
+  .modal.show{display:flex}
+  .modal-card{max-width:680px;width:92%;background:#fff;border-radius:16px;border:1px solid #cfe6df;box-shadow:0 18px 45px rgba(0,0,0,.25)}
+  .modal-head{padding:14px 16px;border-bottom:1px solid #e3eee9;background:#f7fffb;font-weight:700;color:#0b3f39}
+  .modal-body{padding:16px}
+  .color-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .color-btn{display:flex;align-items:center;gap:10px;border:1px solid #d7ebe6;border-radius:12px;padding:10px 12px;cursor:pointer;background:#f8fffc}
+  .color-dot{width:18px;height:18px;border-radius:999px;border:1px solid rgba(0,0,0,.12)}
+  .note{margin-top:10px;color:#0e4c41}
+  .ok{background:#0ea5a3;color:#053f3b;border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;margin-top:10px}
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
-      <button class="back" onclick="history.back()">← Volver a las pistas</button>
-      <!-- Botón para ir al reloj de la verdad -->
-<div style="margin-top:10px">
-  <button class="btn primary" onclick="location.href='p06.html'">
-    El reloj de la verdad
-  </button>
-</div>
-
-      <h1>PISTA 5 — Memoria de agujas</h1>
+      <button class="back" onclick="history.back()">← Volver al libro</button>
+      <h1>El reloj de la verdad</h1>
     </div>
 
     <div class="card">
-      <p><strong>Cómo se juega:</strong> hay un asesino entre sombras. Encuentra las parejas <strong>aguja + sombra</strong>. Cuando encajes bien, verás un destello y escucharás a Nora susurrar una idea. La <em>aguja de luz</em> también destella. Al final podrás pasar al <strong>Reloj de la verdad</strong>.</p>
+      <p><strong>Cómo se juega:</strong> ajusta las agujas para alinear <strong>seis horas clave</strong>. Cada acierto desbloquea un recuerdo de Nora (sin spoilers). Tolerancia: ±3 minutos. Sugerencia: mueve primero la aguja larga (minutos) y luego la corta (horas).</p>
 
       <div class="hud">
-        <span class="pill" id="moves">Movimientos: 0</span>
-        <span class="pill" id="fails">Fallos: 0</span>
-        <span class="pill" id="time">Tiempo: 00:00</span>
-        <button id="restart" class="btn ghost">Reiniciar</button>
+        <span class="pill" id="readout">Hora actual: 12:00</span>
+        <span class="pill">Tolerancia: ±3′</span>
+        <button class="btn ghost" id="resetBtn">Reiniciar</button>
       </div>
 
-      <div id="board" class="grid" aria-label="Tablero de memoria"></div>
+      <div class="grid">
+        <div class="clockWrap">
+          <svg viewBox="0 0 300 300" aria-label="Reloj interactivo">
+            <circle cx="150" cy="150" r="135" class="face"/>
+            <g id="ticks"></g>
+            <g id="targets"></g>
+            <line id="hour" x1="150" y1="150" x2="150" y2="95" stroke-width="6" class="hand"/>
+            <line id="min"  x1="150" y1="150" x2="150" y2="70" stroke-width="4" class="hand"/>
+            <circle cx="150" cy="150" r="5.5" class="center"/>
+          </svg>
+          <div class="msg" id="hint">Consejo: arrastra la <strong>aguja larga</strong> (minutero) y luego la <strong>corta</strong> (hora).</div>
 
-      <div id="feedback" class="msg"></div>
-
-      <div id="finalBox" class="final"></div>
-
-      <!-- Libreta -->
-      <div class="notes" id="notes">
-        <div class="bar">
-          <div class="title">Libreta del caso</div>
-          <div style="font-size:12px;color:#1a5c51">Tus notas se guardan en este dispositivo</div>
-        </div>
-        <div class="body">
-          <textarea id="notesArea" placeholder="Anota detalles: horas, gestos, frases de Nora…"></textarea>
-          <div class="actions">
-            <button class="btn primary" id="saveLine">Guardar línea</button>
-            <button class="btn ghost" id="undoLine">Borrar última línea</button>
-            <button class="btn ghost" id="clearAll">Borrar todo</button>
+          <!-- Libreta -->
+          <div class="notes" id="notes">
+            <div class="bar">
+              <div class="title">Libreta del reloj</div>
+              <div style="font-size:12px;color:#1a5c51">Se guarda en este dispositivo</div>
+            </div>
+            <div class="body">
+              <textarea id="notesArea" placeholder="Apunta horas, relaciones y frases que te sugieran…"></textarea>
+              <div class="actions">
+                <button class="btn primary" id="saveLine">Guardar línea</button>
+                <button class="btn ghost" id="undoLine">Borrar última línea</button>
+                <button class="btn ghost" id="clearAll">Borrar todo</button>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div>
+          <div class="list" id="list"></div>
+          <div id="finalBox" class="final"></div>
         </div>
       </div>
     </div>
@@ -106,195 +121,271 @@
 
   <div id="flash" class="flash"></div>
 
+  <!-- Modal del acertijo de colores (08:30) -->
+  <div id="modalColors" class="modal" role="dialog" aria-modal="true" aria-labelledby="qTitle">
+    <div class="modal-card">
+      <div class="modal-head" id="qTitle">¿De qué color tiene la lengua el diablo?</div>
+      <div class="modal-body">
+        <div class="color-grid">
+          <button class="color-btn" onclick="chooseColor('Lila')">
+            <span class="color-dot" style="background:#b27bd9"></span> Lila
+          </button>
+          <button class="color-btn" onclick="chooseColor('Verde fluorescente')">
+            <span class="color-dot" style="background:#39ff14"></span> Verde fluorescente
+          </button>
+          <button class="color-btn" onclick="chooseColor('Azul')">
+            <span class="color-dot" style="background:#1e88e5"></span> Azul
+          </button>
+          <button class="color-btn" onclick="chooseColor('Rojo')">
+            <span class="color-dot" style="background:#e53935"></span> Rojo
+          </button>
+          <button class="color-btn" onclick="chooseColor('Amarillo')">
+            <span class="color-dot" style="background:#ffd600"></span> Amarillo
+          </button>
+          <button class="color-btn" onclick="chooseColor('Verde')">
+            <span class="color-dot" style="background:#2e7d32"></span> Verde
+          </button>
+          <button class="color-btn" onclick="chooseColor('Naranja')">
+            <span class="color-dot" style="background:#ff8f00"></span> Naranja
+          </button>
+          <button class="color-btn" onclick="chooseColor('Blanco')">
+            <span class="color-dot" style="background:#ffffff;border:1px solid #bdbdbd"></span> Blanco
+          </button>
+          <button class="color-btn" onclick="chooseColor('Negro')">
+            <span class="color-dot" style="background:#000000"></span> Negro
+          </button>
+        </div>
+        <div id="colorMsg" class="note"></div>
+        <button class="ok" style="display:none" id="okClose" onclick="closeColorModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 <script>
-/* ===== util ===== */
-const $=s=>document.querySelector(s);
-const pad=n=>String(n).padStart(2,'0');
+const readout = document.getElementById('readout');
+const list    = document.getElementById('list');
+const targetsG= document.getElementById('targets');
+const ticksG  = document.getElementById('ticks');
+const flash   = document.getElementById('flash');
 
-/* ===== generador de agujas (SVG) ===== */
-function needleSVG({shaft=56, tip="arrow", weight="circle", thick=3, glow=false, shadow=false}={}){
-  const w=90,h=120,cx=w/2,top=20,shaftH=shaft,bot=top+shaftH;
-  const col = shadow ? "#0c2839" : "#0c2839";
-  const op  = shadow ? ' class="sil"' : (glow ? ' class="glow"' : '');
-  const frame = `<rect x="8" y="6" width="${w-16}" height="${h-12}" rx="10" fill="none" stroke="${shadow?'#21443f':'#1d4d46'}" stroke-width="2"/>`;
-  const line  = `<rect x="${cx-thick/2}" y="${top}" width="${thick}" height="${shaftH}" rx="${thick/2}" fill="${col}"/>`;
-  let tipEl="";
-  if(tip==="arrow") tipEl=`<polygon points="${cx},${top-10} ${cx-8},${top+6} ${cx+8},${top+6}" fill="${col}"/>`;
-  else if(tip==="needle") tipEl=`<rect x="${cx-(thick-1)/2}" y="${top-10}" width="${thick-1}" height="10" fill="${col}"/>`;
-  else tipEl=`<polygon points="${cx},${top-9} ${cx-7},${top} ${cx},${top+9} ${cx+7},${top}" fill="${col}"/>`;
-  let wgt="";
-  if(weight==="circle") wgt=`<circle cx="${cx}" cy="${bot+10}" r="${6+Math.max(0,thick-3)}" fill="${col}"/>`;
-  else if(weight==="spike") wgt=`<rect x="${cx-(thick+2)/2}" y="${bot}" width="${thick+2}" height="14" rx="2" fill="${col}"/>`;
-  else wgt=`<circle cx="${cx}" cy="${bot+10}" r="8" fill="none" stroke="${col}" stroke-width="2"/>`;
-  return `<svg viewBox="0 0 ${w} ${h}"${op}>${frame}${line}${tipEl}${wgt}</svg>`;
+const hourHand = document.getElementById('hour');
+const minHand  = document.getElementById('min');
+const center = {x:150,y:150};
+let hour=12, minute=0;
+
+const TOL_MIN = 3; // ±3 minutos
+
+// Objetivos (más horas, algunas falsas). 08:30 es el evento especial.
+const GOALS = [
+  {h:1,  m:20, txt:'A la 01:20, la primera coartada respiró demasiado rápido.'},
+  {h:2,  m:15, txt:'A las 02:15, la sombra se movió antes del reflejo.'},
+  {h:3,  m:40, txt:'A las 03:40, un silencio nuevo cambió de dueño.'},
+  {h:4,  m:15, txt:'A las 04:15, el teléfono sonó sin motivo.'},
+  {h:5,  m:30, txt:'A las 05:30, alguien giró el tiempo para encajar en su coartada.'},
+  {h:6,  m:05, txt:'A las 06:05, la luz no alcanzó a borrar la culpa.'},
+  {h:7,  m:45, txt:'A las 07:45, la memoria decidió a quién proteger.'},
+  {h:8,  m:30, txt:'A las 08:30… algo no admite matices.', special:true},  // ← especial (modal colores)
+  {h:9,  m:10, txt:'A las 09:10, el corazón latía fuera de lugar.'},
+  {h:10, m:20, txt:'A las 10:20, una puerta quedó entreabierta en la versión de los hechos.'},
+  {h:11, m:55, txt:'A las 11:55, la verdad respiró detrás del cristal.'},
+  {h:12, m:0,  txt:'A las 12:00, el silencio habló más que las palabras.'}
+];
+const unlocked = new Set();
+
+function pad(n){return String(n).padStart(2,'0')}
+function timeStr(h,m){return `${pad(h)}:${pad(m)}`}
+
+function paintTicks(){
+  let H='', M='';
+  for(let i=0;i<12;i++){
+    const a=i*Math.PI/6;
+    const x1=150+Math.sin(a)*110, y1=150- Math.cos(a)*110;
+    const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
+    H+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="tick"/>`;
+  }
+  for(let i=0;i<60;i++){
+    if(i%5===0) continue;
+    const a=i*Math.PI/30;
+    const x1=150+Math.sin(a)*118, y1=150- Math.cos(a)*118;
+    const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
+    M+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="sub"/>`;
+  }
+  ticksG.innerHTML=H+M;
 }
 
-/* ===== modelos ===== */
-const MODELS = [
-  {shaft:58, tip:"arrow",  weight:"circle", thick:3},
-  {shaft:62, tip:"diamond",weight:"spike",  thick:3},
-  {shaft:54, tip:"needle", weight:"ring",   thick:4},
-  {shaft:60, tip:"arrow",  weight:"ring",   thick:2},
-  {shaft:52, tip:"diamond",weight:"circle", thick:4},
-  {shaft:66, tip:"needle", weight:"spike",  thick:2},
-  {shaft:56, tip:"arrow",  weight:"spike",  thick:4},
-  {shaft:64, tip:"diamond",weight:"ring",   thick:3},
-  {shaft:50, tip:"needle", weight:"circle", thick:3},
-  {shaft:68, tip:"arrow",  weight:"circle", thick:2},
-  {shaft:58, tip:"diamond",weight:"spike",  thick:5},
-  {shaft:60, tip:"needle", weight:"ring",   thick:3, glow:true} // aguja de luz
-];
-
-/* ===== estado ===== */
-const board=$("#board"), feedback=$("#feedback"), flash=$("#flash");
-const movesEl=$("#moves"), failsEl=$("#fails"), timeEl=$("#time");
-let first=null, second=null, lock=false, pairsFound=0, moves=0, fails=0, t0=null, tick=null;
-
-const NORA_LINES = [
-  "Nora: A veces la sombra se adelanta a la verdad.",
-  "Nora: El detalle mínimo parte la noche en dos.",
-  "Nora: Cuando encaja, el tiempo asiente.",
-  "Nora: La memoria viaja al compás de la luz."
-];
-
-function build(){
-  clearInterval(tick);
-  board.innerHTML=""; feedback.className="msg"; feedback.textContent="";
-  first=second=null; lock=false; pairsFound=0; moves=0; fails=0;
-  movesEl.textContent="Movimientos: 0"; failsEl.textContent="Fallos: 0";
-  // tiempo
-  t0=Date.now(); timeEl.textContent="Tiempo: 00:00";
-  tick=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); timeEl.textContent=`Tiempo: ${pad(Math.floor(s/60))}:${pad(s%60)}`; },1000);
-
-  // baraja: para cada modelo, dos cartas: sombra y aguja
-  const deck=[];
-  MODELS.forEach((m,i)=>{
-    deck.push({id:i, type:"shadow", html:needleSVG({...m, shadow:true})});
-    deck.push({id:i, type:"needle", html:needleSVG(m)});
-  });
-  deck.sort(()=>Math.random()-.5);
-
-  deck.forEach(card=>{
-    const el=document.createElement("div");
-    el.className="cardx"; el.tabIndex=0;
-    el.dataset.id=card.id; el.dataset.type=card.type;
-    el.innerHTML=`
-      <div class="face front">${card.html}</div>
-      <div class="face back"></div>
-    `;
-    el.addEventListener("click", ()=>flip(el));
-    el.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" ") flip(el); });
-    board.appendChild(el);
-  });
-
-  // Libreta: cargar
-  loadNotes();
+function paintList(){
+  list.innerHTML = GOALS.map((g,i)=>`
+    <div class="row ${unlocked.has(i)?'done':''}">
+      <div class="time">${timeStr(g.h,g.m)}</div>
+      <div class="txt">${unlocked.has(i)?g.txt:'— — —'}</div>
+    </div>
+  `).join('');
+  targetsG.innerHTML = GOALS.map((g,i)=>{
+    const angle = (g.m/60)*2*Math.PI;
+    const r=128;
+    const cx = 150 + Math.sin(angle)*r;
+    const cy = 150 - Math.cos(angle)*r;
+    return `<circle cx="${cx}" cy="${cy}" r="7" class="${unlocked.has(i)?'unlocked':'target'}" opacity="${unlocked.has(i)?1:.4}"/>`
+  }).join('');
 }
 
-/* flip/match */
-function flip(el){
-  if(lock || el.classList.contains("flip") || el.classList.contains("lock")) return;
-  el.classList.add("flip");
-  if(!first){ first=el; return; }
-  second=el; lock=true; moves++; movesEl.textContent=`Movimientos: ${moves}`;
+function setHands(h,m){
+  hour=h; minute=m;
+  const minDeg = m*6;
+  const h12 = (h%12);
+  const hourDeg = h12*30 + m*0.5;
+  minHand.style.transform  = `rotate(${minDeg}deg) translateZ(0)`;
+  hourHand.style.transform = `rotate(${hourDeg}deg) translateZ(0)`;
+  readout.textContent = `Hora actual: ${timeStr(h,m)}`;
+  checkGoals();
+}
 
-  const match = first.dataset.id===second.dataset.id && first.dataset.type!==second.dataset.type;
-  if(match){
-    setTimeout(()=>{
-      first.classList.add("lock");
-      second.classList.add("lock");
-      // fusion (deja solo aguja si era sombra)
-      [first,second].forEach(x=>{
-        if(x.dataset.type==="shadow"){
-          x.querySelector(".front").innerHTML = needleSVG(MODELS[+x.dataset.id]);
-        }
-      });
-      // flash + frase de Nora
-      flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"), 360);
-      feedback.className="msg show";
-      feedback.textContent = NORA_LINES[Math.floor(Math.random()*NORA_LINES.length)];
+function angleFromPointer(e){
+  const pt = ('touches' in e) ? e.touches[0] : e;
+  const rect = e.target.closest('svg').getBoundingClientRect();
+  const x = pt.clientX - rect.left;
+  const y = pt.clientY - rect.top;
+  const dx = x - center.x, dy = y - center.y;
+  let ang = Math.atan2(dx, -dy); if(ang<0) ang += 2*Math.PI;
+  return ang;
+}
 
-      pairsFound++;
-      resetPick();
-      if(pairsFound===MODELS.length) finish();
-    },260);
-  } else {
-    fails++; failsEl.textContent=`Fallos: ${fails}`;
-    feedback.className="msg show"; feedback.textContent=["Observa la punta.","El contrapeso no coincide.","Grosor y longitud marcan la diferencia." ][Math.floor(Math.random()*3)];
-    setTimeout(()=>{ first.classList.remove("flip"); second.classList.remove("flip"); resetPick(); },650);
+let drag=null;
+const onDown = which => e => { e.preventDefault(); drag=which; };
+function onMove(e){
+  if(!drag) return;
+  e.preventDefault();
+  const ang = angleFromPointer(e);
+  const deg = ang*180/Math.PI;
+  if(drag==='min'){
+    const m = Math.round(deg/6) % 60;
+    setHands(hour, m);
+  }else{
+    let snapped = Math.round((deg/30)) % 12;
+    if(snapped===0) snapped=12;
+    setHands(snapped, minute);
   }
 }
+const onUp = ()=> drag=null;
 
-function resetPick(){ first=null; second=null; lock=false; }
+minHand.addEventListener('mousedown', onDown('min'));
+hourHand.addEventListener('mousedown', onDown('hour'));
+document.addEventListener('mousemove', onMove);
+document.addEventListener('mouseup', onUp);
 
-/* FINAL */
+minHand.addEventListener('touchstart', onDown('min'), {passive:false});
+hourHand.addEventListener('touchstart', onDown('hour'), {passive:false});
+document.addEventListener('touchmove', onMove, {passive:false});
+document.addEventListener('touchend', onUp);
+
+function within(a,b, tol){ return Math.abs(a-b)<=tol; }
+
+function checkGoals(){
+  GOALS.forEach((g,i)=>{
+    if(unlocked.has(i)) return;
+    const sameHour = ( (g.h%12) === (hour%12) );
+    const sameMin  = within(g.m, minute, TOL_MIN);
+    if(sameHour && sameMin){
+      unlocked.add(i);
+      paintList();
+      flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 350);
+      document.getElementById('hint').textContent = `Nora: ${g.txt}`;
+
+      // Evento especial a las 08:30
+      if (g.special) { openColorModal(); }
+
+      if(unlocked.size===GOALS.length) finish();
+    }
+  });
+}
+
 function finish(){
-  clearInterval(tick);
-  const secs = Math.floor((Date.now()-t0)/1000);
-  const final = document.getElementById("finalBox");
-  // destello 1s más fuerte
-  const f = document.getElementById("flash");
-  f.classList.add("on"); setTimeout(()=>f.classList.remove("on"), 1000);
-
-  final.style.display = "block";
-  final.innerHTML = `
-    <strong>¡Puzzle completo!</strong><br>
-    Tiempo: <b>${pad(Math.floor(secs/60))}:${pad(secs%60)}</b> — Movimientos: <b>${moves}</b> — Fallos: <b>${fails}</b>.<br><br>
-    <em>Nora:</em> «<strong>La memoria viaja al compás de la luz.</strong>»<br><br>
-    <span style="display:block;margin:.3rem 0 1rem">Lo hemos resuelto, gracias a tus habilidades; ¡te espero en la próxima novela!</span>
+  flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 900);
+  const box = document.getElementById('finalBox');
+  box.style.display='block';
+  box.innerHTML = `
+    <strong>El tiempo no delata.</strong><br>
+    Lo hemos resuelto; gracias a tus habilidades… <em>te espero en la próxima novela</em>.<br><br>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn primary" onclick="location.href='p06.html'">El reloj de la verdad</button>
-      <button class="btn ghost" onclick="history.back()">Volver al libro</button>
-      <button class="btn ghost" onclick="build()">Volver a jugar</button>
+      <button class="btn primary" onclick="history.back()">Volver al libro</button>
+      <button class="btn ghost" onclick="resetAll()">Reiniciar reloj</button>
     </div>
   `;
 }
 
-/* ===== Libreta (localStorage) ===== */
-const KEY="notes_p05";
-function loadNotes(){
-  const area=$("#notesArea");
-  const data=localStorage.getItem(KEY);
-  area.value = data || "";
+function resetAll(){
+  unlocked.clear();
+  paintList();
+  setHands(12,0);
+  document.getElementById('hint').textContent = 'Consejo: arrastra la aguja larga (minutero) y luego la corta (hora).';
 }
-function saveLine(){
-  const area=$("#notesArea");
-  const val=area.value.trim();
-  if(!val) return;
-  area.value = val + (val.endsWith("\n")?"":"\n");
-  localStorage.setItem(KEY, area.value);
-}
-function undoLine(){
-  const area=$("#notesArea");
-  const lines=area.value.split("\n");
-  if(lines.length<=1){ area.value=""; localStorage.setItem(KEY,""); return;}
-  lines.pop(); // línea vacía final
-  lines.pop(); // última con texto
-  area.value = lines.join("\n") + (lines.length? "\n": "");
-  localStorage.setItem(KEY, area.value);
-}
-function clearAll(){
-  if(confirm("¿Borrar todas las notas?")){ $("#notesArea").value=""; localStorage.removeItem(KEY); }
-}
-$("#saveLine").addEventListener("click", saveLine);
-$("#undoLine").addEventListener("click", undoLine);
-$("#clearAll").addEventListener("click", clearAll);
+document.getElementById('resetBtn').addEventListener('click', resetAll);
 
-/* ===== go! ===== */
-$("#restart").addEventListener("click", build);
-build();
+/* Libreta (localStorage) */
+const KEY="notes_p06";
+function loadNotes(){ const a=document.getElementById('notesArea'); a.value = localStorage.getItem(KEY)||""; }
+function saveLine(){ const a=document.getElementById('notesArea'); const v=a.value.trim(); if(!v) return; a.value=v+(v.endsWith("\n")?"":"\n"); localStorage.setItem(KEY,a.value); }
+function undoLine(){ const a=document.getElementById('notesArea'); const lines=a.value.split("\n"); if(lines.length<=1){ a.value=""; localStorage.setItem(KEY,""); return;} lines.pop(); lines.pop(); a.value=lines.join("\n")+(lines.length? "\n":""); localStorage.setItem(KEY,a.value); }
+function clearAll(){ if(confirm("¿Borrar todas las notas?")){ document.getElementById('notesArea').value=""; localStorage.removeItem(KEY);} }
+document.getElementById('saveLine').addEventListener('click', saveLine);
+document.getElementById('undoLine').addEventListener('click', undoLine);
+document.getElementById('clearAll').addEventListener('click', clearAll);
+
+/* Modal de colores (08:30) */
+const COLOR_LINES = {
+  'Lila': 'Los matices se hacen claros.',
+  'Verde fluorescente': 'La señora Amelia lo sabía.',
+  'Azul': 'El aire de Figueras pesaba más de lo habitual.',
+  'Rojo': 'Los tonos se mezclan en un mar de dudas.',
+  'Amarillo': 'El color… está en tu mente.',
+  'Verde': 'Las paredes hablan y los colores susurran.',
+  'Naranja': 'El color del café silencia la muerte.',
+  'Blanco': 'Los destellos vienen acompañados de la verdad.',
+  'Negro': 'Acertaste. Los bordes de la noche revelan la forma de lo ocurrido.'
+};
+function openColorModal(){
+  flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 300);
+  document.getElementById('colorMsg').textContent="";
+  document.getElementById('okClose').style.display="none";
+  document.getElementById('modalColors').classList.add('show');
+}
+function closeColorModal(){
+  document.getElementById('modalColors').classList.remove('show');
+}
+function chooseColor(color){
+  const msg = document.getElementById('colorMsg');
+  msg.textContent = COLOR_LINES[color] || '';
+  document.getElementById('okClose').style.display="inline-block";
+  if(color === 'Negro'){
+    setTimeout(()=>{
+      closeColorModal();
+      flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 800);
+      GOALS.forEach((_,i)=>unlocked.add(i)); // desbloquear todo
+      paintList();
+      const box = document.getElementById('finalBox');
+      box.style.display='block';
+      box.innerHTML = `
+        <strong>El tiempo no delata.</strong><br>
+        Lo hemos resuelto; gracias a tus habilidades… <em>te espero en la próxima novela</em>.<br><br>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn primary" onclick="history.back()">Volver al libro</button>
+          <button class="btn ghost" onclick="resetAll()">Reiniciar reloj</button>
+        </div>
+      `;
+    }, 900);
+  }
+}
+
+/* Init */
+function init(){
+  paintTicks();
+  paintList();
+  loadNotes();
+  setHands(12,0);
+}
+init();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
 
