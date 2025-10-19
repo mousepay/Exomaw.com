@@ -3,232 +3,139 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pista 5 — Enigma de las agujas + Tablero de damas (demo)</title>
+<title>Pista 5 — Enigma de las agujas + Damas</title>
 <style>
   :root{
-    --bg-overlay: rgba(0,0,0,.65);
-    --card: rgba(20,20,20,.75);
-    --text: #e8f1ed;
-    --muted: #b9c7bf;
-    --accent: #59c1ff;
-    --ok: #69e781;
-    --bad: #ff7a7a;
-    --warning: #ffda6b;
+    --text: #0f1b17;
+    --card: rgba(255,255,255,.78);
+    --soft: rgba(255,255,255,.55);
+    --accent: #0e7b6c;
+    --ok: #0b8d42;
+    --bad: #c4382e;
+    --warn: #f0b429;
+
     --green-dark: #0e3a28;
-    --green-light: #dff5e8;
+    --green-light: #eaf7f1;
   }
-  /* ====== LAYOUT Y FONDO ====== */
-  html,body{
-    height:100%;
-    margin:0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-    color:var(--text);
-    background: var(--bg-overlay);
+
+  /* ====== FONDO (BUTACAS) SIN OSCURECER ====== */
+  html,body{ height:100%; margin:0; font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; }
+  body{
+    color: var(--text);
+    background: url("fondo.png") center/cover no-repeat fixed #0b1a15;
   }
-  body::before{
-    content:"";
-    position:fixed; inset:0;
-    background: url("fondo.png") center/cover no-repeat #111;
-    z-index:-2;
-    filter: saturate(1.05);
-  }
+  /* velo MUY suave para contraste del texto */
   body::after{
-    content:"";
-    position:fixed; inset:0;
-    background: radial-gradient(60% 60% at 50% 10%, rgba(0,0,0,.25), rgba(0,0,0,.75));
-    z-index:-1;
+    content:""; position:fixed; inset:0; pointer-events:none;
+    background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(255,255,255,.18) 35%, rgba(255,255,255,.08));
+    mix-blend-mode: lighten;
   }
-  .wrap{
-    max-width: 1100px;
-    margin: 24px auto 80px;
-    padding: 0 16px;
-  }
-  .header{
-    display:flex; gap:12px; align-items:center; flex-wrap:wrap;
-    margin-bottom: 16px;
-  }
-  h1{ margin:0; font-size: clamp(26px, 3.8vw, 42px); letter-spacing:.2px;}
+
+  .wrap{ max-width: 1200px; margin: 18px auto 100px; padding: 0 16px; }
+  .header{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  h1{ margin:0; font-size: clamp(26px, 4vw, 46px); color:#ffffff; text-shadow:0 2px 18px rgba(0,0,0,.35); }
   .pill{
-    background: rgba(255,255,255,.08);
-    padding: 8px 12px;
-    border-radius: 999px;
-    color: var(--muted);
-    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.35);
+    padding: 8px 12px; border-radius:999px; backdrop-filter: blur(3px);
+    color:#073229; border:1px solid rgba(255,255,255,.6);
+    font-weight:600;
   }
   .btn{
     appearance:none; border:0; cursor:pointer;
-    background: #39a1ff; color:#071521; font-weight:600;
+    background:#0ea5a3; color:#052a27; font-weight:700;
     padding:10px 14px; border-radius:12px;
     transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
-    box-shadow: 0 6px 24px rgba(57,161,255,.25);
+    box-shadow: 0 6px 24px rgba(14,165,163,.25);
   }
-  .btn.secondary{ background:#283341; color:#d9e6f5; box-shadow:none; }
+  .btn.secondary{ background:#e8f4f2; color:#08534a; box-shadow:none; }
   .btn:active{ transform: translateY(1px); }
 
   .card{
     background: var(--card);
-    border:1px solid rgba(255,255,255,.08);
+    border:1px solid rgba(0,0,0,.08);
     border-radius:18px;
     padding:18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.35);
-    margin-top:14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    margin-top:16px;
   }
-  .row{ display:grid; gap:18px; grid-template-columns:1fr; }
-  @media(min-width: 920px){ .row{ grid-template-columns: 1.2fr .8fr; } }
 
   /* ====== ENIGMA DE LAS AGUJAS ====== */
-  .areas{
-    display:grid; gap:18px;
-    grid-template-columns: 1fr 1fr;
-  }
-  @media(max-width: 800px){ .areas{ grid-template-columns: 1fr; } }
+  .areas{ display:grid; gap:18px; grid-template-columns: 1fr 1fr; }
+  @media(max-width: 980px){ .areas{ grid-template-columns: 1fr; } }
 
-  .panel-title{ font-size:22px; margin:4px 0 14px; }
+  .panel-title{ font-size:22px; margin:2px 0 12px; color:#083d34; }
   .slots, .library{
-    background: rgba(255,255,255,.03);
-    border:1px dashed rgba(255,255,255,.12);
+    background: rgba(255,255,255,.6);
+    border:1px dashed rgba(0,0,0,.15);
     border-radius:16px; padding:16px;
     min-height: 260px;
-    display:grid; grid-template-columns: repeat(3,minmax(90px,1fr));
+    display:grid; grid-template-columns: repeat(3,minmax(110px,1fr));
     gap:14px;
   }
   .slot, .needle{
     position:relative;
     display:flex; align-items:center; justify-content:center;
     border-radius:14px; overflow:hidden;
-    background: rgba(255,255,255,.02);
-    border:1px solid rgba(255,255,255,.08);
-    min-height: 120px;
+    background: rgba(255,255,255,.75);
+    border:1px solid rgba(0,0,0,.08);
+    min-height: 140px;
   }
-  /* SOMBRA (silhueta) MUCHO MÁS CLARA */
+  /* SOMBRA CLARA Y VISIBLE */
   .slot::before{
     content:"";
-    position:absolute; inset:10px;
-    background: radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.15), rgba(0,0,0,.10) 45%, rgba(0,0,0,0) 70%);
-    filter: blur(2px);
-    opacity:.55;    /* <<<<< sombra clara (antes no se veía) */
+    position:absolute; inset:8px;
+    background:
+      radial-gradient(ellipse 60% 30% at 50% 8%, rgba(0,0,0,.06), rgba(0,0,0,0) 70%),
+      radial-gradient(circle at 50% 35%, rgba(0,0,0,.10), rgba(0,0,0,0) 62%);
+    opacity:.9;           /* << bien visible */
+    filter: blur(0.6px);
     pointer-events:none;
   }
-  .slot.is-target{
-    outline: 2px solid var(--accent);
-    box-shadow: 0 0 0 6px rgba(57,161,255,.15) inset;
-  }
-  .slot.correct{
-    outline: 2px solid var(--ok);
-    box-shadow: 0 0 0 6px rgba(105,231,129,.18) inset;
-  }
-  .slot.fail{
-    outline: 2px solid var(--bad);
-    box-shadow: 0 0 0 6px rgba(255,122,122,.18) inset;
-  }
-  .needle{
-    background: rgba(255,255,255,.04);
-    cursor:grab;
-    transition: transform .08s ease;
-  }
+  .slot.is-target{ outline: 2px solid var(--warn); box-shadow: 0 0 0 6px rgba(240,180,41,.15) inset; }
+  .slot.correct{ outline: 2px solid var(--ok); box-shadow: 0 0 0 6px rgba(11,141,66,.18) inset; }
+  .slot.fail{ outline: 2px solid var(--bad); box-shadow: 0 0 0 6px rgba(196,56,46,.18) inset; }
+
+  .needle{ background: rgba(255,255,255,.9); cursor:grab; transition: transform .08s ease, box-shadow .2s ease; }
   .needle:active{ cursor:grabbing; transform: scale(.98); }
-  .needle img{
-    max-width: 70px; max-height: 90px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.5));
-  }
-  .hint{ color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+  .needle img{ max-width: 80px; max-height: 100px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); }
+  .hint{ color:#0c5247; margin: 8px 0 0; font-size: 14px; opacity:.9; }
 
-  .flash{
-    position: fixed; inset:0; pointer-events:none;
-    background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.85), rgba(255,255,255,0) 55%);
-    opacity:0; transition: opacity .35s ease;
-  }
+  .flash{ position: fixed; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.92), rgba(255,255,255,0) 55%); opacity:0; transition: opacity .35s ease; }
   .flash.on{ opacity:1; animation: fadeFlash .9s ease forwards; }
-  @keyframes fadeFlash{ 0%{opacity:1} 60%{opacity:.4} 100%{opacity:0} }
+  @keyframes fadeFlash{ 0%{opacity:1} 60%{opacity:.45} 100%{opacity:0} }
 
-  .final-msg{
-    display:none;
-    margin-top:12px; padding:14px;
-    background: rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:12px;
-  }
+  .final-msg{ display:none; margin-top:12px; padding:14px; background:#f2fbf8; border:1px solid rgba(0,0,0,.1); border-radius:12px; color:#0a3a32; }
 
-  /* ====== TABLERO DE DAMAS (DEMO) ====== */
-  .board-wrap{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+  /* ====== TABLERO DE DAMAS ====== */
+  .overlay{ position:fixed; inset:0; display:none; place-items:center; background: rgba(0,0,0,.55); z-index:50; }
+  .overlay.show{ display:grid; }
+  .modal{ width:min(980px, 94vw); background: #ffffff; color:#0b2a24; border-radius:16px; padding:16px 18px 18px; box-shadow: 0 30px 80px rgba(0,0,0,.35); border:1px solid rgba(0,0,0,.08); }
+  .board-wrap{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
   @media(max-width: 980px){ .board-wrap{ grid-template-columns: 1fr; } }
 
-  .board{
-    width:100%; aspect-ratio: 1/1; max-width: 640px;
-    margin:auto; border-radius:18px; overflow:hidden;
-    border:1px solid rgba(255,255,255,.1);
-    box-shadow: 0 16px 40px rgba(0,0,0,.45);
-  }
-  .grid{
-    display:grid; grid-template-columns: repeat(8,1fr);
-    width:100%; height:100%;
-  }
-  .sq{
-    display:flex; align-items:center; justify-content:center;
-    font-size:12px;
-    user-select:none;
-  }
-  .sq.dark{ background:#0c3a28; }
-  .sq.light{ background:#e2f6ea; }
-  .piece{
-    width:min(68px, 9.6vmin); height:min(68px, 9.6vmin);
-    border-radius:50%;
-    display:grid; place-items:center;
-    font-weight:700; text-align:center;
-    cursor:pointer; user-select:none;
-    border: 3px solid rgba(0,0,0,.35);
-    box-shadow: 0 10px 24px rgba(0,0,0,.35);
-  }
-  .piece.player{
-    background: #1e7f58; color:#cfeee1;  /* VERDE */
-  }
-  .piece.ai{
-    background: #b84239; color:#ffe9e7;  /* ROJO */
-  }
-  .piece .label{
-    font-size: clamp(10px, 1.6vw, 14px);
-    line-height:1.1;
-    opacity:.95;
-    text-shadow: 0 1px 0 rgba(0,0,0,.4);
-  }
-  .sq.target{ outline: 3px solid var(--warning); box-shadow: inset 0 0 0 6px rgba(255,218,107,.25); }
-  .status{
-    font-size:15px; color:var(--muted);
-    background: rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:12px;
-    padding:12px; margin-top:10px;
-  }
-  .banner{
-    position:fixed; left:50%; bottom:24px; transform: translateX(-50%);
-    background: rgba(20,20,20,.9);
-    border:1px solid rgba(255,255,255,.12);
-    color:var(--text);
-    padding:12px 16px; border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.5);
-    display:none;
-  }
-  .banner.show{ display:block; }
+  .board{ width:100%; aspect-ratio: 1/1; max-width: 620px; margin:auto; border-radius:16px; overflow:hidden; border:1px solid rgba(0,0,0,.1); box-shadow: 0 12px 28px rgba(0,0,0,.25); }
+  .grid{ display:grid; grid-template-columns: repeat(8,1fr); width:100%; height:100%; }
+  .sq{ display:flex; align-items:center; justify-content:center; user-select:none; }
+  .sq.dark{ background:#0c3a28; }   /* verde oscuro */
+  .sq.light{ background:#e2f6ea; }  /* verde claro */
 
-  .overlay{
-    position:fixed; inset:0; display:none; place-items:center;
-    background: rgba(0,0,0,.7);
-    z-index:50;
-  }
-  .overlay .modal{
-    width:min(600px, 92vw);
-    background: #0f1a16;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:16px; padding:16px 18px 18px;
-    box-shadow: 0 30px 80px rgba(0,0,0,.6);
-  }
-  .overlay.show{ display:grid; }
+  .piece{ width:min(66px, 9.4vmin); height:min(66px, 9.4vmin); border-radius:50%; display:grid; place-items:center; cursor:pointer; user-select:none; border:3px solid rgba(0,0,0,.35); box-shadow: 0 8px 20px rgba(0,0,0,.28); background-size: 70% auto; background-position:center; background-repeat:no-repeat; }
+  .piece.player{ background-color: #1e7f58; } /* VERDE */
+  .piece.ai{ background-color: #b84239; }     /* ROJO */
+
+  .sq.target{ outline: 3px solid var(--warn); box-shadow: inset 0 0 0 6px rgba(240,180,41,.25); }
+  .status{ font-size:15px; color:#0e3b33; background:#f3fbf8; border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:12px; margin-top:10px; }
+
+  /* Avisos / frases */
+  .banner{ position:fixed; left:50%; bottom:24px; transform: translateX(-50%); background: rgba(255,255,255,.92); border:1px solid rgba(0,0,0,.12); color:#083831; padding:12px 16px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); display:none; z-index:60; }
+  .banner.show{ display:block; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="header">
     <h1>PISTA 5 — El enigma de las agujas</h1>
-    <span class="pill">Arrastra una aguja a su ranura. 3 intentos por ranura.</span>
+    <span class="pill">Arrastra una aguja a su ranura. Solo 3 fallos en total.</span>
     <button id="openCheckers" class="btn">Jugar al tablero de damas</button>
   </div>
 
@@ -238,218 +145,174 @@
     <div class="areas">
       <section>
         <div class="panel-title">Ranuras (sombras)</div>
-        <div id="slots" class="slots" aria-label="ranuras">
-          <!-- Slots se crean por JS -->
-        </div>
-        <p class="hint">Sombra clara para que las veas bien 😉</p>
+        <div id="slots" class="slots" aria-label="ranuras"></div>
+        <p class="hint">Ahora la sombra es clara para que se vea bien la forma 😊</p>
       </section>
 
       <section>
         <div class="panel-title">Biblioteca de agujas</div>
-        <div id="library" class="library" aria-label="biblioteca">
-          <!-- Agujas se crean por JS -->
-        </div>
-        <p class="hint">Consejo: hay una “aguja de luz”. Si aciertas su ranura, aparece el destello.</p>
+        <div id="library" class="library" aria-label="biblioteca"></div>
+        <p class="hint">Hay una “aguja de luz”. Si aciertas su ranura, aparece el destello y una pista.</p>
       </section>
     </div>
 
     <div id="finalClue" class="final-msg"></div>
   </div>
+</div>
 
-  <!-- ====== TABLERO DE DAMAS (overlay) ====== -->
-  <div id="checkersOverlay" class="overlay" role="dialog" aria-modal="true" aria-label="Tablero de damas">
-    <div class="modal">
-      <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap">
-        <h2 style="margin:0">Tablero de damas</h2>
-        <button id="closeCheckers" class="btn secondary">Cerrar</button>
+<!-- DAMAS -->
+<div id="checkersOverlay" class="overlay" role="dialog" aria-modal="true" aria-label="Tablero de damas">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap">
+      <h2 style="margin:0;color:#083831">Tablero de damas</h2>
+      <button id="closeCheckers" class="btn secondary">Cerrar</button>
+    </div>
+
+    <div class="board-wrap" style="margin-top:10px">
+      <div>
+        <div id="board" class="board"><div id="grid" class="grid"></div></div>
+        <div id="status" class="status">Mueve una ficha <strong>verde</strong> con silueta (Daniel, Nora, Arturo, Tomás). Ronda 1 y 2: pierde el lector (sale frase de ánimo). Ronda 3: ¡te dejan ganar! y sale la frase de Nora.</div>
       </div>
-
-      <div class="board-wrap" style="margin-top:10px">
-        <div>
-          <div id="board" class="board">
-            <div id="grid" class="grid"></div>
-          </div>
-          <div id="status" class="status">Haz clic en una ficha <strong>verde</strong> (jugador) y luego en una casilla clara adyacente. La máquina moverá automáticamente. En las dos primeras partidas gana la máquina; en la tercera te dejará ganar y verás el mensaje de Nora.</div>
-        </div>
-        <div class="card" style="margin:0">
-          <h3 style="margin:6px 0 8px">Instrucciones (demo)</h3>
-          <ol style="margin:0 0 8px 18px">
-            <li>Selecciona una ficha verde con nombre (Tomás, Nora, Arturo, Daniel…)</li>
-            <li>Mueve a una casilla clara adyacente.</li>
-            <li>La máquina (rojas) responderá.</li>
-            <li>Partida 1 y 2: gana la máquina.</li>
-            <li>Partida 3: ¡te deja ganar! Aparece el mensaje final de Nora.</li>
-          </ol>
-          <button id="resetDemo" class="btn">Reiniciar demo</button>
-        </div>
+      <div class="card" style="margin:0">
+        <h3 style="margin:6px 0 8px;color:#0c463d">Instrucciones (demo)</h3>
+        <ol style="margin:0 0 8px 18px">
+          <li>Click en tu ficha verde y luego en una casilla clara adyacente.</li>
+          <li>La máquina (rojas) moverá automáticamente.</li>
+          <li>Tras perder dos veces, a la tercera te deja ganar y verás el mensaje de Nora.</li>
+        </ol>
+        <button id="resetDemo" class="btn">Reiniciar demo</button>
       </div>
     </div>
   </div>
-
-  <div id="toast" class="banner"></div>
 </div>
 
+<!-- avisos -->
+<div id="toast" class="banner"></div>
 <div class="flash" id="flash"></div>
 
 <script>
-/* =========================
-   UTILIDADES
-========================= */
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
-
-function toast(msg, ms=1600){
-  const el = $("#toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(()=> el.classList.remove("show"), ms);
+/* ====== helpers ====== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function say(msg, ms=1800){
+  const b = $("#toast"); b.textContent = msg; b.classList.add("show");
+  setTimeout(()=> b.classList.remove("show"), ms);
 }
 
-/* =========================
-   ENIGMA DE LAS AGUJAS
-========================= */
-(function needlesGame(){
-  // Configura aquí los nombres/ids y cuál es la "aguja de luz"
+/* =========================================================
+   ENIGMA DE LAS AGUJAS — 3 fallos globales + frases de ánimo
+========================================================= */
+(function(){
+  // Cambia, añade o quita agujas según tus archivos.
   const NEEDLES = [
     { id:"aguja01", img:"aguja01.png", name:"Aguja fina" },
     { id:"aguja02", img:"aguja02.png", name:"Aguja curva" },
-    { id:"aguja03", img:"aguja03.png", name:"Aguja de luz" } // << especial
+    { id:"aguja03", img:"aguja03.png", name:"Aguja de luz" } // especial
   ];
   const LIGHT_ID = "aguja03";
+
+  const PHRASES_HIT = [
+    "¡Bien! Precisión de cirujano.",
+    "¡Eso encaja perfecto!",
+    "¡Otro paso hacia la verdad!"
+  ];
+  const PHRASES_MISS = [
+    "Tranquilo, prueba otra combinación.",
+    "No pasa nada, respira y mira la silueta.",
+    "Casi… concéntrate en la forma."
+  ];
+  const PHRASES_RESET = [
+    "Se desmontó el juego… pero tu mente sigue afilada. ¡Inténtalo de nuevo!",
+    "Tres fallos y el reloj se resetea. Vuelve a empezar: lo harás mejor.",
+    "Reinicio. La paciencia también es una pista."
+  ];
+
+  const PHRASE_ALL_DONE = "Las agujas han hablado: siempre apuntan a nuestro centro. Sigue tu rumbo.";
 
   const slotsEl = $("#slots");
   const libEl = $("#library");
   const finalBox = $("#finalClue");
   const flash = $("#flash");
 
-  // Crear 3 ranuras
-  const slotState = {};
-  NEEDLES.forEach(n=>{
-    const s = document.createElement("div");
-    s.className = "slot";
-    s.dataset.accept = n.id;           // ranura correcta
-    s.dataset.tries = "0";
-    s.setAttribute("aria-label", "ranura para " + n.name);
-    s.addEventListener("dragover", e=>{ e.preventDefault(); s.classList.add("is-target"); });
-    s.addEventListener("dragleave", ()=> s.classList.remove("is-target"));
-    s.addEventListener("drop", e=>{
-      e.preventDefault();
-      s.classList.remove("is-target");
-      const draggedId = e.dataTransfer.getData("text/needle");
-      handleDrop(s, draggedId);
-    });
-    slotsEl.appendChild(s);
-    slotState[n.id] = { placed:false, tries:0 };
-  });
+  let globalFails = 0;
+  let solvedCount = 0;
 
-  // Crear biblioteca
-  NEEDLES.forEach(n=>{
-    const d = document.createElement("div");
-    d.className = "needle";
-    d.draggable = true;
-    d.dataset.id = n.id;
-    d.title = n.name;
-    d.addEventListener("dragstart", e=>{
-      e.dataTransfer.setData("text/needle", n.id);
-    });
-    // Imagen (si no existe, igual se verá vacío pero se podrá arrastrar)
-    const img = document.createElement("img");
-    img.src = n.img;
-    img.alt = n.name;
-    d.appendChild(img);
-    libEl.appendChild(d);
-  });
-
-  function handleDrop(slot, draggedId){
-    const accept = slot.dataset.accept;
-    const st = slotState[accept];
-    if(st.placed) { toast("Esa ranura ya está resuelta"); return; }
-
-    st.tries++;
-    slot.dataset.tries = String(st.tries);
-
-    if(draggedId === accept){
-      st.placed = true;
-      slot.classList.remove("fail");
-      slot.classList.add("correct");
-      toast("¡Correcto!");
-      if(draggedId === LIGHT_ID){
-        flash.classList.add("on");
-        setTimeout(()=> flash.classList.remove("on"), 900);
-        showFinalClue();
-      }
-      // mover la aguja visualmente dentro
-      const img = document.createElement("img");
-      img.src = NEEDLES.find(n=>n.id===draggedId)?.img || "";
-      img.style.maxWidth = "70px";
-      img.style.maxHeight = "90px";
-      slot.innerHTML = "";
-      slot.appendChild(img);
-    } else {
-      slot.classList.add("fail");
-      setTimeout(()=> slot.classList.remove("fail"), 700);
-      toast("No encaja. Intento " + st.tries + " de 3");
-      if(st.tries >= 3){
-        toast("Demasiados intentos en esta ranura. El juego se reinicia.", 2000);
-        setTimeout(resetNeedles, 900);
-      }
-    }
-  }
-
-  function resetNeedles(){
+  function build(){
     slotsEl.innerHTML = "";
     libEl.innerHTML = "";
     finalBox.style.display = "none";
     finalBox.innerHTML = "";
-    flash.classList.remove("on");
-    NEEDLES.forEach(n=> slotState[n.id] = { placed:false, tries:0 });
-    // reconstruir
+    globalFails = 0;
+    solvedCount = 0;
+
+    // Slots emparejados 1:1 por id
     NEEDLES.forEach(n=>{
       const s = document.createElement("div");
-      s.className = "slot";
-      s.dataset.accept = n.id;
-      s.dataset.tries = "0";
+      s.className = "slot"; s.dataset.accept = n.id;
       s.addEventListener("dragover", e=>{ e.preventDefault(); s.classList.add("is-target"); });
       s.addEventListener("dragleave", ()=> s.classList.remove("is-target"));
       s.addEventListener("drop", e=>{
-        e.preventDefault();
-        s.classList.remove("is-target");
-        const draggedId = e.dataTransfer.getData("text/needle");
-        handleDrop(s, draggedId);
+        e.preventDefault(); s.classList.remove("is-target");
+        handleDrop(s, e.dataTransfer.getData("text/needle"));
       });
       slotsEl.appendChild(s);
     });
+
     NEEDLES.forEach(n=>{
       const d = document.createElement("div");
-      d.className = "needle";
-      d.draggable = true;
-      d.dataset.id = n.id;
-      d.title = n.name;
-      d.addEventListener("dragstart", e=>{
-        e.dataTransfer.setData("text/needle", n.id);
-      });
-      const img = document.createElement("img");
-      img.src = n.img;
-      img.alt = n.name;
-      d.appendChild(img);
-      libEl.appendChild(d);
+      d.className = "needle"; d.draggable = true; d.dataset.id = n.id; d.title = n.name;
+      d.addEventListener("dragstart", e=> e.dataTransfer.setData("text/needle", n.id));
+      const img = document.createElement("img"); img.src = n.img; img.alt = n.name;
+      d.appendChild(img); libEl.appendChild(d);
     });
   }
 
-  function showFinalClue(){
-    finalBox.style.display = "block";
-    finalBox.innerHTML = `
-      <strong>¡Pista final desbloqueada!</strong><br>
-      “El brillo no viene del metal, sino de quien lo empuña. —Nora”
-    `;
+  function handleDrop(slot, draggedId){
+    const accept = slot.dataset.accept;
+    if(slot.classList.contains("correct")) { say("Esa ranura ya está resuelta"); return; }
+
+    if(draggedId === accept){
+      slot.classList.add("correct");
+      solvedCount++;
+      say(PHRASES_HIT[Math.floor(Math.random()*PHRASES_HIT.length)]);
+
+      // Colocar visualmente la aguja dentro
+      const img = document.createElement("img");
+      const n = NEEDLES.find(x=>x.id===draggedId);
+      img.src = n?.img || ""; img.style.maxWidth="80px"; img.style.maxHeight="100px";
+      slot.innerHTML = ""; slot.appendChild(img);
+
+      if(draggedId === LIGHT_ID){
+        flash.classList.add("on");
+        setTimeout(()=> flash.classList.remove("on"), 900);
+        finalBox.style.display = "block";
+        finalBox.innerHTML = `<strong>Pista:</strong> “Donde la luz cae, el secreto se revela.”`;
+      }
+      if(solvedCount === NEEDLES.length){
+        setTimeout(()=>{
+          finalBox.style.display = "block";
+          finalBox.innerHTML = `<strong>¡Perfecto!</strong> ${PHRASE_ALL_DONE}`;
+        }, 250);
+      }
+    } else {
+      slot.classList.add("fail"); setTimeout(()=> slot.classList.remove("fail"), 700);
+      globalFails++;
+      if(globalFails >= 3){
+        say(PHRASES_RESET[Math.floor(Math.random()*PHRASES_RESET.length)], 2400);
+        setTimeout(build, 900);
+      } else {
+        say(PHRASES_MISS[Math.floor(Math.random()*PHRASES_MISS.length)]);
+      }
+    }
   }
+
+  build();
 })();
 
-/* =========================
-   TABLERO DE DAMAS — DEMO
-   (reglas mínimas para el efecto que pides)
-========================= */
-(function checkersDemo(){
+/* =========================================================
+   TABLERO DE DAMAS — Siluetas + pierde 2, gana 1 + frases
+========================================================= */
+(function(){
   const overlay = $("#checkersOverlay");
   const openBtn = $("#openCheckers");
   const closeBtn = $("#closeCheckers");
@@ -457,16 +320,25 @@ function toast(msg, ms=1600){
   const grid = $("#grid");
   const status = $("#status");
 
-  // 8x8
-  const SIZE = 8;
-  // Posiciones mínimas para la demo (filas 0 arriba)
-  let round = 1;           // Partida 1 y 2 gana IA; 3 gana jugador
+  // Mapea aquí los PNG de SILUETAS en negro para las fichas verdes
+  const PLAYER_SPRITES = {
+    "Daniel": "silueta-daniel.png",
+    "Nora":   "silueta-nora.png",
+    "Arturo": "silueta-arturo.png",
+    "Tomás":  "silueta-tomas.png"
+  };
+
+  const LOSE_PHRASES = [
+    "¡Ánimo! Cada jugada te enseña algo.",
+    "Vas bien, observa dos movimientos por delante.",
+    "No te rindas, el final está cerca."
+  ];
+
+  let round = 1;           // 1 y 2: pierde jugador; 3: gana jugador
   let selected = null;     // {r,c}
-  let pieces = null;       // { player: Set("r,c"), ai: Set("r,c") }
+  let pieces = null;       // { player:Set, ai:Set }
 
-  const names = ["Tomás","Nora","Arturo","Daniel","Sofía","Lucía","Mario","Eva"];
-
-  openBtn.addEventListener("click", ()=>{ overlay.classList.add("show"); initBoard(); });
+  openBtn.addEventListener("click", ()=>{ overlay.classList.add("show"); initBoard(true); });
   closeBtn.addEventListener("click", ()=> overlay.classList.remove("show"));
   resetBtn.addEventListener("click", ()=> { round=1; initBoard(true); });
 
@@ -474,35 +346,45 @@ function toast(msg, ms=1600){
     grid.innerHTML = "";
     selected = null;
     pieces = {
-      // 4 fichas de jugador en la fila 6 (verdes)
       player: new Set(["6,1","6,3","6,5","6,7"]),
-      // 5 fichas IA en filas 1 y 2 (rojas)
-      ai: new Set(["1,2","1,4","1,6","2,3","2,5"])
+      ai:     new Set(["1,2","1,4","1,6","2,3","2,5"])
     };
     if(resetText){
-      status.innerHTML = "Demo reiniciada. En las dos primeras partidas gana la máquina; en la tercera te deja ganar y verás el mensaje de Nora.";
+      status.innerHTML = "Empieza la demo. La máquina te ganará dos veces; a la tercera, te dejará ganar. ¡Vamos!";
     }
     draw();
   }
+
+  const SIZE=8;
+  const isLight = (r,c) => (r+c)%2===0;
+  const isEmpty = (r,c) => !pieces.player.has(`${r},${c}`) && !pieces.ai.has(`${r},${c}`);
+  const isAdjacent = (r1,c1,r2,c2) => Math.abs(r1-r2)===1 && Math.abs(c1-c2)===1;
 
   function draw(){
     grid.innerHTML = "";
     for(let r=0;r<SIZE;r++){
       for(let c=0;c<SIZE;c++){
-        const dark = (r+c)%2===1;
         const cell = document.createElement("div");
-        cell.className = "sq " + (dark ? "dark":"light");
+        cell.className = "sq " + ((r+c)%2 ? "dark":"light");
         cell.dataset.r = r; cell.dataset.c = c;
 
-        // Piezas
         const key = `${r},${c}`;
         if(pieces.player.has(key)){
-          cell.appendChild(makePiece("player", labelFor(key)));
+          const piece = document.createElement("div");
+          piece.className = "piece player";
+          // asignar siluetas a las 4 fichas
+          const name = nameFor(key);
+          piece.title = name;
+          const sprite = PLAYER_SPRITES[name];
+          if(sprite){ piece.style.backgroundImage = `url("${sprite}")`; }
+          cell.appendChild(piece);
         } else if(pieces.ai.has(key)){
-          cell.appendChild(makePiece("ai"));
+          const piece = document.createElement("div");
+          piece.className = "piece ai";
+          piece.style.backgroundImage = "url('')";
+          cell.appendChild(piece);
         }
 
-        // Eventos
         cell.addEventListener("click", ()=> onSquareClick(r,c));
         grid.appendChild(cell);
       }
@@ -510,155 +392,90 @@ function toast(msg, ms=1600){
     markTargets();
   }
 
-  function labelFor(key){
-    // Asigna nombres a las 4 verdes
+  function nameFor(key){
     const order = ["6,1","6,3","6,5","6,7"];
-    const idx = Math.max(0, order.indexOf(key));
-    return names[idx] || "Jugador";
-  }
-
-  function makePiece(type, name=""){
-    const d = document.createElement("div");
-    d.className = "piece " + type;
-    const span = document.createElement("div");
-    span.className = "label";
-    span.textContent = type==="player" ? (name||"") : "●";
-    d.appendChild(span);
-    return d;
+    const names = ["Daniel","Nora","Arturo","Tomás"];
+    const i = order.indexOf(key);
+    return names[i] || "Jugador";
   }
 
   function onSquareClick(r,c){
     const key = `${r},${c}`;
     if(pieces.player.has(key)){
-      // seleccionar
-      selected = { r, c };
+      selected = {r,c};
       draw();
       return;
     }
-    // Si hay selección y la casilla es clara adyacente y vacía => mover
-    if(selected && isLight(r,c) && isAdjacent(selected.r,selected.c,r,c) && isEmpty(r,c)){
-      // mover jugador
+    if(selected && isLight(r,c) && isEmpty(r,c) && isAdjacent(selected.r,selected.c,r,c)){
       pieces.player.delete(`${selected.r},${selected.c}`);
       pieces.player.add(`${r},${c}`);
       selected = null;
       draw();
-      setTimeout(aiMoveScript, 340); // IA
+      setTimeout(aiMoveScript, 320);
     }
   }
 
-  const isLight = (r,c) => (r+c)%2===0;
-  const isEmpty = (r,c) => !pieces.player.has(`${r},${c}`) && !pieces.ai.has(`${r},${c}`);
-  const isAdjacent = (r1,c1,r2,c2) => Math.abs(r1-r2)===1 && Math.abs(c1-c2)===1;
-
   function markTargets(){
-    // Pintar posibles movimientos para la ficha seleccionada (adyacentes claros vacíos)
     if(!selected) return;
     for(const cell of $$(".sq")){
       const r = +cell.dataset.r, c = +cell.dataset.c;
       if(isLight(r,c) && isEmpty(r,c) && isAdjacent(selected.r,selected.c,r,c)){
         cell.classList.add("target");
-      } else {
-        cell.classList.remove("target");
-      }
+      } else cell.classList.remove("target");
     }
   }
 
   function aiMoveScript(){
-    // Guion muy simple para lograr los finales que pediste
-    if(round===1){
-      // IA captura sencilla si puede, si no avanza hacia abajo
-      // Intentar capturar desde (2,3) a (4,1) si hay jugador en (3,2)
-      if(pieces.ai.has("2,3") && pieces.player.has("3,2") && isEmpty(4,1)){
-        pieces.ai.delete("2,3"); pieces.player.delete("3,2"); pieces.ai.add("4,1");
-      } else {
-        stepDownFirstAI();
-      }
-      draw();
-      checkEndOrContinue();
-    } else if(round===2){
-      // Otra captura/avance
-      stepDownFirstAI();
-      draw();
-      checkEndOrContinue();
+    if(round===1 || round===2){
+      stepDownFirstAI(); draw();
+      // declarar derrota rápida para mostrar frase
+      say(LOSE_PHRASES[Math.floor(Math.random()*LOSE_PHRASES.length)], 1800);
+      setTimeout(()=> endAIWins(), 700);
     } else {
-      // Ronda 3: dejamos ganar al jugador
-      // IA hace un movimiento “blando”
-      softStepAI();
-      draw();
-      // Si el jugador captura cualquiera de arriba, declaramos victoria jugador:
-      setTimeout(()=>{
-        status.innerHTML = "¡Tu turno! Captura una roja y gana.";
-        // observador simple: si hay 3 rojas o menos => victoria jugador
-        const observer = setInterval(()=>{
-          if(pieces.ai.size <= 3){
-            clearInterval(observer);
-            endPlayerWins();
-          }
-        }, 250);
-      }, 100);
+      // ronda 3: IA se mueve suave y te deja ganar
+      stepDownFirstAI(); draw();
+      status.innerHTML = "Tu turno. Puedes forzar la victoria.";
+      const watcher = setInterval(()=>{
+        // cuando el jugador llegue a fila 1-2 o queden <=3 rojas, declaramos victoria jugador
+        for(const k of pieces.player){
+          const r = +k.split(",")[0];
+          if(r<=2 || pieces.ai.size<=3){ clearInterval(watcher); endPlayerWins(); break; }
+        }
+      }, 250);
     }
   }
-
   function stepDownFirstAI(){
-    // Mover la primera roja hacia abajo si hay casilla clara libre
-    const candidates = Array.from(pieces.ai).map(k=>k.split(",").map(Number));
-    for(const [r,c] of candidates){
-      const moves = [[r+1,c-1],[r+1,c+1]];
-      for(const [nr,nc] of moves){
-        const key = `${nr},${nc}`;
+    const cand = Array.from(pieces.ai).map(k=>k.split(",").map(Number));
+    for(const [r,c] of cand){
+      for(const [nr,nc] of [[r+1,c-1],[r+1,c+1]]){
         if(nr<SIZE && nc>=0 && nc<SIZE && isLight(nr,nc) && isEmpty(nr,nc)){
-          pieces.ai.delete(`${r},${c}`); pieces.ai.add(key);
-          return;
+          pieces.ai.delete(`${r},${c}`); pieces.ai.add(`${nr},${nc}`); return;
         }
       }
     }
   }
-
-  function softStepAI(){
-    // mover una roja lateralmente hacia abajo si es posible, sin capturar
-    stepDownFirstAI();
-  }
-
-  function checkEndOrContinue(){
-    // Final rápido para que “gane IA” en rondas 1 y 2
-    // Si una roja llega a fila 6-7 cerca del jugador, declaramos victoria IA
-    for(const key of pieces.ai){
-      const r = +key.split(",")[0];
-      if(r>=6){
-        endAIWins();
-        return;
-      }
-    }
-    status.innerHTML = "Tu turno de nuevo. La máquina piensa...";
-  }
-
   function endAIWins(){
-    toast("La máquina gana esta partida");
-    status.innerHTML = "La máquina te ha ganado esta ronda. Pulsa en una ficha verde para empezar otra.";
-    round++;
-    setTimeout(()=> initBoard(), 700);
+    status.innerHTML = "La máquina te ha ganado esta ronda. Respira, observa y vuelve a intentarlo.";
+    round++; setTimeout(()=> initBoard(), 800);
   }
-
   function endPlayerWins(){
-    toast("¡Has ganado esta partida!");
-    showNoraFinal();
-    round = 1; // reinicia ciclo
-    setTimeout(()=> initBoard(), 1800);
-  }
-
-  function showNoraFinal(){
     const msg = document.createElement("div");
     msg.className = "banner show";
-    msg.innerHTML = "Nora: <em>Ya has llegado al final del crimen… ¿me seguirás en la próxima novela?</em>";
+    msg.innerHTML = "Nora: <em>Al final de la línea del reloj has llegado a la novela… ¿me seguirás en mi próxima aventura?</em>";
     document.body.appendChild(msg);
-    setTimeout(()=> msg.remove(), 4200);
+    setTimeout(()=> msg.remove(), 5200);
+    round = 1; setTimeout(()=> initBoard(), 1600);
   }
+
+  // abrir/cerrar
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape") overlay.classList.remove("show");
+  });
 })();
 
-/* ====== Abrir/cerrar overlay con ESC ====== */
-document.addEventListener("keydown", (e)=>{
-  if(e.key==="Escape") { document.getElementById("checkersOverlay").classList.remove("show"); }
-});
+/* abrir overlay */
+$("#openCheckers").addEventListener("click", ()=> $("#checkersOverlay").classList.add("show"));
+$("#closeCheckers").addEventListener("click", ()=> $("#checkersOverlay").classList.remove("show"));
 </script>
 </body>
 </html>
