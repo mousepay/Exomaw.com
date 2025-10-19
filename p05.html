@@ -11,7 +11,8 @@
     --board-dark:#0c3a28; --board-light:#e2f6ea;
   }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  body{color:var(--text);background:url("fondo.png") center/cover fixed no-repeat}
+  /* FONDO BUTACAS (no tocar) */
+  body{color:var(--text);background:url("pista5/fondo.png") center/cover fixed no-repeat}
   .wrap{max-width:1200px;margin:18px auto 96px;padding:0 16px}
   h1{margin:0;font-size:clamp(26px,4vw,46px);color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.35)}
   .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#0ea5a3;color:#052a27;box-shadow:0 6px 24px rgba(14,165,163,.25)}
@@ -23,10 +24,8 @@
   .panel-title{font-size:22px;margin:2px 0 10px}
   .slots,.library{background:rgba(255,255,255,.6);border:1px dashed rgba(0,0,0,.15);border-radius:16px;padding:16px;min-height:260px;display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px}
   .slot,.needle{position:relative;display:flex;align-items:center;justify-content:center;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.88);border:1px solid rgba(0,0,0,.08);min-height:140px}
-  /* La silueta exacta (molde) de la aguja usando la misma imagen, como sombra */
-  .slot[data-shadow]::before{
-    content:"";position:absolute;inset:8px;background-position:center;background-repeat:no-repeat;background-size:contain;opacity:.22;filter:grayscale(1) contrast(.9);pointer-events:none
-  }
+  /* Sombra real con la misma imagen (molde) */
+  .slot .ghost{position:absolute;inset:8px;background-position:center;background-repeat:no-repeat;background-size:contain;opacity:.22;filter:grayscale(1) contrast(.9);pointer-events:none}
   .slot.is-target{outline:2px solid var(--warn);box-shadow:0 0 0 6px rgba(240,180,41,.15) inset}
   .slot.correct{outline:2px solid var(--ok);box-shadow:0 0 0 6px rgba(11,141,66,.18) inset}
   .slot.fail{outline:2px solid var(--bad);box-shadow:0 0 0 6px rgba(196,56,46,.18) inset}
@@ -38,7 +37,6 @@
   .flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.92),rgba(255,255,255,0) 55%);opacity:0;transition:opacity .35s}
   .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
   @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
-
   /* ===== Damas ===== */
   .overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:50}
   .overlay.show{display:grid}
@@ -48,15 +46,11 @@
   .board{width:100%;aspect-ratio:1/1;max-width:620px;margin:auto;border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,.1);box-shadow:0 12px 28px rgba(0,0,0,.25)}
   .grid{display:grid;grid-template-columns:repeat(8,1fr);width:100%;height:100%}
   .sq{display:flex;align-items:center;justify-content:center}
-  .sq.dark{background:var(--board-dark)}
-  .sq.light{background:var(--board-light)}
+  .sq.dark{background:var(--board-dark)} .sq.light{background:var(--board-light)}
   .piece{width:min(66px,9.4vmin);height:min(66px,9.4vmin);border-radius:50%;display:grid;place-items:center;border:3px solid rgba(0,0,0,.35);box-shadow:0 8px 20px rgba(0,0,0,.28);background-size:70% auto;background-position:center;background-repeat:no-repeat}
-  .piece.player{background:#1e7f58}
-  .piece.ai{background:#b84239}
+  .piece.player{background:#1e7f58} .piece.ai{background:#b84239}
   .sq.target{outline:3px solid var(--warn);box-shadow:inset 0 0 0 6px rgba(240,180,41,.25)}
   .status{font-size:15px;color:#0e3b33;background:#f3fbf8;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:12px;margin-top:10px}
-
-  /* Avisos */
   .banner{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.12);color:#083831;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:none;z-index:60}
   .banner.show{display:block}
 </style>
@@ -69,7 +63,7 @@
     </div>
 
     <div class="card">
-      <p>Arrastra cada <strong>aguja</strong> desde la biblioteca hasta su <strong>molde</strong> (la silueta). Tienes <strong>3 fallos</strong> en total. Cuando coloques la <em>aguja de luz</em> y completes las 12, verás la invitación al duelo de damas.</p>
+      <p>Arrastra cada <strong>aguja</strong> desde la biblioteca hasta su <strong>molde</strong> (silueta real). Tienes <strong>3 fallos</strong> en total. Al completar las 12 y colocar la <em>aguja de luz</em>, podrás pasar al duelo de damas.</p>
 
       <div class="areas">
         <section>
@@ -81,7 +75,7 @@
         <section>
           <div class="panel-title">Biblioteca de agujas</div>
           <div id="library" class="library"></div>
-          <p class="hint">Completa todas. La “aguja de luz” revelará la pista y te abrirá el tablero.</p>
+          <p class="hint">Completa todas. La “aguja de luz” revelará la pista y abrirá el tablero.</p>
         </section>
       </div>
 
@@ -121,14 +115,15 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
 
 /* =========================================================
    PUZZLE — 12 agujas con molde exacto + 3 fallos globales
+   (usa carpeta pista5/)
 ========================================================= */
 (function(){
-  // Cambia esta lista si tus nombres difieren.
-  const NEEDLES = Array.from({length:12},(_,i)=> {
-    const n = (i+1).toString().padStart(2,"0");
-    return { id:`aguja${n}`, img:`aguja${n}.png`, name:`Aguja ${n}` };
-  });
-  const LIGHT_ID = "aguja07"; // “aguja de luz”
+  // 11 normales + 1 de luz (usa tus nombres reales en pista5/)
+  const NEEDLES = [
+    "aguja01","aguja02","aguja03","aguja04","aguja05","aguja06",
+    "aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz"
+  ].map(id=>({ id, img:`pista5/${id}.png`, name:id.replace("_"," ").toUpperCase() }));
+  const LIGHT_ID = "aguja_luz";
 
   const PHRASES_HIT = [
     "¡Bien! Esa encaja como un guante.",
@@ -162,44 +157,17 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
     // Crear 12 ranuras con su sombra exacta
     NEEDLES.forEach(n=>{
       const s = document.createElement("div");
-      s.className="slot"; s.dataset.accept=n.id; s.dataset.shadow = n.img;
-      // pintar la sombra con la MISMA imagen
-      s.style.setProperty("--shadow", `url('${n.img}')`);
-      s.style.position="relative";
-      s.setAttribute("data-shadow", "");
-      s.style.setProperty("--img", n.img);
+      s.className="slot"; s.dataset.accept=n.id;
+      const ghost = document.createElement("div");
+      ghost.className = "ghost"; ghost.style.backgroundImage = `url("${n.img}")`;
+      s.appendChild(ghost);
       s.addEventListener("dragover", e=>{e.preventDefault(); s.classList.add("is-target");});
       s.addEventListener("dragleave", ()=> s.classList.remove("is-target"));
       s.addEventListener("drop", e=>{
         e.preventDefault(); s.classList.remove("is-target");
         handleDrop(s, e.dataTransfer.getData("text/needle"));
       });
-      // aplicar la imagen como background del ::before
-      // (no se puede setear directamente desde JS al pseudo-elemento,
-      //  así que usamos el atributo data-shadow y lo resolvemos con inline style):
-      s.style.setProperty("--bg", `url('${n.img}')`);
-      s.__shadow = n.img;
-      s.setAttribute("style", s.getAttribute("style")+`;`);
-      s.dataset.shadowUrl = n.img;
-      s.addEventListener("mouseenter", ()=> s.style.setProperty("--bg", `url('${n.img}')`));
-      s.style.setProperty("--bg", `url('${n.img}')`);
-      s.style.setProperty("background-image",""); // limpio
-      s.style.setProperty("background-size","");
-
-      // truco: aplicamos la imagen al ::before vía style.backgroundImage de la regla:
-      // no podemos editar ::before aquí, así que lo haremos justo después:
       slotsEl.appendChild(s);
-    });
-    // Asignar la imagen al pseudo ::before con inline style adicional
-    // (recorriendo y metiendo un <style> por slot)
-    $$("#slots .slot").forEach((slot,i)=>{
-      const url = slot.dataset.shadowUrl || "";
-      const id = `slot-shadow-${i}`;
-      slot.dataset.shadowId = id;
-      const st = document.createElement("style");
-      st.textContent = `.slot[data-shadow][data-shadow-id="${id}"]::before{background-image:url("${url}")}`;
-      document.head.appendChild(st);
-      slot.setAttribute("data-shadow-id", id);
     });
 
     // Biblioteca
@@ -229,7 +197,7 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
         finalBox.style.display="block";
         finalBox.innerHTML = `<strong>¡Puzzle completo!</strong><br>
         Las agujas han hablado: <em>siempre apuntan a nuestro centro</em>.<br><br>
-        ${lightPlaced ? "Reto desbloqueado: intenta <strong>ganar el duelo de damas</strong> para llegar a la pista final." : "Busca la <strong>aguja de luz</strong> para desbloquear el duelo de damas."}
+        ${lightPlaced ? "Reto desbloqueado: intenta <strong>ganar el duelo de damas</strong> para llegar a la pista final." : "Coloca también la <strong>aguja de luz</strong> para desbloquear el duelo de damas."}
         `;
         if(lightPlaced){ goCheckersBtn.disabled = false; say("¡Duelo de damas disponible!"); }
       }
@@ -250,15 +218,23 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
 })();
 
 /* =========================================================
-   DAMAS — siluetas + pierde 2 y gana 1 + frases
+   DAMAS — siluetas (pista5/) + pierde 2 y gana 1 + frases
 ========================================================= */
 (function(){
   const overlay=$("#checkers"), btnTop=$("#openCheckersTop"), closeBtn=$("#closeCheckers"), resetBtn=$("#resetDemo");
   const grid=$("#grid"), status=$("#status");
 
+  // Siluetas que subiste en pista5/
+  const SIL_BASE = "pista5/";
   const PLAYER_SPRITES = {
-    "Amelia":"amelia.png","Arturo":"arturo.png","Azquiel":"azquiel.png","Daniel":"daniel1.png",
-    "Lise":"lise.png","Nora":"nora.png","Ocaña":"ocana.png","Tomás":"tomas.png"
+    "Amelia": SIL_BASE+"amelia.png",
+    "Arturo": SIL_BASE+"arturo.png",
+    "Azquiel": SIL_BASE+"azquiel.png",
+    "Daniel": SIL_BASE+"daniel1.png",
+    "Lise":   SIL_BASE+"lise.png",
+    "Nora":   SIL_BASE+"nora.png",
+    "Ocaña":  SIL_BASE+"ocana.png",
+    "Tomás":  SIL_BASE+"tomas.png"
   };
   const LOSE = [
     "¡Ánimo! Cada jugada te enseña algo.",
@@ -308,7 +284,7 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
   }
   function nameFor(key){
     const order=["6,1","6,3","6,5","6,7"];
-    const names=["Amelia","Arturo","Daniel","Tomás"]; // 4 fichas visibles
+    const names=["Daniel","Nora","Arturo","Tomás"]; // 4 fichas visibles
     const i=order.indexOf(key); return names[i]||"Jugador";
   }
   const isLight=(r,c)=>(r+c)%2===0;
@@ -366,18 +342,15 @@ function say(msg, ms=1800){ const b=$("#toast"); b.textContent=msg; b.classList.
     round=1; setTimeout(()=>init(),1400);
   }
 
-  // listo al abrir
   init(true);
 })();
 
-/* accesos de botones */
+/* abrir/cerrar overlay */
 document.getElementById("openCheckersTop").addEventListener("click", ()=> document.getElementById("checkers").classList.add("show"));
 document.getElementById("closeCheckers").addEventListener("click", ()=> document.getElementById("checkers").classList.remove("show"));
 </script>
 </body>
 </html>
-
-
 
 
 
