@@ -1,278 +1,573 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pista 5 — El mural de las agujas</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pista 5 — El enigma de las agujas</title>
 <style>
   :root{
-    --ink:#e6f1ff;
-    --muted:#aab6c8;
-    --ok:#7ce0ff;
-    --glow: 0 0 0 2px rgba(124,224,255,.35), 0 0 26px rgba(124,224,255,.35);
+    --bg:#0b0b0b; --ink:#eee; --muted:#cfcfcf;
+    --panel:rgba(255,255,255,.08); --line:rgba(255,255,255,.15);
+    --accent:#9be7ff; --good:#b7ff8a; --warn:#ffd166; --danger:#ff8a8a;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{
-    margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    color: var(--ink);
-    /* FONDO con imagen y capa oscura para contraste */
-    background: url('fondo.png') center/cover fixed no-repeat;
-    position: relative;
-  }
-  body::before{
-    content:"";
-    position: fixed; inset:0;
-    /* viñeta y oscurecimiento suave para que resalten las agujas */
-    background: radial-gradient(1200px 500px at 50% -10%, rgba(0,0,0,.35), rgba(0,0,0,.65) 60%, rgba(0,0,0,.8) 100%);
-    pointer-events:none;
-    z-index:-1;
-  }
-  .wrap{
-    max-width: 1200px;
-    margin: 24px auto 64px;
-    padding: 0 16px;
-  }
-  h1{ margin:0 0 10px; font-weight:700; letter-spacing:.2px; }
-  .lead{
-    margin: 0 0 18px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-  .panel{
-    background: rgba(8,12,18,.65);
-    backdrop-filter: blur(2px);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 14px;
-    padding: 16px;
-  }
-  h2{ margin:0 0 10px; font-size:20px }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
 
-  /* Grids */
-  .grid{ display:grid; grid-template-columns: repeat(6,minmax(120px,1fr)); gap:14px; }
-  @media (max-width:980px){ .grid{ grid-template-columns: repeat(3,minmax(100px,1fr)); } }
+  .wrap{max-width:1200px;margin:0 auto;padding:18px 16px}
+  header.panel{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:16px; padding:16px; backdrop-filter:blur(3px);
+    box-shadow:0 18px 50px rgba(0,0,0,.5)
+  }
+  h1{margin:.2rem 0 .4rem; font-size:clamp(1.2rem,1rem + 1vw,1.6rem)}
+  .muted{color:var(--muted)}
 
-  /* Ranuras */
+  .grid{display:grid; gap:16px; grid-template-columns:1.2fr .8fr}
+  @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+
+  /* TABLERO (RANURAS) */
+  .board{
+    background:linear-gradient(180deg,#1b1b1b,#242424);
+    border:1px solid var(--line); border-radius:16px; padding:14px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.35), 0 20px 40px rgba(0,0,0,.45);
+    position:relative;
+  }
+  .board .title{margin:0 0 8px}
+  .slots{
+    display:grid; gap:12px;
+    grid-template-columns:repeat(4, minmax(0,1fr));
+  }
   .slot{
-    position: relative;
-    height: 180px;
-    border-radius: 12px;
-    background: rgba(12,15,20,.7);
-    border: 1px dashed rgba(255,255,255,.18);
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform .15s ease, box-shadow .2s ease;
-    display:flex;align-items:center;justify-content:center;
+    background:#e8eef3;               /* fondo claro para ver bien la sombra */
+    border:2px dashed #9db2c6;        /* contorno suave */
+    border-radius:14px; aspect-ratio:1.3/1;
+    position:relative; overflow:hidden;
+    display:grid; place-items:center;
+    transition:border-color .2s ease, background .2s ease, box-shadow .25s ease;
   }
-  .slot:hover{ transform: translateY(-1px); }
-  .slot img{
-    position:absolute; inset:6px;
-    width: calc(100% - 12px); height: calc(100% - 12px);
-    object-fit: contain; pointer-events:none;
-    filter: grayscale(1) opacity(.18);
-    transition: filter .25s ease, opacity .25s ease;
+  .slot[data-filled="1"]{
+    border-style:solid; border-color:#7aa6c7;
+    box-shadow:inset 0 0 0 2px rgba(122,166,199,.25), 0 0 0 3px rgba(255,255,255,.05);
+    background:#f2f6fa;
   }
-  .slot.placed{ border:1px solid rgba(255,255,255,.18); box-shadow: var(--glow); }
-  .slot.placed img{ filter:none; opacity:1; }
+  .slot .shadow{
+    position:absolute; inset:10% 12%;
+    background-repeat:no-repeat; background-position:center; background-size:contain;
+    filter:grayscale(100%) contrast(60%) opacity(.55);
+    pointer-events:none;
+  }
+  .slot .placed{
+    position:absolute; inset:10% 12%;
+    background-repeat:no-repeat; background-position:center; background-size:contain;
+    pointer-events:none;
+  }
+  .slot.flash{ animation: flash 800ms ease-out 1; }
+  @keyframes flash{
+    0%{ box-shadow:0 0 0 rgba(255,255,255,0) }
+    50%{ box-shadow:0 0 26px rgba(255,255,200,.85) }
+    100%{ box-shadow:0 0 0 rgba(255,255,255,0) }
+  }
 
-  /* Biblioteca */
-  .pieces{ display:grid; grid-template-columns: repeat(6,minmax(120px,1fr)); gap:14px; }
-  @media (max-width:980px){ .pieces{ grid-template-columns: repeat(3,minmax(100px,1fr)); } }
+  /* BIBLIOTECA (AGUJAS) */
+  .tray{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:16px; padding:14px;
+  }
+  .tray .title{margin:0 0 8px}
+  .pieces{
+    display:flex; flex-wrap:wrap; gap:10px; min-height:108px;
+    border:1px dashed var(--line); border-radius:12px; padding:10px;
+    background:rgba(255,255,255,.03)
+  }
   .piece{
-    height:160px; border-radius:12px; background: rgba(11,15,21,.75);
-    border:1px solid rgba(255,255,255,.1);
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+    width:120px; height:90px; border-radius:10px;
+    background:#fff; border:1px solid rgba(0,0,0,.1);
+    background-repeat:no-repeat; background-position:center; background-size:contain;
+    cursor:grab; user-select:none;
   }
-  .piece:hover{ transform: translateY(-1px); }
-  .piece.selected{ border-color:var(--ok); box-shadow: var(--glow); transform: translateY(-1px) scale(1.01); }
-  .piece.used{ opacity:.35; pointer-events:none; filter:grayscale(1); }
-  .piece img{ max-width:92%; max-height:92%; object-fit:contain; pointer-events:none; }
-
-  /* Mensajes / botones */
-  .bar{ margin-top: 14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-  .msg{ flex:1 1 320px; min-height:42px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 12px; line-height:1.4; }
-  .btn{ appearance:none; border:0; cursor:pointer; padding:10px 14px; border-radius:10px; background:#1c2332; color:var(--ink); border:1px solid rgba(255,255,255,.12); }
-  .btn:hover{ filter:brightness(1.06); }
-
-  /* Destello especial */
-  @keyframes sparkle {
-    0%{ box-shadow:0 0 0 0 rgba(124,224,255,0); }
-    40%{ box-shadow:0 0 0 6px rgba(124,224,255,.25), 0 0 36px rgba(124,224,255,.55); }
-    70%{ box-shadow:0 0 0 2px rgba(124,224,255,.25), 0 0 18px rgba(124,224,255,.35); }
-    100%{ box-shadow:var(--glow); }
+  .piece:active{cursor:grabbing}
+  @media (max-width:960px){
+    .piece{ width:102px; height:78px; }
   }
-  .spark{ animation: sparkle .9s ease-out 1 forwards; }
+
+  /* MENSAJES */
+  .msg{
+    margin-top:10px; padding:10px 12px; border-radius:10px;
+    background:rgba(255,255,255,.06); border:1px solid var(--line);
+    min-height:38px; display:flex; align-items:center
+  }
+
+  /* BANNER FIN */
+  .banner{
+    position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+    opacity:0; transition:opacity .4s ease .2s;
+  }
+  .banner.show{opacity:1}
+  .banner .pill{
+    background:rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.5);
+    padding:14px 18px; border-radius:14px; text-align:center; font-weight:800;
+    box-shadow:0 0 28px rgba(255,255,200,.55); max-width:min(90%,780px)
+  }
+
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .btn{
+    background:#fff;color:#000;border:1px solid #fff;border-radius:12px;
+    padding:10px 14px;font-weight:800;cursor:pointer
+  }
+  .btn.ghost{background:transparent;color:#fff;border-color:#fff}
+  .btn:active{transform:translateY(1px)}
+
+  /* DESTELLO ESPECIAL AGUJA LUZ */
+  .glow{
+    position:absolute; inset:0; pointer-events:none; border-radius:14px;
+    box-shadow:0 0 40px 12px rgba(200,255,140,.7), inset 0 0 40px rgba(200,255,140,.25);
+    animation: glowout 1200ms ease-out 1;
+  }
+  @keyframes glowout{
+    0%{opacity:1} 100%{opacity:0}
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Pista 5 — El mural de las agujas</h1>
-    <p class="lead">
-      Coloca cada <strong>aguja</strong> en su <strong>ranura</strong> (verás la silueta tenue como guía).  
-      <strong>Reglas:</strong> selecciona una aguja de la biblioteca y toca la ranura donde crees que encaja.
-      Tienes <strong>3 intentos por aguja</strong>. Si una aguja agota sus intentos, el puzzle se
-      <strong>reinicia desde el principio</strong>. Completa las 12 y la aguja especial destellará con la pista final.
-    </p>
-
-    <!-- Ranuras -->
-    <section class="panel">
-      <h2>Ranuras</h2>
-      <div id="slots" class="grid" aria-label="Ranuras para colocar agujas"></div>
-    </section>
-
-    <!-- Biblioteca -->
-    <section class="panel" style="margin-top:18px">
-      <h2>Biblioteca de agujas</h2>
-      <div id="pieces" class="pieces" aria-label="Agujas disponibles"></div>
-      <div class="bar">
-        <div id="msg" class="msg" role="status" aria-live="polite"></div>
-        <button id="reset" class="btn">Reiniciar</button>
+    <header class="panel">
+      <h1>PISTA 5 — El enigma de las agujas</h1>
+      <p class="muted">
+        Arrastra cada <strong>aguja</strong> desde la biblioteca a su <strong>ranura</strong> (la silueta correcta).  
+        Tienes <strong>3 intentos por ranura</strong>. Si fallas demasiadas veces en cualquiera, el juego se reinicia.  
+        La <em>aguja de luz</em> revelará un destello especial.
+      </p>
+      <div class="actions">
+        <button class="btn" id="btnBack">⟵ Volver a las pistas</button>
+        <button class="btn ghost" id="btnCheckers">Jugar al tablero de damas</button>
       </div>
-    </section>
+    </header>
+
+    <div class="grid" style="margin-top:16px">
+      <!-- TABLERO -->
+      <section class="board" id="board">
+        <h2 class="title">Ranuras (sombras)</h2>
+        <div class="slots" id="slots"></div>
+        <div class="banner" id="banner"><div class="pill">“Has alineado el tiempo en sus doce formas. La aguja que brilla conoce el final.”</div></div>
+      </section>
+
+      <!-- BIBLIOTECA -->
+      <section class="tray">
+        <h2 class="title">Biblioteca de agujas</h2>
+        <div class="pieces" id="pieces"></div>
+        <div class="msg" id="msg"></div>
+      </section>
+    </div>
   </div>
 
 <script>
 (() => {
-  // === Configuración ===
-  const needles = [
-    "aguja01","aguja02","aguja03","aguja04","aguja05","aguja06",
-    "aguja07","aguja08","aguja09","aguja010","aguja011","aguja_luz"
+  /* ========= CONFIGURACIÓN =========
+     Ajusta los nombres/ficheros aquí si tus PNG se llaman distinto.
+     Todos deben estar en la carpeta ./agujas/ junto a este HTML.
+  */
+  const NEEDLES = [
+    {id:'aguja1',  file:'aguja1.png'},
+    {id:'aguja2',  file:'aguja2.png'},
+    {id:'aguja3',  file:'aguja3.png'},
+    {id:'aguja4',  file:'aguja4.png'},
+    {id:'aguja5',  file:'aguja5.png'},
+    {id:'aguja6',  file:'aguja6.png'},
+    {id:'aguja7',  file:'aguja7.png'},
+    {id:'aguja8',  file:'aguja8.png'},
+    {id:'aguja9',  file:'aguja9.png'},
+    {id:'aguja10', file:'aguja10.png'},
+    {id:'aguja11', file:'aguja11.png'},
+    {id:'aguja-luz', file:'aguja-luz.png', isLight:true} // ← especial
   ];
-  const MAX_TRIES = 3;  // intentos por aguja
-  const encouragement = [
-    "No encaja ahí. Te quedan {n} intentos para esta aguja.",
-    "Buen ojo, pero no. Intentos restantes: {n}.",
-    "Casi… compara la forma de la silueta. Intentos: {n}."
+  const ASSET_DIR = 'agujas/';
+
+  /* ========= ELEMENTOS ========= */
+  const slotsWrap  = document.getElementById('slots');
+  const piecesWrap = document.getElementById('pieces');
+  const msg        = document.getElementById('msg');
+  const board      = document.getElementById('board');
+  const banner     = document.getElementById('banner');
+
+  const btnBack     = document.getElementById('btnBack');
+  const btnCheckers = document.getElementById('btnCheckers');
+
+  btnBack.addEventListener('click', ()=> window.location.href='index.html');
+
+  /* ========= MENSAJES ========= */
+  const cheer = [
+    "Vuelve a intentarlo, el tiempo no se rinde.",
+    "Cada error ajusta el mecanismo.",
+    "La precisión llega con paciencia.",
+    "No te alejas, solo calibras.",
+    "Respira: una vuelta más del engranaje."
   ];
-  const finalClue = "La hora correcta es <strong>8:30</strong> y el emblema ilumina el camino.";
+  const lightMsg = "La aguja de luz coincide: el tiempo deja una huella brillante.";
 
-  // === Estado ===
-  let selected = null;           // id de aguja seleccionada
-  const placed = new Set();      // agujas ya colocadas
-  const triesLeft = new Map();   // id -> intentos restantes
-  needles.forEach(id => triesLeft.set(id, MAX_TRIES));
+  /* ========= ESTADO ========= */
+  // Para evitar que en móvil se “repitan” piezas por drag fantasma:
+  // siempre creamos piezas reales y controlamos su vida con IDs únicos.
+  let attemptsPerSlot = {};   // slotId -> intentos fallidos (0..3)
+  let placedInSlot    = {};   // slotId -> needleId
+  let totalPlaced     = 0;    // contador global
+  const MAX_ATTEMPTS  = 3;    // por ranura
 
-  // === Utilidades ===
-  const $ = s => document.querySelector(s);
-  const $$ = s => [...document.querySelectorAll(s)];
-  const msg = (html) => $("#msg").innerHTML = html;
-  const rand = (arr) => arr[Math.floor(Math.random()*arr.length)];
-  const shuffle = (arr) => arr.sort(() => Math.random() - .5);
+  /* ========= CREACIÓN DE RANURAS (con sombra) ========= */
+  function createSlots(){
+    // orden fijo = la solución; 12 ranuras
+    // 3 filas x 4 columnas
+    slotsWrap.innerHTML = '';
+    NEEDLES.forEach(n => {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.slotId = n.id;
+      slot.dataset.filled = '0';
 
-  // Construir ranuras
-  function renderSlots(){
-    const host = $("#slots");
-    host.innerHTML = "";
-    needles.forEach(id => {
-      const slot = document.createElement("button");
-      slot.className = "slot";
-      slot.type = "button";
-      slot.dataset.slot = id;
-      slot.setAttribute("aria-label", `Ranura para ${id}`);
-      slot.innerHTML = `<img src="${id}.png" alt="">`;
-      slot.addEventListener("click", () => tryPlace(slot));
-      slot.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tryPlace(slot);} });
-      host.appendChild(slot);
+      const shadow = document.createElement('div');
+      shadow.className = 'shadow';
+      shadow.style.backgroundImage = `url('${ASSET_DIR}${n.file}')`;
+      slot.appendChild(shadow);
+
+      // zona del colocable final
+      const placed = document.createElement('div');
+      placed.className = 'placed';
+      slot.appendChild(placed);
+
+      // drag-over / drop nativo
+      slot.addEventListener('dragover', ev => {
+        ev.preventDefault();
+        slot.style.borderColor = '#6fb6e9';
+        slot.style.background  = '#f6fbff';
+      });
+      slot.addEventListener('dragleave', () => {
+        resetSlotVisual(slot);
+      });
+      slot.addEventListener('drop', ev => {
+        ev.preventDefault();
+        const pieceId = ev.dataTransfer.getData('text/needle-id');
+        if (!pieceId) return;
+        handleDrop(slot, pieceId);
+      });
+
+      // también permitir “tap-to-place” (móvil) tocando pieza primero y luego slot:
+      slot.addEventListener('click', () => {
+        const selected = document.querySelector('.piece[data-selected="1"]');
+        if (!selected) return;
+        handleDrop(slot, selected.dataset.needleId);
+      });
+
+      slotsWrap.appendChild(slot);
     });
   }
+  function resetSlotVisual(slot){
+    slot.style.borderColor = '#9db2c6';
+    slot.style.background  = '#e8eef3';
+  }
 
-  // Construir piezas aleatorias
-  function renderPieces(){
-    const host = $("#pieces");
-    host.innerHTML = "";
-    shuffle([...needles]).forEach(id => {
-      const el = document.createElement("button");
-      el.className = "piece";
-      el.type = "button";
-      el.dataset.id = id;
-      el.setAttribute("aria-label", `Aguja ${id}`);
-      el.innerHTML = `<img src="${id}.png" alt="Aguja ${id}">`;
-      el.addEventListener("click", () => selectPiece(el));
-      el.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectPiece(el);} });
-      host.appendChild(el);
+  /* ========= CREACIÓN DE PIEZAS ========= */
+  function createPieces(){
+    piecesWrap.innerHTML = '';
+    // piezas desordenadas
+    const mix = NEEDLES.slice().sort(()=> Math.random() - .5);
+    mix.forEach(n => addPiece(n.id, n.file));
+  }
+  function addPiece(needleId, file){
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.draggable = true;
+    el.dataset.needleId = needleId;
+    el.style.backgroundImage = `url('${ASSET_DIR}${file}')`;
+
+    // Drag
+    el.addEventListener('dragstart', ev => {
+      ev.dataTransfer.setData('text/needle-id', needleId);
+      // marca selección visual en móvil/desktop
+      markSelected(el, true);
     });
+    el.addEventListener('dragend', () => {
+      markSelected(el, false);
+    });
+    // Tap-to-select (móvil)
+    el.addEventListener('click', () => {
+      const was = el.dataset.selected === '1';
+      document.querySelectorAll('.piece[data-selected="1"]').forEach(p => p.dataset.selected='0');
+      el.dataset.selected = was ? '0' : '1';
+      el.style.outline = (el.dataset.selected === '1') ? '3px solid #9be7ff' : 'none';
+    });
+
+    piecesWrap.appendChild(el);
+  }
+  function markSelected(el, on){
+    el.dataset.selected = on ? '1' : '0';
+    el.style.outline = on ? '3px solid #9be7ff' : 'none';
   }
 
-  function clearSelection(){
-    $$(".piece.selected").forEach(p => p.classList.remove("selected"));
-    selected = null;
-  }
+  /* ========= COLOCACIÓN ========= */
+  function handleDrop(slot, needleId){
+    // si la ranura ya está llena, ignorar
+    if (slot.dataset.filled === '1') { resetSlotVisual(slot); return; }
 
-  function selectPiece(el){
-    if(el.classList.contains("used")) return;
-    if(selected === el.dataset.id){
-      el.classList.remove("selected");
-      selected = null;
-      msg("Has deseleccionado la aguja.");
-      return;
-    }
-    clearSelection();
-    selected = el.dataset.id;
-    el.classList.add("selected");
-    msg(`Aguja seleccionada: <strong>${selected}</strong>. Toca la ranura correspondiente. Intentos disponibles: <strong>${triesLeft.get(selected)}</strong>.`);
-  }
+    const slotId = slot.dataset.slotId;
+    const isMatch = (needleId === slotId);
 
-  function tryPlace(slot){
-    if(!selected){ msg("Selecciona primero una aguja en la biblioteca."); return; }
+    if (isMatch) {
+      placeNeedle(slot, needleId);
+    } else {
+      // fallo: sumar intento a esa ranura
+      attemptsPerSlot[slotId] = (attemptsPerSlot[slotId] || 0) + 1;
+      const tries = attemptsPerSlot[slotId];
 
-    const expect = slot.dataset.slot;
-    if(selected === expect){
-      // Correcta
-      placed.add(selected);
-      const img = slot.querySelector("img");
-      if(img){ img.style.filter = "none"; img.style.opacity = "1"; }
-      slot.classList.add("placed","spark");
-      setTimeout(()=>slot.classList.remove("spark"), 900);
-      const btn = $(`.piece[data-id="${selected}"]`);
-      if(btn){ btn.classList.add("used"); btn.classList.remove("selected"); }
-      msg(`¡Encaja! <strong>${selected}</strong> colocada. `+
-          `Quedan <strong>${needles.length - placed.size}</strong>.`);
-      selected = null;
+      say(cheer[Math.floor(Math.random()*cheer.length)], 'warn');
+      slot.classList.add('flash');
+      setTimeout(()=> slot.classList.remove('flash'), 500);
 
-      if(placed.size === needles.length){
-        const special = $(`.slot[data-slot="aguja_luz"]`);
-        if(special){ special.classList.add("spark"); setTimeout(()=>special.classList.remove("spark"), 1200); }
-        setTimeout(()=> msg(`✨ <strong>Pista final:</strong> ${finalClue}`), 350);
+      // si llega al máximo, reinicia puzzle
+      if (tries >= MAX_ATTEMPTS) {
+        setTimeout(resetAll, 650);
+        return;
       }
+    }
+
+    // si la pieza venía seleccionada en la bandeja, des-selecciona
+    const selected = document.querySelector(`.piece[data-needle-id="${needleId}"]`);
+    if (selected) { selected.dataset.selected='0'; selected.style.outline='none'; }
+    resetSlotVisual(slot);
+  }
+
+  function placeNeedle(slot, needleId){
+    // pinta la imagen final
+    const placed = slot.querySelector('.placed');
+    const def = NEEDLES.find(n => n.id === needleId);
+    placed.style.backgroundImage = `url('${ASSET_DIR}${def.file}')`;
+    slot.dataset.filled = '1';
+    placedInSlot[slot.dataset.slotId] = needleId;
+    totalPlaced++;
+
+    // eliminar la pieza de la bandeja
+    const piece = document.querySelector(`.piece[data-needle-id="${needleId}"]`);
+    if (piece) piece.remove();
+
+    // efecto especial si es la aguja de luz
+    if (def.isLight) {
+      const fx = document.createElement('div');
+      fx.className = 'glow';
+      slot.appendChild(fx);
+      setTimeout(()=> fx.remove(), 1200);
+      say(lightMsg, 'good');
+    } else {
+      say("¡Encaja! Sigue afinando el reloj.", 'good');
+    }
+
+    // ¿completado?
+    if (totalPlaced === NEEDLES.length) {
+      completePuzzle();
+    }
+  }
+
+  function completePuzzle(){
+    banner.classList.add('show');
+    board.classList.add('flash');
+    setTimeout(()=> board.classList.remove('flash'), 800);
+  }
+
+  /* ========= RESETEO ========= */
+  function resetAll(){
+    say("Has agotado los intentos en una ranura. El reloj vuelve a empezar.", 'danger');
+    attemptsPerSlot = {};
+    placedInSlot    = {};
+    totalPlaced     = 0;
+    banner.classList.remove('show');
+    createSlots();
+    createPieces();
+  }
+
+  /* ========= MENSAJES ========= */
+  function say(text, tone){
+    msg.textContent = text;
+    msg.style.borderColor = (tone==='good')? 'rgba(183,255,138,.7)' : (tone==='warn')? 'rgba(255,209,102,.7)' : (tone==='danger')? 'rgba(255,138,138,.7)' : 'var(--line)';
+    msg.style.boxShadow = (tone==='good')? '0 0 0 3px rgba(183,255,138,.15) inset' :
+                          (tone==='warn')? '0 0 0 3px rgba(255,209,102,.12) inset' :
+                          (tone==='danger')? '0 0 0 3px rgba(255,138,138,.12) inset' : 'none';
+  }
+
+  /* ========= DAMAS (nueva ventana) ========= */
+  btnCheckers.addEventListener('click', () => {
+    const w = window.open('', '_blank');
+    if(!w){ alert('Tu navegador bloqueó la ventana. Permite ventanas emergentes.'); return; }
+    w.document.write(makeCheckersHTML());
+    w.document.close();
+  });
+
+  function makeCheckersHTML(){
+    // Mini “damas” muy simple: tablero 8x8, fichas básicas, 3 turnos jugador -> en el 3º, la IA se rinde.
+    return `<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tablero de Damas</title>
+<style>
+  body{margin:0;background:#0b0b0b;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .msg{padding:10px 12px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06)}
+  .board{width:min(90vw,720px);aspect-ratio:1;background:#193b2d;border:12px solid #0f261c;border-radius:8px;
+         display:grid;grid-template-columns:repeat(8,1fr);box-shadow:0 18px 40px rgba(0,0,0,.6)}
+  .cell{position:relative}
+  .cell:nth-child(odd){background:#c3f0d2}
+  .row:nth-child(even) .cell:nth-child(odd){background:#2f6b51}
+  .row:nth-child(even) .cell:nth-child(even){background:#c3f0d2}
+  .row:nth-child(odd) .cell:nth-child(even){background:#2f6b51}
+  .piece{width:78%;height:78%;border-radius:50%;position:absolute;inset:0;margin:auto;cursor:pointer}
+  .p-player{background:#fff;border:3px solid #ddd}
+  .p-ai{background:#2e9f6b;border:3px solid #1c6643}
+  .hint{outline:3px solid #ffe58a}
+  .overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.2s}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .pill{background:#000;border:1px solid rgba(255,255,255,.4);padding:16px 18px;border-radius:14px;text-align:center;box-shadow:0 0 30px rgba(255,255,200,.4)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Damas — Mano a mano</h1>
+      <div class="msg" id="msg">Tus movimientos marcarán el ritmo. La máquina responde...</div>
+    </header>
+    <div id="board" class="board"></div>
+  </div>
+  <div class="overlay" id="overlay"><div class="pill" id="ovText"></div></div>
+<script>
+(function(){
+  const board = document.getElementById('board');
+  const msg   = document.getElementById('msg');
+  const overlay = document.getElementById('overlay');
+  const ovText  = document.getElementById('ovText');
+
+  const SIZE=8;
+  let turn='player', movesPlayer=0, aiStrongMoves=0;
+
+  // tablero matriz
+  const cells=[]; let id=0;
+  for(let r=0;r<SIZE;r++){
+    const row=[];
+    for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.dataset.r=r; cell.dataset.c=c; cell.dataset.id=id++;
+      board.appendChild(cell);
+      row.push(cell);
+    }
+    cells.push(row);
+  }
+
+  // colocar 8 fichas por bando (simplificado)
+  const pieces=[];
+  for(let c=0;c<8;c+=2){ makePiece('player',6,c); makePiece('player',7,c+1); }
+  for(let c=0;c<8;c+=2){ makePiece('ai',0,c+1);   makePiece('ai',1,c); }
+
+  function makePiece(side,r,c){
+    const p=document.createElement('div');
+    p.className='piece '+(side==='player'?'p-player':'p-ai');
+    p.dataset.side=side;
+    p.dataset.r=r; p.dataset.c=c;
+    p.style.left='0'; p.style.top='0';
+    cells[r][c].appendChild(p);
+    pieces.push(p);
+    if(side==='player'){
+      p.addEventListener('click', ()=> selectPiece(p));
+    }
+  }
+
+  let selected=null;
+  function selectPiece(p){
+    if(turn!=='player') return;
+    if(selected===p){ clearHints(); selected=null; return; }
+    clearHints(); selected=p;
+    p.classList.add('hint');
+    // mostrar 2 diagonales simples si están libres
+    const r=+p.dataset.r, c=+p.dataset.c;
+    hint(r-1,c-1); hint(r-1,c+1);
+  }
+  function hint(r,c){
+    if(r<0||r>=SIZE||c<0||c>=SIZE) return;
+    const cell=cells[r][c];
+    if(cell.querySelector('.piece')) return;
+    cell.classList.add('hint');
+    cell.addEventListener('click', onHintClick, {once:true});
+  }
+  function onHintClick(e){
+    const cell=e.currentTarget;
+    if(!selected) return;
+    movePiece(selected, +cell.dataset.r, +cell.dataset.c);
+    clearHints();
+    selected=null;
+    // chequear victoria rápida para el jugador en 3er intento
+    movesPlayer++;
+    if(movesPlayer>=3){
+      setTimeout(()=> winPlayer(), 500);
       return;
     }
+    // turno IA
+    setTimeout(()=> aiMove(), 550);
+  }
+  function movePiece(p, r, c){
+    const oldR=+p.dataset.r, oldC=+p.dataset.c;
+    p.dataset.r=r; p.dataset.c=c;
+    cells[r][c].appendChild(p);
+    // nada más
+  }
+  function clearHints(){
+    document.querySelectorAll('.hint').forEach(el=> el.classList.remove('hint'));
+    document.querySelectorAll('.cell').forEach(cell=>{
+      const clone=cell.cloneNode(true);
+      clone.dataset.r=cell.dataset.r; clone.dataset.c=cell.dataset.c;
+      if(cell.classList.contains('hint')){
+        cell.parentNode.replaceChild(clone,cell);
+      }
+    });
+    document.querySelectorAll('.piece.p-player').forEach(p=>{
+      p.classList.remove('hint');
+    });
+  }
 
-    // Incorrecta → restar intento
-    const left = Math.max(0, (triesLeft.get(selected) ?? MAX_TRIES) - 1);
-    triesLeft.set(selected, left);
-    if(left === 0){
-      // Reinicio completo
-      msg(`Has agotado los intentos de <strong>${selected}</strong>. El puzzle se reinicia…`);
-      setTimeout(resetAll, 900);
-    }else{
-      const txt = rand(encouragement).replace("{n}", `<strong>${left}</strong>`);
-      msg(txt);
+  function aiMove(){
+    // “jugada fuerte” (solo animación textual) las 2 primeras veces
+    aiStrongMoves++;
+    if(aiStrongMoves<=2){
+      showOverlay("Las pistas pueden estar en todos ellos, pero solo uno sabe la verdad.");
+      setTimeout(()=> hideOverlay(), 1200);
     }
+    // mueve una ficha hacia adelante (simplificado)
+    const aiPieces = pieces.filter(p=>p.dataset.side==='ai');
+    for(const p of aiPieces){
+      const r=+p.dataset.r, c=+p.dataset.c;
+      const options=[[r+1,c-1],[r+1,c+1]];
+      for(const [nr,nc] of options){
+        if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE && !cells[nr][nc].querySelector('.piece')){
+          movePiece(p,nr,nc); return;
+        }
+      }
+    }
+    // si no puede, pasa turno
   }
 
-  function resetAll(){
-    placed.clear();
-    clearSelection();
-    triesLeft.clear();
-    needles.forEach(id => triesLeft.set(id, MAX_TRIES));
-    renderSlots();
-    renderPieces();
-    msg("Puzzle reiniciado. Selecciona una aguja y colócala en su ranura. Recuerda: 3 intentos por aguja.");
+  function winPlayer(){
+    showOverlay("¡Has vencido! Al final has descubierto quién es el asesino. Ahora te espero en el próximo caso…");
   }
 
-  // Inicio
-  renderSlots();
-  renderPieces();
-  msg("Selecciona una aguja y colócala en su ranura. Tienes <strong>3 intentos por aguja</strong>. ¡Suerte!");
+  function showOverlay(t){ ovText.textContent=t; overlay.classList.add('show'); }
+  function hideOverlay(){ overlay.classList.remove('show'); }
 
-  $("#reset").addEventListener("click", resetAll);
+})();
+</script>
+</body></html>`;
+  }
+
+  /* ========= INICIO ========= */
+  createSlots();
+  createPieces();
+  say("Empieza cuando quieras. Busca la silueta adecuada para cada aguja.", '');  
 })();
 </script>
 </body>
 </html>
-
 
 
