@@ -9,49 +9,52 @@
 </head>
 <body>
 
-  <!-- Música de fondo con botón ON/OFF -->
+  <!-- 🔊 Música de fondo -->
   <audio id="musicaFondo" loop>
     <source src="audio.mp3" type="audio/mpeg">
     Tu navegador no soporta el audio.
   </audio>
 
-  <button id="botonMusica" style="
+  <!-- Botón de control de música (aislado del CSS global) -->
+  <button id="botonMusicaExomaw" style="
     position: fixed;
     top: 15px;
     right: 15px;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
+    background: rgba(20, 20, 20, 0.8);
+    color: #fff;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    border: 1px solid #999;
+    padding: 8px 14px;
+    border-radius: 8px;
     cursor: pointer;
     z-index: 9999;
-  ">
-    🔈 Reproducir Música
-  </button>
+    transition: background 0.3s;
+  ">🔈 Música OFF</button>
 
   <script>
-    const boton = document.getElementById('botonMusica');
+    const boton = document.getElementById('botonMusicaExomaw');
     const musica = document.getElementById('musicaFondo');
-    let activo = false;
+    let activa = false;
 
     boton.addEventListener('click', () => {
-      if (!activo) {
+      if (!activa) {
         musica.play();
-        boton.textContent = '🔊 Detener Música';
-        activo = true;
+        activa = true;
+        boton.textContent = '🔊 Música ON';
+        boton.style.background = 'rgba(0, 128, 0, 0.8)';
       } else {
         musica.pause();
-        boton.textContent = '🔈 Reproducir Música';
-        activo = false;
+        activa = false;
+        boton.textContent = '🔈 Música OFF';
+        boton.style.background = 'rgba(128, 0, 0, 0.8)';
       }
     });
   </script>
 
-  <!-- Portada de fondo -->
+  <!-- 🌌 Portada y contenido original -->
   <div class="overlay"></div>
 
-  <!-- Card principal -->
   <main id="card" class="wrap hero card">
     <button id="toggleMini" aria-pressed="false" title="Minimizar / Restaurar">◱</button>
     <div class="grid">
@@ -68,19 +71,18 @@
       <p class="foot">
         ¿Podrás acompañar a Nora Torres en su investigación a través de las pistas?
       </p>
+
       <a href="/p01.html" class="button">VER EL CUADERNO DE Nora Torres</a>
     </div>
   </main>
 
   <footer>
-    © EXOMAW — literatura inmersiva 2025 ( QR+Móvil )
+    © EXOMAW — literatura inmersiva 2025 (QR+Móvil)
   </footer>
 
   <script src="script.js"></script>
 </body>
 </html>
-
-
 
 
 
