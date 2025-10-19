@@ -1,44 +1,259 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal #P-01 — EXOMAW</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0a0c10;
-      color: #eaf1fb;
-      font: 16px/1.6 system-ui, Segoe UI, Roboto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .wrap {
-      max-width: 720px;
-      padding: 2rem;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      text-align: center;
-    }
-    a {
-      color: #8be9fd;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pista 5 — El mural y las agujas</title>
+<style>
+  :root{
+    --bg:#0b0b0b; --ink:#eee; --muted:#c7c7c7; --accent:#ffd166; --panel:rgba(0,0,0,.6);
+    --ok:#56f39a; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.6}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:20px}
+  .hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+  .btn{appearance:none;background:#fff;color:#000;border:1px solid #fff;
+       border-radius:999px;padding:10px 14px;font-weight:800;cursor:pointer}
+  .btn.ghost{background:transparent;color:#fff;border-color:#fff}
+  .btn:active{transform:translateY(1px)}
+
+  .panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);
+         border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+  h1{margin:0;font-size:clamp(20px,1.1rem + 1.2vw,32px)}
+  h2{margin:0 0 8px;font-size:clamp(18px,1rem + .8vw,24px)}
+  p.muted{margin:.2rem 0 10px;color:var(--muted);font-style:italic}
+
+  /* ===== MURAL ===== */
+  .mural{
+    position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,.18);
+    background:#111;
+  }
+  .mural .stage{
+    position:relative;isolation:isolate;
+    width:100%; aspect-ratio: 16/9; background:#000;
+    background-image:url('fondo.png'); background-size:cover; background-position:center;
+  }
+
+  /* Capas que “se destapan” con clic */
+  .layer{
+    position:absolute; inset:0; background-repeat:no-repeat; background-position:center; background-size:contain;
+    opacity:0; transform:scale(.98); transition:opacity .45s ease, transform .45s ease; pointer-events:none;
+  }
+  .layer.show{opacity:1; transform:none}
+
+  /* Hotspots clicables: dónde destapar cada elemento */
+  .hots{
+    position:absolute; border:2px dashed rgba(255,255,255,.35); border-radius:12px;
+    background:rgba(255,255,255,.03); cursor:pointer; backdrop-filter:blur(2px)
+  }
+  .hots:hover{outline:2px solid var(--accent); outline-offset:2px}
+
+  /* Posiciones aproximadas (ajusta si quieres) */
+  .hots.a{ left:10%; top:18%; width:18%; height:40% }   /* silueta A */
+  .hots.b{ left:38%; top:20%; width:18%; height:40% }   /* silueta B */
+  .hots.ta{ right:22%; bottom:22%; width:12%; height:22% } /* taza a */
+  .hots.tb{ right:12%; bottom:18%; width:12%; height:22% } /* taza b */
+
+  /* Capas gráficas */
+  .layer.siluA{ background-image:url('silueta_a.png'); background-position:12% 35%; background-size:30% }
+  .layer.siluB{ background-image:url('silueta_b.png'); background-position:40% 35%; background-size:30% }
+  .layer.tazaA{ background-image:url('taza_a.png'); background-position:74% 74%; background-size:14% }
+  .layer.tazaB{ background-image:url('taza_b.png'); background-position:86% 78%; background-size:14% }
+  .layer.manch{ background-image:url('mancha.png'); background-position:80% 84%; background-size:22% }
+
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:6px 10px}
+
+  /* ===== AGUJAS ===== */
+  .needles{margin-top:18px}
+  .grid12{display:grid; gap:12px; grid-template-columns:repeat(6,1fr)}
+  @media (max-width:980px){ .grid12{grid-template-columns:repeat(3,1fr)} }
+  @media (max-width:560px){ .grid12{grid-template-columns:repeat(2,1fr)} }
+
+  .card{
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); border-radius:12px;
+    padding:10px; cursor:pointer; display:grid; place-items:center; transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .card img{display:block; width:100%; height:auto; aspect-ratio:3/4; object-fit:contain; filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
+  .card.ok{ box-shadow:0 0 0 2px var(--ok), 0 0 30px rgba(120,255,190,.45) }
+  .card.bad{ animation:shake .35s linear 1 }
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 50%{transform:translateX(4px)} 75%{transform:translateX(-2px)} }
+
+  .flash{
+    position:fixed; inset:0; pointer-events:none; background:radial-gradient(ellipse at center, rgba(255,255,210,.9), rgba(255,255,210,0) 60%);
+    opacity:0; transition:opacity .2s ease;
+  }
+  .flash.show{opacity:1}
+
+  .toast{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+    background:rgba(0,0,0,.75); border:1px solid rgba(255,255,255,.5);
+    color:#fff; padding:10px 14px; border-radius:12px; font-weight:700; max-width:min(90vw,780px);
+    box-shadow:0 10px 30px rgba(0,0,0,.45); opacity:0; transition:opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
+</style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Portal #P-01</h1>
-    <p>Este es un portal de prueba. Cuando el libro esté publicado, aquí aparecerá la primera pista.</p>
-    <p><a href="/">← Volver al inicio</a></p>
+    <header class="hdr">
+      <h1>Pista 5 · El mural del taller</h1>
+      <div class="hdr-actions">
+        <a class="btn ghost" href="index.html">⟵ Volver a pistas</a>
+      </div>
+    </header>
+
+    <section class="panel mural">
+      <h2>Mira con atención el mural</h2>
+      <p class="muted">Toca sobre las zonas del cuadro para “levantar” las siluetas y la taza rota. Cuando lo tengas claro, prueba suerte con las agujas.</p>
+
+      <div class="stage" id="stage">
+        <!-- Capas que se revelan -->
+        <div class="layer siluA" id="layA" aria-hidden="true"></div>
+        <div class="layer siluB" id="layB" aria-hidden="true"></div>
+        <div class="layer tazaA" id="layTA" aria-hidden="true"></div>
+        <div class="layer tazaB" id="layTB" aria-hidden="true"></div>
+        <div class="layer manch" id="layM" aria-hidden="true"></div>
+
+        <!-- Hotspots -->
+        <div class="hots a" data-target="layA" title="Destapar silueta"></div>
+        <div class="hots b" data-target="layB" title="Destapar silueta"></div>
+        <div class="hots ta" data-target="layTA" title="Destapar taza"></div>
+        <div class="hots tb" data-target="layTB" title="Destapar taza"></div>
+      </div>
+
+      <div class="legend">
+        <span class="tag">Consejo: cuando aparezcan ambas partes de la taza, fíjate en la <strong>mancha</strong>…</span>
+        <span class="tag">Haz doble toque sobre el suelo para verla.</span>
+      </div>
+    </section>
+
+    <section class="panel needles">
+      <h2>¿Qué aguja encaja?</h2>
+      <p class="muted">Pulsa sobre una de las 12. Si aciertas, verás un destello. Si no, el tiempo no estará de tu parte…</p>
+
+      <div class="grid12" id="needleGrid">
+        <!-- Tarjetas de agujas (se pintan por JS para poder barajarlas) -->
+      </div>
+
+      <div class="legend" style="margin-top:12px">
+        <span class="tag">Pista: <em>“Soy Nora y estoy segura de que la pista es la misma que la mía”</em>… cuando aciertas.</span>
+      </div>
+    </section>
   </div>
+
+  <!-- Efecto flash y mensajes -->
+  <div class="flash" id="flash"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  /* ====== REVELAR CAPAS EN EL MURAL ====== */
+  const stage = document.getElementById('stage');
+  const layA  = document.getElementById('layA');
+  const layB  = document.getElementById('layB');
+  const layTA = document.getElementById('layTA');
+  const layTB = document.getElementById('layTB');
+  const layM  = document.getElementById('layM');
+
+  // Click en hotspot: muestra/oculta capa asociada
+  stage.addEventListener('click', (e)=>{
+    const hs = e.target.closest('.hots');
+    if(!hs) return;
+    const id = hs.dataset.target;
+    const capa = document.getElementById(id);
+    capa.classList.toggle('show');
+
+    // Si ya están visibles las dos piezas de la taza, deja ver mancha con doble click en suelo
+    if(layTA.classList.contains('show') && layTB.classList.contains('show')){
+      // habilita doble click para mancha
+      stage.addEventListener('dblclick', showStainOnce, { once:true });
+      toast('💡 Doble toque en el suelo para ver la mancha.');
+    }
+  });
+
+  function showStainOnce(){
+    layM.classList.add('show');
+    toast('La mancha dice más de lo que parece…');
+  }
+
+  /* ====== AGUJAS ====== */
+  // Archivos existentes (12). La correcta es aguja_luz.png
+  const ALL_NEEDLES = [
+    'aguja01.png','aguja02.png','aguja03.png','aguja04.png','aguja05.png','aguja06.png',
+    'aguja07.png','aguja08.png','aguja09.png','aguja010.png','aguja011.png','aguja_luz.png'
+  ];
+
+  // Mensajes de fallo variados
+  const FAILS = [
+    'Vuelve a intentarlo, el tiempo no juega a tu favor.',
+    'Esa no encaja… escucha al tic-tac.',
+    'Demasiado corta. O demasiado tarde.',
+    'No es esa. Observa la mancha y compara.',
+    'Casi, pero los engranajes no mienten.'
+  ];
+
+  const grid = document.getElementById('needleGrid');
+  const flash = document.getElementById('flash');
+
+  // Barajar
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]} return a }
+  const deck = shuffle(ALL_NEEDLES.slice());
+
+  // Pintar tarjetas
+  deck.forEach(src=>{
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.type='button';
+    card.dataset.src = src;
+    const img = document.createElement('img');
+    img.alt = 'Aguja';
+    img.loading='lazy';
+    img.src = src;
+    card.appendChild(img);
+    card.addEventListener('click', onPick);
+    grid.appendChild(card);
+  });
+
+  let solved = false;
+
+  function onPick(e){
+    const card = e.currentTarget;
+    if(solved) return;
+
+    const src = card.dataset.src;
+    if(src === 'aguja_luz.png'){
+      solved = true;
+      card.classList.add('ok');
+      doFlash();
+      toast('⭐ “Soy Nora y estoy segura de que la pista es la misma que la mía.” Las agujas y su tiempo terminan aquí en blanco y negro.');
+    }else{
+      card.classList.remove('ok');
+      card.classList.add('bad');
+      setTimeout(()=> card.classList.remove('bad'), 380);
+      toast('⌛ ' + FAILS[Math.floor(Math.random()*FAILS.length)]);
+    }
+  }
+
+  function doFlash(){
+    flash.classList.add('show');
+    setTimeout(()=> flash.classList.remove('show'), 900);
+  }
+
+  /* ====== TOAST ====== */
+  const toastEl = document.getElementById('toast'); let tTimer=null;
+  function toast(msg){
+    clearTimeout(tTimer);
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    tTimer = setTimeout(()=> toastEl.classList.remove('show'), 2600);
+  }
+})();
+</script>
 </body>
 </html>
-
 
