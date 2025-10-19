@@ -131,8 +131,154 @@ const MODELS = [
   {shaft:52, tip:"diamond",weight:"circle", thick:4},
   {shaft:66, tip:"needle", weight:"spike",  thick:2},
   {shaft:56, tip:"arrow",  weight:"spike",  thick:4},
-  {shaft:
+  {shaft:64, tip:"diamond",weight:"ring",   thick:3},
+  {shaft:50, tip:"needle", weight:"circle", thick:3},
+  {shaft:68, tip:"arrow",  weight:"circle", thick:2},
+  {shaft:58, tip:"diamond",weight:"spike",  thick:5},
+  {shaft:60, tip:"needle", weight:"ring",   thick:3, glow:true} // aguja de luz
+];
 
+/* ===== estado ===== */
+const board=$("#board"), feedback=$("#feedback"), flash=$("#flash");
+const movesEl=$("#moves"), failsEl=$("#fails"), timeEl=$("#time");
+let first=null, second=null, lock=false, pairsFound=0, moves=0, fails=0, t0=null, tick=null;
+
+const NORA_LINES = [
+  "Nora: A veces la sombra se adelanta a la verdad.",
+  "Nora: El detalle mínimo parte la noche en dos.",
+  "Nora: Cuando encaja, el tiempo asiente.",
+  "Nora: La memoria viaja al compás de la luz."
+];
+
+function build(){
+  clearInterval(tick);
+  board.innerHTML=""; feedback.className="msg"; feedback.textContent="";
+  first=second=null; lock=false; pairsFound=0; moves=0; fails=0;
+  movesEl.textContent="Movimientos: 0"; failsEl.textContent="Fallos: 0";
+  // tiempo
+  t0=Date.now(); timeEl.textContent="Tiempo: 00:00";
+  tick=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); timeEl.textContent=`Tiempo: ${pad(Math.floor(s/60))}:${pad(s%60)}`; },1000);
+
+  // baraja: para cada modelo, dos cartas: sombra y aguja
+  const deck=[];
+  MODELS.forEach((m,i)=>{
+    deck.push({id:i, type:"shadow", html:needleSVG({...m, shadow:true})});
+    deck.push({id:i, type:"needle", html:needleSVG(m)});
+  });
+  deck.sort(()=>Math.random()-.5);
+
+  deck.forEach(card=>{
+    const el=document.createElement("div");
+    el.className="cardx"; el.tabIndex=0;
+    el.dataset.id=card.id; el.dataset.type=card.type;
+    el.innerHTML=`
+      <div class="face front">${card.html}</div>
+      <div class="face back"></div>
+    `;
+    el.addEventListener("click", ()=>flip(el));
+    el.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" ") flip(el); });
+    board.appendChild(el);
+  });
+
+  // Libreta: cargar
+  loadNotes();
+}
+
+/* flip/match */
+function flip(el){
+  if(lock || el.classList.contains("flip") || el.classList.contains("lock")) return;
+  el.classList.add("flip");
+  if(!first){ first=el; return; }
+  second=el; lock=true; moves++; movesEl.textContent=`Movimientos: ${moves}`;
+
+  const match = first.dataset.id===second.dataset.id && first.dataset.type!==second.dataset.type;
+  if(match){
+    setTimeout(()=>{
+      first.classList.add("lock");
+      second.classList.add("lock");
+      // fusion (deja solo aguja si era sombra)
+      [first,second].forEach(x=>{
+        if(x.dataset.type==="shadow"){
+          x.querySelector(".front").innerHTML = needleSVG(MODELS[+x.dataset.id]);
+        }
+      });
+      // flash + frase de Nora
+      flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"), 360);
+      feedback.className="msg show";
+      feedback.textContent = NORA_LINES[Math.floor(Math.random()*NORA_LINES.length)];
+
+      pairsFound++;
+      resetPick();
+      if(pairsFound===MODELS.length) finish();
+    },260);
+  } else {
+    fails++; failsEl.textContent=`Fallos: ${fails}`;
+    feedback.className="msg show"; feedback.textContent=["Observa la punta.","El contrapeso no coincide.","Grosor y longitud marcan la diferencia." ][Math.floor(Math.random()*3)];
+    setTimeout(()=>{ first.classList.remove("flip"); second.classList.remove("flip"); resetPick(); },650);
+  }
+}
+
+function resetPick(){ first=null; second=null; lock=false; }
+
+/* FINAL */
+function finish(){
+  clearInterval(tick);
+  const secs = Math.floor((Date.now()-t0)/1000);
+  const final = document.getElementById("finalBox");
+  // destello 1s más fuerte
+  const f = document.getElementById("flash");
+  f.classList.add("on"); setTimeout(()=>f.classList.remove("on"), 1000);
+
+  final.style.display = "block";
+  final.innerHTML = `
+    <strong>¡Puzzle completo!</strong><br>
+    Tiempo: <b>${pad(Math.floor(secs/60))}:${pad(secs%60)}</b> — Movimientos: <b>${moves}</b> — Fallos: <b>${fails}</b>.<br><br>
+    <em>Nora:</em> «<strong>La memoria viaja al compás de la luz.</strong>»<br><br>
+    <span style="display:block;margin:.3rem 0 1rem">Lo hemos resuelto, gracias a tus habilidades; ¡te espero en la próxima novela!</span>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" onclick="location.href='p06.html'">El reloj de la verdad</button>
+      <button class="btn ghost" onclick="history.back()">Volver al libro</button>
+      <button class="btn ghost" onclick="build()">Volver a jugar</button>
+    </div>
+  `;
+}
+
+/* ===== Libreta (localStorage) ===== */
+const KEY="notes_p05";
+function loadNotes(){
+  const area=$("#notesArea");
+  const data=localStorage.getItem(KEY);
+  area.value = data || "";
+}
+function saveLine(){
+  const area=$("#notesArea");
+  const val=area.value.trim();
+  if(!val) return;
+  area.value = val + (val.endsWith("\n")?"":"\n");
+  localStorage.setItem(KEY, area.value);
+}
+function undoLine(){
+  const area=$("#notesArea");
+  const lines=area.value.split("\n");
+  if(lines.length<=1){ area.value=""; localStorage.setItem(KEY,""); return;}
+  lines.pop(); // línea vacía final
+  lines.pop(); // última con texto
+  area.value = lines.join("\n") + (lines.length? "\n": "");
+  localStorage.setItem(KEY, area.value);
+}
+function clearAll(){
+  if(confirm("¿Borrar todas las notas?")){ $("#notesArea").value=""; localStorage.removeItem(KEY); }
+}
+$("#saveLine").addEventListener("click", saveLine);
+$("#undoLine").addEventListener("click", undoLine);
+$("#clearAll").addEventListener("click", clearAll);
+
+/* ===== go! ===== */
+$("#restart").addEventListener("click", build);
+build();
+</script>
+</body>
+</html>
 
 
 
