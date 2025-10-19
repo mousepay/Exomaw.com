@@ -186,3 +186,79 @@ body{
   content: "EXOMAW — presentación";
   display:block; color:#eaf1fb; letter-spacing:.4px;
 }
+/* ====== ANIMACIONES DE PORTADA: TÍTULO, NORA Y EFECTOS ====== */
+
+/* --- TÍTULO PRINCIPAL --- */
+.titulo-animado {
+  font-size: 3.5em;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: aparecerTexto 3s ease-out forwards;
+}
+
+/* Efecto de aparición y desaparición suave */
+@keyframes aparecerTexto {
+  0% { opacity: 0; transform: translateY(40px); }
+  50% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* --- NORA TORRES CAMINANDO --- */
+.nora-camina {
+  position: absolute;
+  bottom: 10%;
+  left: -100px;
+  width: 150px;
+  opacity: 0.9;
+  animation: caminarNora 12s linear infinite;
+}
+
+@keyframes caminarNora {
+  0% { left: -150px; opacity: 0; }
+  10% { opacity: 1; }
+  50% { left: 45%; opacity: 1; }
+  90% { left: 90%; opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* --- EFECTO DE NIEBLA --- */
+.niebla {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 70%),
+              radial-gradient(circle at 70% 70%, rgba(255,255,255,0.05), transparent 70%);
+  animation: moverNiebla 25s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes moverNiebla {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(30px, 20px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* --- Efecto suave de luz sobre el título --- */
+.titulo-animado::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  animation: brillo 4s infinite;
+}
+
+@keyframes brillo {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
