@@ -8,6 +8,7 @@
   :root{ --ink:#0c2f29; --muted:#2b5f55; --ok:#118754; --warn:#f0b429; --brand:#0ea5a3; --pane:rgba(255,255,255,.92); }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
   body{
+    /* Si quieres tu imagen: */
     /* background:url('fondo.png') center/cover fixed no-repeat; */
     background: radial-gradient(1200px 900px at 30% 0%, #eaf7f2, #d8efe6 60%, #cde6de);
   }
@@ -43,7 +44,6 @@
   .flash.on{opacity:1;animation:fadeFlash .9s ease forwards}
   @keyframes fadeFlash{0%{opacity:1}60%{opacity:.45}100%{opacity:0}}
   .final{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#f4fffb;border:1px solid #cfe6df}
-
   /* Libreta */
   .notes{margin-top:14px;border:1px solid #cfe6df;background:#ffffff;border-radius:12px;overflow:hidden}
   .notes .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#eef7f5;border-bottom:1px solid #cfe6df}
@@ -61,7 +61,7 @@
     </div>
 
     <div class="card">
-      <p><strong>Cómo se juega:</strong> ajusta las agujas para alinear <strong>seis horas clave</strong>. Cada acierto desbloquea un recuerdo de Nora (no revela al asesino). Tolerancia: ±3 minutos. Sugerencia: mueve primero la aguja larga (minutos) y luego la corta (horas).</p>
+      <p><strong>Cómo se juega:</strong> ajusta las agujas para alinear <strong>seis horas clave</strong>. Cada acierto desbloquea un recuerdo de Nora (sin spoilers). Tolerancia: ±3 minutos. Sugerencia: mueve primero la aguja larga (minutos) y luego la corta (horas).</p>
 
       <div class="hud">
         <span class="pill" id="readout">Hora actual: 12:00</span>
@@ -73,24 +73,13 @@
         <div class="clockWrap">
           <svg viewBox="0 0 300 300" aria-label="Reloj interactivo">
             <circle cx="150" cy="150" r="135" class="face"/>
-            <!-- marcas -->
-            <g id="ticks">
-              <g>
-                <!-- horas -->
-                <!-- se inyecta en JS si quisieras; aquí dejamos las 12 -->
-                <!-- H -->
-                <script>
-                  /* marcador para no romper HTML; JS lo añadirá al cargar */
-                </script>
-              </g>
-            </g>
+            <g id="ticks"></g>
             <g id="targets"></g>
-            <!-- agujas -->
             <line id="hour" x1="150" y1="150" x2="150" y2="95" stroke-width="6" class="hand"/>
             <line id="min"  x1="150" y1="150" x2="150" y2="70" stroke-width="4" class="hand"/>
             <circle cx="150" cy="150" r="5.5" class="center"/>
           </svg>
-          <div class="msg" id="hint">Consejo: arrastra la <strong>aguja larga</strong> (minutero) y luego ajusta la <strong>corta</strong> (hora).</div>
+          <div class="msg" id="hint">Consejo: arrastra la <strong>aguja larga</strong> (minutero) y luego la <strong>corta</strong> (hora).</div>
 
           <!-- Libreta -->
           <div class="notes" id="notes">
@@ -123,6 +112,7 @@
 const readout = document.getElementById('readout');
 const list    = document.getElementById('list');
 const targetsG= document.getElementById('targets');
+const ticksG  = document.getElementById('ticks');
 const flash   = document.getElementById('flash');
 
 const hourHand = document.getElementById('hour');
@@ -130,9 +120,8 @@ const minHand  = document.getElementById('min');
 const center = {x:150,y:150};
 let hour=12, minute=0;
 
-const TOL_MIN = 3; // ±3'
+const TOL_MIN = 3; // ±3 minutos
 
-// Objetivos y frases (no spoilers)
 const GOALS = [
   {h:2,  m:15, txt:'A las 02:15, la sombra se movió antes del reflejo.'},
   {h:5,  m:30, txt:'A las 05:30, alguien giró el tiempo para encajar en su coartada.'},
@@ -147,34 +136,24 @@ function pad(n){return String(n).padStart(2,'0')}
 function timeStr(h,m){return `${pad(h)}:${pad(m)}`}
 
 function paintTicks(){
-  const svg = document.querySelector('svg');
-  const gH = document.createElementNS('http://www.w3.org/2000/svg','g');
-  const gM = document.createElementNS('http://www.w3.org/2000/svg','g');
   // horas
+  let H='', M='';
   for(let i=0;i<12;i++){
-    const a = i*Math.PI/6;
+    const a=i*Math.PI/6;
     const x1=150+Math.sin(a)*110, y1=150- Math.cos(a)*110;
     const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
-    const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
-    ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
-    ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
-    ln.setAttribute('class','tick'); gH.appendChild(ln);
+    H+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="tick"/>`;
   }
-  // minutos
   for(let i=0;i<60;i++){
     if(i%5===0) continue;
     const a=i*Math.PI/30;
     const x1=150+Math.sin(a)*118, y1=150- Math.cos(a)*118;
     const x2=150+Math.sin(a)*125, y2=150- Math.cos(a)*125;
-    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
-    ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
-    ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
-    ln.setAttribute('class','sub'); gM.appendChild(ln);
+    M+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="sub"/>`;
   }
-  svg.querySelector('#ticks').append(gH,gM);
+  ticksG.innerHTML=H+M;
 }
 
-// lista y halos
 function paintList(){
   list.innerHTML = GOALS.map((g,i)=>`
     <div class="row ${unlocked.has(i)?'done':''}">
@@ -183,6 +162,122 @@ function paintList(){
     </div>
   `).join('');
   targetsG.innerHTML = GOALS.map((g,i)=>{
-    c
+    const angle = (g.m/60)*2*Math.PI;
+    const r=128;
+    const cx = 150 + Math.sin(angle)*r;
+    const cy = 150 - Math.cos(angle)*r;
+    return `<circle cx="${cx}" cy="${cy}" r="7" class="${unlocked.has(i)?'unlocked':'target'}" opacity="${unlocked.has(i)?1:.4}"/>`
+  }).join('');
+}
+
+function setHands(h,m){
+  hour=h; minute=m;
+  const minDeg = m*6;
+  const h12 = (h%12);
+  const hourDeg = h12*30 + m*0.5;
+  minHand.style.transform  = `rotate(${minDeg}deg) translateZ(0)`;
+  hourHand.style.transform = `rotate(${hourDeg}deg) translateZ(0)`;
+  readout.textContent = `Hora actual: ${timeStr(h,m)}`;
+  checkGoals();
+}
+
+function angleFromPointer(e){
+  const pt = ('touches' in e) ? e.touches[0] : e;
+  const rect = e.target.closest('svg').getBoundingClientRect();
+  const x = pt.clientX - rect.left;
+  const y = pt.clientY - rect.top;
+  const dx = x - center.x, dy = y - center.y;
+  let ang = Math.atan2(dx, -dy); if(ang<0) ang += 2*Math.PI;
+  return ang;
+}
+
+let drag=null;
+const onDown = which => e => { e.preventDefault(); drag=which; };
+function onMove(e){
+  if(!drag) return;
+  e.preventDefault();
+  const ang = angleFromPointer(e);
+  const deg = ang*180/Math.PI;
+  if(drag==='min'){
+    const m = Math.round(deg/6) % 60;
+    setHands(hour, m);
+  }else{
+    let snapped = Math.round((deg/30)) % 12;
+    if(snapped===0) snapped=12;
+    setHands(snapped, minute);
+  }
+}
+const onUp = ()=> drag=null;
+
+minHand.addEventListener('mousedown', onDown('min'));
+hourHand.addEventListener('mousedown', onDown('hour'));
+document.addEventListener('mousemove', onMove);
+document.addEventListener('mouseup', onUp);
+
+minHand.addEventListener('touchstart', onDown('min'), {passive:false});
+hourHand.addEventListener('touchstart', onDown('hour'), {passive:false});
+document.addEventListener('touchmove', onMove, {passive:false});
+document.addEventListener('touchend', onUp);
+
+function within(a,b, tol){ return Math.abs(a-b)<=tol; }
+function checkGoals(){
+  GOALS.forEach((g,i)=>{
+    if(unlocked.has(i)) return;
+    const sameHour = ( (g.h%12) === (hour%12) );
+    const sameMin  = within(g.m, minute, TOL_MIN);
+    if(sameHour && sameMin){
+      unlocked.add(i);
+      paintList();
+      flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 350);
+      document.getElementById('hint').textContent = `Nora: ${g.txt}`;
+      if(unlocked.size===GOALS.length) finish();
+    }
+  });
+}
+
+function finish(){
+  flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'), 900);
+  const box = document.getElementById('finalBox');
+  box.style.display='block';
+  box.innerHTML = `
+    <strong>El tiempo no delata.</strong><br>
+    Lo hemos resuelto; gracias a tus habilidades… <em>te espero en la próxima novela</em>.<br><br>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" onclick="history.back()">Volver al libro</button>
+      <button class="btn ghost" onclick="resetAll()">Reiniciar reloj</button>
+    </div>
+  `;
+}
+
+function resetAll(){
+  unlocked.clear();
+  paintList();
+  setHands(12,0);
+  document.getElementById('hint').textContent = 'Consejo: arrastra la aguja larga (minutero) y luego la corta (hora).';
+}
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+/* Libreta (localStorage) */
+const KEY="notes_p06";
+function loadNotes(){ const a=document.getElementById('notesArea'); a.value = localStorage.getItem(KEY)||""; }
+function saveLine(){ const a=document.getElementById('notesArea'); const v=a.value.trim(); if(!v) return; a.value=v+(v.endsWith("\n")?"":"\n"); localStorage.setItem(KEY,a.value); }
+function undoLine(){ const a=document.getElementById('notesArea'); const lines=a.value.split("\n"); if(lines.length<=1){ a.value=""; localStorage.setItem(KEY,""); return;} lines.pop(); lines.pop(); a.value=lines.join("\n")+(lines.length? "\n":""); localStorage.setItem(KEY,a.value); }
+function clearAll(){ if(confirm("¿Borrar todas las notas?")){ document.getElementById('notesArea').value=""; localStorage.removeItem(KEY);} }
+document.getElementById('saveLine').addEventListener('click', saveLine);
+document.getElementById('undoLine').addEventListener('click', undoLine);
+document.getElementById('clearAll').addEventListener('click', clearAll);
+
+/* Init */
+function init(){
+  // pintar marcas del reloj y objetivos + estado inicial
+  paintTicks();
+  paintList();
+  loadNotes();
+  setHands(12,0);
+}
+init();
+</script>
+</body>
+</html>
 
 
